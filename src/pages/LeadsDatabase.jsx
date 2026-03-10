@@ -74,14 +74,26 @@ export default function LeadsDatabase() {
 
   const mapRowToLead = (headers, values, groupId) => {
     const row = {};
-    headers.forEach((h, i) => { row[h.toLowerCase().replace(/\s+/g, "_")] = values[i] || ""; });
+    headers.forEach((h, i) => {
+      // normalize: lowercase, trim, collapse spaces/hyphens/dots to underscores
+      const key = h.toLowerCase().trim().replace(/[\s\-\.]+/g, "_");
+      row[key] = values[i] || "";
+    });
+
+    const pick = (...keys) => {
+      for (const k of keys) if (row[k]) return row[k];
+      return "";
+    };
+
     return {
-      first_name: row.first_name || row.name || row.firstname || "",
-      email: row.email || row.email_address || "",
-      company_name: row.company_name || row.company || row.business_name || "",
-      state: row.state || "",
-      industry: row.industry || "",
-      market: row.market || "",
+      first_name: pick("first_name", "firstname", "first", "name", "contact_name", "contact"),
+      email: pick("email", "email_address", "e_mail", "mail"),
+      company_name: pick("company_name", "company", "business_name", "business", "organization", "org"),
+      state: pick("state", "province", "region", "st"),
+      industry: pick("industry", "sector", "vertical", "niche"),
+      market: pick("market", "market_type", "segment", "type"),
+      company_website: pick("company_website", "website", "url", "web", "site"),
+      alternate_emails: pick("alternate_emails", "alternate_email", "alt_email", "other_email"),
       status: "New",
       sequence_type: "1st",
       total_sends: 0,

@@ -52,9 +52,9 @@ import Dashboard from './pages/Dashboard';
 import EmailTesting from './pages/EmailTesting';
 import GmailAccounts from './pages/GmailAccounts';
 import Inbox from './pages/Inbox';
+import LeadsDatabase from './pages/LeadsDatabase';
 import SendHub from './pages/SendHub';
 import Templates from './pages/Templates';
-import LeadsDatabase from './pages/LeadsDatabase';
 import __Layout from './Layout.jsx';
 
 
@@ -64,9 +64,9 @@ export const PAGES = {
     "EmailTesting": EmailTesting,
     "GmailAccounts": GmailAccounts,
     "Inbox": Inbox,
+    "LeadsDatabase": LeadsDatabase,
     "SendHub": SendHub,
     "Templates": Templates,
-    "LeadsDatabase": LeadsDatabase,
 }
 
 export const pagesConfig = {
