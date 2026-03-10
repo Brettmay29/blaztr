@@ -193,7 +193,7 @@ export default function SequenceStepEditor({
             disabled={preview}
           />
         ) : (
-          <div className="border border-t-0 border-neutral-200 rounded-b-lg overflow-hidden">
+          <div className="border border-neutral-200 rounded-lg overflow-hidden">
             <ReactQuill
               value={step.body}
               onChange={(value) => onChange({ body: value })}
@@ -207,7 +207,7 @@ export default function SequenceStepEditor({
                 ],
               }}
               readOnly={preview}
-              style={{ height: "288px" }}
+              style={{ height: "320px" }}
             />
           </div>
         )}
