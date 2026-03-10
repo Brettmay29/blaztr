@@ -107,7 +107,53 @@ export default function Layout({ children, currentPageName }) {
           <h1 className="text-sm font-medium text-neutral-800 capitalize">
             {currentPageName?.replace(/([A-Z])/g, ' $1').trim()}
           </h1>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-3">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-neutral-100 transition-colors">
+                  <div className="w-7 h-7 rounded-full bg-neutral-900 flex items-center justify-center">
+                    <span className="text-[11px] font-semibold text-white">
+                      {user?.full_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "U"}
+                    </span>
+                  </div>
+                  <div className="hidden sm:flex flex-col items-start">
+                    <span className="text-[12px] font-medium text-neutral-800 leading-none">
+                      {user?.full_name || "Account"}
+                    </span>
+                    <span className="text-[11px] text-neutral-400 leading-none mt-0.5">
+                      {user?.email || ""}
+                    </span>
+                  </div>
+                  <ChevronDown className="w-3.5 h-3.5 text-neutral-400 hidden sm:block" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-0.5">
+                    <p className="text-[13px] font-medium text-neutral-900">{user?.full_name || "User"}</p>
+                    <p className="text-[11px] text-neutral-500 truncate">{user?.email || ""}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="text-[13px] cursor-pointer" onClick={() => {}}>
+                  <User className="w-3.5 h-3.5 mr-2 text-neutral-500" />
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-[13px] cursor-pointer" onClick={() => {}}>
+                  <Settings className="w-3.5 h-3.5 mr-2 text-neutral-500" />
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-[13px] cursor-pointer text-red-600 focus:text-red-600"
+                  onClick={() => base44.auth.logout()}
+                >
+                  <LogOut className="w-3.5 h-3.5 mr-2" />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <img
               src="https://media.base44.com/images/public/69b02505f9b4d10dd348ac34/a8bb82400_image.png"
               alt="Blastbot"
