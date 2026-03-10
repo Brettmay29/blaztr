@@ -331,7 +331,7 @@ export default function LeadsDatabase() {
           {/* Right column: Uploaded Databases + Custom Database */}
           <div className="sm:w-56 shrink-0 space-y-3">
             {/* Uploaded Databases */}
-            <div>
+            <div className={customGroupId !== "all" ? "opacity-40 pointer-events-none" : ""}>
               <p className="text-xs font-medium text-neutral-500 mb-1.5">Uploaded Databases</p>
               <div className="flex items-center gap-1.5">
                 <Select value={selectedGroupId} onValueChange={setSelectedGroupId}>
