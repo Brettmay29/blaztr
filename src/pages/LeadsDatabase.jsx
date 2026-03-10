@@ -372,7 +372,11 @@ export default function LeadsDatabase() {
             <div>
               <p className="text-xs font-medium text-neutral-500 mb-1.5">Custom Database</p>
               <div className="flex items-center gap-1.5">
-                <Select value={customGroupId} onValueChange={(val) => setCustomGroupId(val === customGroupId ? "all" : val)}>
+                <Select value={customGroupId} onValueChange={(val) => {
+                  const next = val === customGroupId ? "all" : val;
+                  setCustomGroupId(next);
+                  if (next !== "all") setSelectedGroupId("all");
+                }}>
                   <SelectTrigger className="h-9 text-sm flex-1">
                     <div className="flex items-center gap-2 truncate">
                       <Database className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
