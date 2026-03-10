@@ -22,6 +22,8 @@ export default function SendHub() {
   const [selectedCampaign, setSelectedCampaign] = useState("");
   const [selectedGmail, setSelectedGmail] = useState("");
   const [sending, setSending] = useState(false);
+  const [checkingReplies, setCheckingReplies] = useState(false);
+  const [sendProgress, setSendProgress] = useState({ current: 0, total: 0 });
 
   const { data: campaigns = [] } = useQuery({
     queryKey: ["campaigns"],
