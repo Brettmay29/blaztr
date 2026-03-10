@@ -12,7 +12,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Plus, Pencil, Trash2 } from "lucide-react";
+import { Mail, Plus, Pencil, Trash2, Zap } from "lucide-react";
+import { toast } from "sonner";
 
 export default function GmailAccounts() {
   const queryClient = useQueryClient();
