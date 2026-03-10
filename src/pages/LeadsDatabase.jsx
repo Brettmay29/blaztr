@@ -25,6 +25,9 @@ export default function LeadsDatabase() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [selectedGroupId, setSelectedGroupId] = useState("all");
   const [filters, setFilters] = useState({ search: "", state: "", industry: "", status: "", market: "" });
+  const [customDbName, setCustomDbName] = useState("");
+  const [customGroupId, setCustomGroupId] = useState("all");
+  const [moveToGroupId, setMoveToGroupId] = useState("");
 
   // Column mapping state
   const [pendingImport, setPendingImport] = useState(null); // { columns, dataRows, source, name }
