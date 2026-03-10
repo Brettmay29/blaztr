@@ -395,46 +395,54 @@ export default function LeadsDatabase() {
             <div>
               <p className="text-xs font-medium text-neutral-500 mb-1.5">Custom Database</p>
               <div className="flex items-center gap-1.5">
-                <Select
-                  value={customGroupId}
-                  onValueChange={(val) => {
-                    if (val === "all") {
-                      setCustomGroupId("all");
-                    } else {
-                      setCustomGroupId(val);
-                      setSelectedGroupId("all");
-                    }
-                  }}
-                >
-                  <SelectTrigger className="h-9 text-sm flex-1">
-                    <div className="flex items-center gap-2 truncate">
-                      <Database className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
-                      <span className="truncate">
-                        {customGroupId === "all" ? "Select folder..." : groups.find((g) => g.id === customGroupId)?.name || "Select folder..."}
-                      </span>
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">— None —</SelectItem>
-                    {customGroups.map((g) => (
-                      <SelectItem
-                        key={g.id}
-                        value={g.id}
-                        onPointerDown={(e) => {
-                          if (g.id === customGroupId) {
-                            e.preventDefault();
-                            setCustomGroupId("all");
-                          }
-                        }}
+                {/* Custom toggle dropdown */}
+                <div className="relative flex-1" ref={customDropdownRef}>
+                  <button
+                    onClick={() => setCustomDropdownOpen((o) => !o)}
+                    className={`w-full h-9 flex items-center gap-2 px-3 text-sm rounded-md border transition-colors ${
+                      customGroupId !== "all"
+                        ? "border-neutral-900 ring-1 ring-neutral-900 bg-white"
+                        : "border-neutral-200 bg-white hover:border-neutral-300"
+                    }`}
+                  >
+                    <Database className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+                    <span className="truncate flex-1 text-left text-neutral-700">
+                      {customGroupId === "all" ? "Select folder..." : groups.find((g) => g.id === customGroupId)?.name || "Select folder..."}
+                    </span>
+                    <ChevronDown className={`w-3.5 h-3.5 text-neutral-400 shrink-0 transition-transform ${customDropdownOpen ? "rotate-180" : ""}`} />
+                  </button>
+                  {customDropdownOpen && (
+                    <div className="absolute z-50 mt-1 w-full bg-white border border-neutral-200 rounded-md shadow-lg py-1">
+                      <button
+                        className="w-full text-left px-3 py-2 text-xs text-neutral-500 hover:bg-neutral-50"
+                        onClick={() => { setCustomGroupId("all"); setCustomDropdownOpen(false); }}
                       >
-                        {g.name}
-                      </SelectItem>
-                    ))}
-                    {customGroups.length === 0 && (
-                      <div className="px-3 py-2 text-xs text-neutral-400">No custom folders yet</div>
-                    )}
-                  </SelectContent>
-                </Select>
+                        — None —
+                      </button>
+                      {customGroups.length === 0 && (
+                        <div className="px-3 py-2 text-xs text-neutral-400">No custom folders yet</div>
+                      )}
+                      {customGroups.map((g) => (
+                        <button
+                          key={g.id}
+                          className="w-full text-left px-3 py-2 text-xs text-neutral-800 hover:bg-neutral-50 flex items-center justify-between"
+                          onClick={() => {
+                            if (g.id === customGroupId) {
+                              setCustomGroupId("all");
+                            } else {
+                              setCustomGroupId(g.id);
+                              setSelectedGroupId("all");
+                            }
+                            setCustomDropdownOpen(false);
+                          }}
+                        >
+                          <span>{g.name}</span>
+                          {g.id === customGroupId && <Check className="w-3.5 h-3.5 text-neutral-900 shrink-0" />}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 {customGroupId !== "all" && (
                   <button
                     onClick={handleDeleteCustomGroup}
