@@ -103,33 +103,6 @@ export default function Campaigns() {
     setForm({ ...form, gmail_account_id: accId, gmail_nickname: acc?.nickname || "" });
   };
 
-  const [testForm, setTestForm] = useState({
-    gmail_account_id: "",
-    to: "",
-    subject: "",
-    body: "",
-  });
-  const [testSending, setTestSending] = useState(false);
-  const [testResult, setTestResult] = useState(null);
-
-  const handleTestSend = async () => {
-    setTestSending(true);
-    setTestResult(null);
-    const acc = gmailAccounts.find((a) => a.id === testForm.gmail_account_id);
-    const res = await base44.functions.invoke("sendEmail", {
-      gmail_account_id: testForm.gmail_account_id,
-      to_email: testForm.to,
-      to_name: testForm.to,
-      subject: testForm.subject,
-      body: testForm.body,
-      lead_id: "test",
-      campaign_id: "test",
-      template_id: "test",
-    });
-    setTestResult(res.data?.success ? "sent" : "error");
-    setTestSending(false);
-  };
-
   return (
     <div className="space-y-6 max-w-3xl">
       <div className="flex items-center justify-between">
@@ -139,13 +112,7 @@ export default function Campaigns() {
         </div>
       </div>
 
-      <Tabs defaultValue="campaigns">
-        <TabsList className="h-9 bg-neutral-100">
-          <TabsTrigger value="campaigns" className="text-xs">Campaigns</TabsTrigger>
-          <TabsTrigger value="testing" className="text-xs">Testing</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="campaigns" className="mt-4">
+      <div>
           <div className="flex justify-end mb-3">
             <Button size="sm" className="bg-neutral-900 hover:bg-neutral-800 text-xs h-9" onClick={openNew}>
               <Plus className="w-3.5 h-3.5 mr-1.5" /> New Campaign
