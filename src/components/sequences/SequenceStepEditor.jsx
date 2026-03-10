@@ -116,7 +116,8 @@ export default function SequenceStepEditor({
           onFocus={() => setBodyEditorFocused(true)}
           onBlur={() => setBodyEditorFocused(false)}
           placeholder="Write your email body. Use variables like {{firstName}} for dynamic content."
-          className="w-full h-72 p-4 border border-t-0 border-neutral-200 rounded-b-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-neutral-900"
+          className="w-full h-72 p-4 border border-t-0 border-neutral-200 rounded-b-lg focus:outline-none focus:ring-2 focus:ring-neutral-900"
+          style={{ fontSize: "10pt", fontFamily: "system-ui, -apple-system, sans-serif" }}
           disabled={preview}
         />
 
