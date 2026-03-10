@@ -53,6 +53,7 @@ import GmailAccounts from './pages/GmailAccounts';
 import SendHub from './pages/SendHub';
 import Templates from './pages/Templates';
 import EmailTesting from './pages/EmailTesting';
+import Inbox from './pages/Inbox';
 import __Layout from './Layout.jsx';
 
 
@@ -63,6 +64,7 @@ export const PAGES = {
     "SendHub": SendHub,
     "Templates": Templates,
     "EmailTesting": EmailTesting,
+    "Inbox": Inbox,
 }
 
 export const pagesConfig = {
