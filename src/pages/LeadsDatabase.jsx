@@ -179,6 +179,17 @@ export default function LeadsDatabase() {
     ? "All Databases"
     : groups.find((g) => g.id === selectedGroupId)?.name || "Unknown";
 
+  const handleDeleteGroup = async () => {
+    if (selectedGroupId === "all") return;
+    // Delete all leads in this group
+    const groupLeadsToDelete = leads.filter((l) => l.group_id === selectedGroupId);
+    await Promise.all(groupLeadsToDelete.map((l) => base44.entities.Lead.delete(l.id)));
+    await base44.entities.LeadsGroup.delete(selectedGroupId);
+    queryClient.invalidateQueries({ queryKey: ["leads"] });
+    queryClient.invalidateQueries({ queryKey: ["leadsGroups"] });
+    setSelectedGroupId("all");
+  };
+
   return (
     <div className="space-y-5">
       {/* Column Mapper Modal */}
