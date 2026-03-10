@@ -56,39 +56,40 @@ export default function SendHub() {
     const dailyLimit = gmail?.daily_limit || 30;
     const leadsToSend = selectedLeads.slice(0, dailyLimit);
 
-    const now = new Date();
-    const threeDaysLater = new Date(now);
-    threeDaysLater.setDate(threeDaysLater.getDate() + 3);
+    setSendProgress({ current: 0, total: leadsToSend.length });
 
-    const sendLogEntries = leadsToSend.map((lead) => ({
-      lead_id: lead.id,
-      campaign_id: selectedCampaign,
-      gmail_account_id: selectedGmail,
-      status: "Queued",
-      lead_email: lead.email,
-      lead_name: lead.first_name,
-      subject: campaign?.name || "Campaign",
-      sequence_step: "1st",
-    }));
+    let successCount = 0;
+    let failCount = 0;
 
-    await base44.entities.SendLog.bulkCreate(sendLogEntries);
+    for (let i = 0; i < leadsToSend.length; i++) {
+      const lead = leadsToSend[i];
+      setSendProgress({ current: i + 1, total: leadsToSend.length });
 
-    for (const lead of leadsToSend) {
-      await base44.entities.Lead.update(lead.id, {
-        status: "Sent",
-        latest_send: now.toISOString().split("T")[0],
-        total_sends: (lead.total_sends || 0) + 1,
-        next_send: campaign?.sequence_type?.includes("Follow-up")
-          ? threeDaysLater.toISOString().split("T")[0]
-          : "",
-        sender_email: gmail?.email || "",
-        sequence_type: "1st",
+      // Replace placeholders in subject/body using campaign name as subject for now
+      const subject = campaign?.name || "Quick question";
+      const body = `Hi ${lead.first_name || "there"},\n\nI came across ${lead.company_name || "your company"} and wanted to connect.\n\nBest regards`;
+
+      const res = await base44.functions.invoke("sendEmail", {
+        to: lead.email,
+        subject,
+        body,
+        lead_id: lead.id,
+        campaign_id: selectedCampaign,
+        gmail_account_id: selectedGmail,
+        sequence_step: "1st",
       });
+
+      if (res.data?.success) {
+        successCount++;
+      } else {
+        failCount++;
+      }
     }
 
+    // Update campaign stats
     if (campaign) {
       await base44.entities.Campaign.update(campaign.id, {
-        total_sent: (campaign.total_sent || 0) + leadsToSend.length,
+        total_sent: (campaign.total_sent || 0) + successCount,
         total_leads: (campaign.total_leads || 0) + leadsToSend.length,
         status: "Active",
       });
@@ -96,7 +97,7 @@ export default function SendHub() {
 
     if (gmail) {
       await base44.entities.GmailAccount.update(gmail.id, {
-        sent_today: (gmail.sent_today || 0) + leadsToSend.length,
+        sent_today: (gmail.sent_today || 0) + successCount,
       });
     }
 
@@ -105,7 +106,22 @@ export default function SendHub() {
     queryClient.invalidateQueries({ queryKey: ["campaigns"] });
     queryClient.invalidateQueries({ queryKey: ["gmail_accounts"] });
 
+    toast.success(`Campaign sent: ${successCount} delivered${failCount > 0 ? `, ${failCount} failed` : ""}`);
     setSending(false);
+    setSendProgress({ current: 0, total: 0 });
+  };
+
+  const handleCheckReplies = async () => {
+    setCheckingReplies(true);
+    const res = await base44.functions.invoke("checkReplies", {});
+    if (res.data?.replies_found > 0) {
+      toast.success(`Found ${res.data.replies_found} new repl${res.data.replies_found > 1 ? "ies" : "y"}!`);
+      queryClient.invalidateQueries({ queryKey: ["leads"] });
+      queryClient.invalidateQueries({ queryKey: ["send_logs"] });
+    } else {
+      toast.message("No new replies found.");
+    }
+    setCheckingReplies(false);
   };
 
   const logStatusIcon = {
