@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Upload, Link, FileSpreadsheet, Trash2, RefreshCw, CheckCircle2, AlertCircle, Database, X } from "lucide-react";
+import { Upload, Link, FileSpreadsheet, Trash2, RefreshCw, CheckCircle2, AlertCircle, Database, X, ChevronDown, Check } from "lucide-react";
 import LeadTable from "../components/dashboard/LeadTable";
 import LeadFilters from "../components/dashboard/LeadFilters";
 import ColumnMapper from "../components/dashboard/ColumnMapper";
