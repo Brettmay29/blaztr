@@ -13,8 +13,10 @@ export default function SequenceStepEditor({
   const [showVariables, setShowVariables] = useState(false);
   const [bodyEditorFocused, setBodyEditorFocused] = useState(false);
 
+  const getTextareaElement = () => document.querySelector("textarea");
+
   const insertVariable = (varName) => {
-    const textarea = document.querySelector("textarea");
+    const textarea = getTextareaElement();
     if (!textarea) return;
 
     const start = textarea.selectionStart;
@@ -28,6 +30,57 @@ export default function SequenceStepEditor({
 
     setTimeout(() => {
       textarea.selectionStart = textarea.selectionEnd = start + varName.length;
+      textarea.focus();
+    }, 0);
+  };
+
+  const applyFormatting = (format) => {
+    const textarea = getTextareaElement();
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = step.body.substring(start, end);
+    const before = step.body.substring(0, start);
+    const after = step.body.substring(end);
+
+    let newBody = "";
+    let newCursorPos = start;
+
+    switch (format) {
+      case "bold":
+        newBody = before + "**" + (selectedText || "bold text") + "**" + after;
+        newCursorPos = start + 2;
+        break;
+      case "italic":
+        newBody = before + "*" + (selectedText || "italic text") + "*" + after;
+        newCursorPos = start + 1;
+        break;
+      case "bullet":
+        newBody = before + "\n• " + (selectedText || "bullet point") + after;
+        newCursorPos = start + 3;
+        break;
+      case "numbered":
+        newBody = before + "\n1. " + (selectedText || "numbered item") + after;
+        newCursorPos = start + 4;
+        break;
+      case "link":
+        newBody = before + "[link text](https://example.com)" + after;
+        newCursorPos = start + 11;
+        break;
+      case "signature":
+        const sig = "\n\n---\n[Your Name]\n[Your Title]\n[Company]";
+        newBody = step.body + sig;
+        newCursorPos = step.body.length;
+        break;
+      default:
+        return;
+    }
+
+    onChange({ body: newBody });
+
+    setTimeout(() => {
+      textarea.selectionStart = textarea.selectionEnd = newCursorPos;
       textarea.focus();
     }, 0);
   };
@@ -127,18 +180,18 @@ export default function SequenceStepEditor({
             <Button
               size="icon"
               variant="outline"
-              className="h-8 w-8 p-0"
+              className="h-8 w-8 p-0 hover:bg-neutral-200"
               title="Bold"
-              disabled
+              onClick={() => applyFormatting("bold")}
             >
               <Bold className="w-3.5 h-3.5" />
             </Button>
             <Button
               size="icon"
               variant="outline"
-              className="h-8 w-8 p-0"
+              className="h-8 w-8 p-0 hover:bg-neutral-200"
               title="Italic"
-              disabled
+              onClick={() => applyFormatting("italic")}
             >
               <Italic className="w-3.5 h-3.5" />
             </Button>
@@ -146,18 +199,18 @@ export default function SequenceStepEditor({
             <Button
               size="icon"
               variant="outline"
-              className="h-8 w-8 p-0"
+              className="h-8 w-8 p-0 hover:bg-neutral-200"
               title="Bullet List"
-              disabled
+              onClick={() => applyFormatting("bullet")}
             >
               <List className="w-3.5 h-3.5" />
             </Button>
             <Button
               size="icon"
               variant="outline"
-              className="h-8 w-8 p-0"
+              className="h-8 w-8 p-0 hover:bg-neutral-200"
               title="Numbered List"
-              disabled
+              onClick={() => applyFormatting("numbered")}
             >
               <ListOrdered className="w-3.5 h-3.5" />
             </Button>
@@ -165,13 +218,22 @@ export default function SequenceStepEditor({
             <Button
               size="icon"
               variant="outline"
-              className="h-8 w-8 p-0"
+              className="h-8 w-8 p-0 hover:bg-neutral-200"
               title="Link"
-              disabled
+              onClick={() => applyFormatting("link")}
             >
               <Link className="w-3.5 h-3.5" />
             </Button>
-            <span className="text-xs text-neutral-400 ml-auto">Coming soon: Rich formatting</span>
+            <div className="h-5 w-px bg-neutral-300" />
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 text-xs hover:bg-neutral-200"
+              title="Add Signature"
+              onClick={() => applyFormatting("signature")}
+            >
+              + Signature
+            </Button>
           </div>
         )}
       </div>
