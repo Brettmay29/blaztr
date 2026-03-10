@@ -178,6 +178,9 @@ export default function LeadsDatabase() {
     setSelectedIds([]);
   };
 
+  const uploadedGroups = groups.filter((g) => !g.type || g.type === "uploaded");
+  const customGroups = groups.filter((g) => g.type === "custom");
+
   const selectedGroupName = selectedGroupId === "all"
     ? "All Databases"
     : groups.find((g) => g.id === selectedGroupId)?.name || "Unknown";
