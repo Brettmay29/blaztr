@@ -311,6 +311,16 @@ export default function LeadsDatabase() {
                 )}
               </SelectContent>
             </Select>
+            {selectedGroupId !== "all" && (
+              <button
+                onClick={handleDeleteGroup}
+                className="h-9 w-9 shrink-0 flex items-center justify-center rounded-md border border-neutral-200 text-neutral-400 hover:text-red-500 hover:border-red-300 transition-colors"
+                title="Delete this database"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+            </div>
           </div>
         </div>
       </div>
