@@ -49,24 +49,39 @@ export default function SequenceStepEditor({
 
     switch (format) {
       case "bold":
-        newBody = before + "**" + (selectedText || "bold text") + "**" + after;
-        newCursorPos = start + 2;
+        if (selectedText) {
+          newBody = before + "**" + selectedText + "**" + after;
+          newCursorPos = end + 4;
+        } else {
+          newBody = before + "****" + after;
+          newCursorPos = start + 2;
+        }
         break;
       case "italic":
-        newBody = before + "*" + (selectedText || "italic text") + "*" + after;
-        newCursorPos = start + 1;
+        if (selectedText) {
+          newBody = before + "*" + selectedText + "*" + after;
+          newCursorPos = end + 2;
+        } else {
+          newBody = before + "**" + after;
+          newCursorPos = start + 1;
+        }
         break;
       case "bullet":
-        newBody = before + "\n• " + (selectedText || "bullet point") + after;
-        newCursorPos = start + 3;
+        newBody = before + "\n• " + selectedText + after;
+        newCursorPos = start + 3 + selectedText.length;
         break;
       case "numbered":
-        newBody = before + "\n1. " + (selectedText || "numbered item") + after;
-        newCursorPos = start + 4;
+        newBody = before + "\n1. " + selectedText + after;
+        newCursorPos = start + 4 + selectedText.length;
         break;
       case "link":
-        newBody = before + "[link text](https://example.com)" + after;
-        newCursorPos = start + 11;
+        if (selectedText) {
+          newBody = before + "[" + selectedText + "](https://example.com)" + after;
+          newCursorPos = end + 19;
+        } else {
+          newBody = before + "[link](https://example.com)" + after;
+          newCursorPos = start + 6;
+        }
         break;
       case "signature":
         const sig = "\n\n---\n[Your Name]\n[Your Title]\n[Company]";
