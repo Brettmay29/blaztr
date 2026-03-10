@@ -75,6 +75,7 @@ export default function Campaigns() {
       send_window_end: "17:00",
       daily_limit: 30,
       send_delay_minutes: 1,
+      start_immediately: false,
       status: "Draft",
     });
     setDialogOpen(true);
@@ -91,6 +92,7 @@ export default function Campaigns() {
       send_window_end: c.send_window_end || "17:00",
       daily_limit: c.daily_limit || 30,
       send_delay_minutes: c.send_delay_minutes || 1,
+      start_immediately: c.start_immediately || false,
       status: c.status,
     });
     setDialogOpen(true);
