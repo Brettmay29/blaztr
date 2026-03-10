@@ -196,8 +196,84 @@ export default function Campaigns() {
               </div>
             </div>
           </div>
-        ))}
-      </div>
+          ))}
+        </div>
+        </TabsContent>
+
+        <TabsContent value="testing" className="mt-4">
+          <div className="bg-white border border-neutral-200 rounded-lg p-5 space-y-4">
+            <div>
+              <h3 className="text-sm font-medium text-neutral-900">Send a Test Email</h3>
+              <p className="text-xs text-neutral-500 mt-0.5">Send a real email via one of your connected Gmail accounts.</p>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs">From (Gmail Account)</Label>
+              <Select value={testForm.gmail_account_id} onValueChange={(v) => setTestForm({ ...testForm, gmail_account_id: v })}>
+                <SelectTrigger className="h-9 text-sm">
+                  <SelectValue placeholder="Select account" />
+                </SelectTrigger>
+                <SelectContent>
+                  {gmailAccounts.map((acc) => (
+                    <SelectItem key={acc.id} value={acc.id}>
+                      {acc.nickname} ({acc.email})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs">To (email address)</Label>
+              <Input
+                placeholder="recipient@example.com"
+                value={testForm.to}
+                onChange={(e) => setTestForm({ ...testForm, to: e.target.value })}
+                className="h-9 text-sm"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs">Subject</Label>
+              <Input
+                placeholder="Test subject line"
+                value={testForm.subject}
+                onChange={(e) => setTestForm({ ...testForm, subject: e.target.value })}
+                className="h-9 text-sm"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs">Body</Label>
+              <Textarea
+                placeholder="Write your email body here..."
+                value={testForm.body}
+                onChange={(e) => setTestForm({ ...testForm, body: e.target.value })}
+                className="text-sm min-h-[160px] resize-none"
+              />
+            </div>
+
+            <div className="flex items-center gap-3 pt-1">
+              <Button
+                className="bg-neutral-900 hover:bg-neutral-800 text-xs h-9"
+                onClick={handleTestSend}
+                disabled={testSending || !testForm.gmail_account_id || !testForm.to || !testForm.subject || !testForm.body}
+              >
+                {testSending ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Send className="w-3.5 h-3.5 mr-1.5" />}
+                Send Test
+              </Button>
+              {testResult === "sent" && (
+                <div className="flex items-center gap-1.5 text-xs text-green-600">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Email sent successfully!
+                </div>
+              )}
+              {testResult === "error" && (
+                <p className="text-xs text-red-500">Failed to send. Check your Gmail connection.</p>
+              )}
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-lg">
