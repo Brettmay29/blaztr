@@ -13,6 +13,7 @@ import { ArrowRight, CheckCircle2 } from "lucide-react";
 const LEAD_FIELDS = [
   { value: "__skip__", label: "— Skip this column —" },
   { value: "first_name", label: "First Name" },
+  { value: "last_name", label: "Last Name" },
   { value: "email", label: "Email" },
   { value: "company_name", label: "Company Name" },
   { value: "state", label: "State" },
