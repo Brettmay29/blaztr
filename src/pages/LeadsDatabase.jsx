@@ -333,7 +333,7 @@ export default function LeadsDatabase() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Databases</SelectItem>
-                    {groups.map((g) => (
+                    {uploadedGroups.map((g) => (
                       <SelectItem key={g.id} value={g.id}>
                         <div className="flex items-center justify-between gap-3 w-full">
                           <span className="truncate">{g.name}</span>
@@ -341,7 +341,7 @@ export default function LeadsDatabase() {
                         </div>
                       </SelectItem>
                     ))}
-                    {groups.length === 0 && (
+                    {uploadedGroups.length === 0 && (
                       <div className="px-3 py-2 text-xs text-neutral-400">No databases yet</div>
                     )}
                   </SelectContent>
