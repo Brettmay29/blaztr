@@ -13,6 +13,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Send, Eye, MessageSquare, Pencil, Trash2 } from "lucide-react";
 
 const campaignStatusStyles = {
