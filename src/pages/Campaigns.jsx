@@ -213,7 +213,7 @@ export default function Campaigns() {
               </Select>
             </div>
             <div className="grid grid-cols-3 gap-3">
-              <div className="space-y-1.5">
+              <div className={`space-y-1.5 ${form.start_immediately ? "opacity-40 pointer-events-none" : ""}`}>
                 <Label className="text-xs">Window Start</Label>
                 <Input
                   type="time"
@@ -222,7 +222,7 @@ export default function Campaigns() {
                   className="h-9 text-sm"
                 />
               </div>
-              <div className="space-y-1.5">
+              <div className={`space-y-1.5 ${form.start_immediately ? "opacity-40 pointer-events-none" : ""}`}>
                 <Label className="text-xs">Window End</Label>
                 <Input
                   type="time"
@@ -240,6 +240,19 @@ export default function Campaigns() {
                   className="h-9 text-sm"
                 />
               </div>
+            </div>
+            <div className="flex items-center gap-2 pt-1">
+              <Checkbox
+                id="start_immediately"
+                checked={form.start_immediately}
+                onCheckedChange={(v) => setForm({ ...form, start_immediately: !!v })}
+              />
+              <label htmlFor="start_immediately" className="text-sm text-neutral-700 cursor-pointer select-none">
+                Start Immediately
+              </label>
+              {form.start_immediately && (
+                <span className="text-xs text-neutral-400 ml-1">(ignores send window)</span>
+              )}
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Wait between sends</Label>
