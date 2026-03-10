@@ -26,6 +26,26 @@ export default function GmailAccounts() {
     queryFn: () => base44.entities.GmailAccount.list(),
   });
 
+  const [detecting, setDetecting] = useState(false);
+
+  const handleDetectGmail = async () => {
+    setDetecting(true);
+    const res = await base44.functions.invoke("getGmailProfile", {});
+    if (res.data?.email) {
+      const email = res.data.email;
+      const alreadyExists = accounts.find((a) => a.email === email);
+      if (alreadyExists) {
+        toast.message(`${email} is already connected.`);
+      } else {
+        setForm({ email, nickname: email.split("@")[0], daily_limit: 30 });
+        setDialogOpen(true);
+      }
+    } else {
+      toast.error("Could not detect Gmail. Try again.");
+    }
+    setDetecting(false);
+  };
+
   const saveMutation = useMutation({
     mutationFn: (data) =>
       editing
