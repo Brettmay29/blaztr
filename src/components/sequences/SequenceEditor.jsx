@@ -33,7 +33,7 @@ export default function SequenceEditor({ sequence, onBack }) {
 
   const selectedStep = localSeq.steps?.find((s) => s.id === selectedStepId);
 
-  const handleUpdateStep = (updates) => {
+  const handleUpdateSelectedStep = (updates) => {
     setLocalSeq((prev) => ({
       ...prev,
       steps: prev.steps.map((s) => s.id === selectedStepId ? { ...s, ...updates } : s),
@@ -44,6 +44,7 @@ export default function SequenceEditor({ sequence, onBack }) {
     const newStepId = `step-${Date.now()}`;
     const newStep = {
       id: newStepId,
+      name: `Step ${localSeq.steps.length + 1}`,
       subject: "<Previous email's subject>",
       body: "",
       delay_days: 3,
@@ -54,6 +55,13 @@ export default function SequenceEditor({ sequence, onBack }) {
       steps: [...prev.steps, newStep],
     }));
     setSelectedStepId(newStepId);
+  };
+
+  const handleUpdateStep = (stepId, updates) => {
+    setLocalSeq((prev) => ({
+      ...prev,
+      steps: prev.steps.map((s) => s.id === stepId ? { ...s, ...updates } : s),
+    }));
   };
 
   const handleDeleteStep = (stepId) => {
@@ -109,6 +117,7 @@ export default function SequenceEditor({ sequence, onBack }) {
           onSelectStep={setSelectedStepId}
           onAddStep={handleAddStep}
           onDeleteStep={handleDeleteStep}
+          onUpdateStep={handleUpdateStep}
         />
 
         {/* Right Panel - Editor */}
@@ -116,14 +125,14 @@ export default function SequenceEditor({ sequence, onBack }) {
           {showPreview ? (
             <SequenceStepEditor
               step={selectedStep}
-              onChange={handleUpdateStep}
+              onChange={handleUpdateSelectedStep}
               variables={VARIABLES}
               preview
             />
           ) : (
             <SequenceStepEditor
               step={selectedStep}
-              onChange={handleUpdateStep}
+              onChange={handleUpdateSelectedStep}
               variables={VARIABLES}
             />
           )}

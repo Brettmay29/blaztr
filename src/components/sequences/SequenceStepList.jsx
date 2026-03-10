@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -9,24 +10,58 @@ export default function SequenceStepList({
   onSelectStep,
   onAddStep,
   onDeleteStep,
+  onUpdateStep,
 }) {
+  const [editingStepId, setEditingStepId] = useState(null);
+  const [editingName, setEditingName] = useState("");
+
+  const startEdit = (step) => {
+    setEditingStepId(step.id);
+    setEditingName(step.name || `Step ${steps.indexOf(step) + 1}`);
+  };
+
+  const saveEdit = (stepId) => {
+    if (editingName.trim()) {
+      onUpdateStep(stepId, { name: editingName.trim() });
+    }
+    setEditingStepId(null);
+  };
+
   return (
     <div className="w-56 bg-neutral-50 border-r border-neutral-200 flex flex-col">
       {/* Steps */}
       <div className="flex-1 overflow-auto p-4 space-y-3">
         {steps.map((step, idx) => (
           <div key={step.id}>
-            <button
-              onClick={() => onSelectStep(step.id)}
-              className={cn(
-                "w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                selectedStepId === step.id
-                  ? "bg-white text-neutral-900 border border-neutral-200"
-                  : "text-neutral-700 hover:bg-white/60"
-              )}
-            >
-              Step {idx + 1}
-            </button>
+            {editingStepId === step.id ? (
+              <div className="space-y-2">
+                <Input
+                  autoFocus
+                  value={editingName}
+                  onChange={(e) => setEditingName(e.target.value)}
+                  onBlur={() => saveEdit(step.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") saveEdit(step.id);
+                    if (e.key === "Escape") setEditingStepId(null);
+                  }}
+                  className="h-8 text-sm"
+                />
+              </div>
+            ) : (
+              <button
+                onDoubleClick={() => startEdit(step)}
+                onClick={() => onSelectStep(step.id)}
+                className={cn(
+                  "w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                  selectedStepId === step.id
+                    ? "bg-white text-neutral-900 border border-neutral-200"
+                    : "text-neutral-700 hover:bg-white/60"
+                )}
+                title="Double-click to rename"
+              >
+                {step.name || `Step ${idx + 1}`}
+              </button>
+            )}
 
             {step.delay_days > 0 || step.delay_hours > 0 ? (
               <p className="text-xs text-neutral-500 mt-1 ml-3">
@@ -36,7 +71,7 @@ export default function SequenceStepList({
               <p className="text-xs text-neutral-500 mt-1 ml-3">Immediate</p>
             )}
 
-            {selectedStepId === step.id && (
+            {selectedStepId === step.id && editingStepId !== step.id && (
               <div className="flex items-center gap-1.5 mt-2 ml-3">
                 {steps.length > 1 && (
                   <button

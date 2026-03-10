@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Bold, Italic, Link, List, ListOrdered } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function SequenceStepEditor({
@@ -116,9 +116,63 @@ export default function SequenceStepEditor({
           onFocus={() => setBodyEditorFocused(true)}
           onBlur={() => setBodyEditorFocused(false)}
           placeholder="Write your email body. Use variables like {{firstName}} for dynamic content."
-          className="w-full h-80 p-4 border border-neutral-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-neutral-900"
+          className="w-full h-72 p-4 border border-t-0 border-neutral-200 rounded-b-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-neutral-900"
           disabled={preview}
         />
+
+        {/* Formatting Toolbar */}
+        {!preview && (
+          <div className="flex items-center gap-1.5 px-4 py-3 border border-t-0 border-neutral-200 rounded-b-lg bg-neutral-50 flex-wrap">
+            <Button
+              size="icon"
+              variant="outline"
+              className="h-8 w-8 p-0"
+              title="Bold"
+              disabled
+            >
+              <Bold className="w-3.5 h-3.5" />
+            </Button>
+            <Button
+              size="icon"
+              variant="outline"
+              className="h-8 w-8 p-0"
+              title="Italic"
+              disabled
+            >
+              <Italic className="w-3.5 h-3.5" />
+            </Button>
+            <div className="h-5 w-px bg-neutral-300" />
+            <Button
+              size="icon"
+              variant="outline"
+              className="h-8 w-8 p-0"
+              title="Bullet List"
+              disabled
+            >
+              <List className="w-3.5 h-3.5" />
+            </Button>
+            <Button
+              size="icon"
+              variant="outline"
+              className="h-8 w-8 p-0"
+              title="Numbered List"
+              disabled
+            >
+              <ListOrdered className="w-3.5 h-3.5" />
+            </Button>
+            <div className="h-5 w-px bg-neutral-300" />
+            <Button
+              size="icon"
+              variant="outline"
+              className="h-8 w-8 p-0"
+              title="Link"
+              disabled
+            >
+              <Link className="w-3.5 h-3.5" />
+            </Button>
+            <span className="text-xs text-neutral-400 ml-auto">Coming soon: Rich formatting</span>
+          </div>
+        )}
       </div>
 
       {/* Preview */}
