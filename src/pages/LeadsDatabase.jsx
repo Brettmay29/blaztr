@@ -182,9 +182,9 @@ export default function LeadsDatabase() {
   const uploadedGroups = groups.filter((g) => !g.type || g.type === "uploaded");
   const customGroups = groups.filter((g) => g.type === "custom");
 
-  const selectedGroupName = selectedGroupId === "all"
+  const selectedGroupName = activeGroupId === "all"
     ? "All Databases"
-    : groups.find((g) => g.id === selectedGroupId)?.name || "Unknown";
+    : groups.find((g) => g.id === activeGroupId)?.name || "Unknown";
 
   const handleDeleteGroup = async () => {
     if (selectedGroupId === "all") return;
