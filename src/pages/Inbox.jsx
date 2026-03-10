@@ -1,10 +1,19 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, Send, Loader2, Mail, MailOpen, ArrowLeft } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuCheckboxItem,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
+import { RefreshCw, Send, Loader2, Mail, MailOpen, ArrowLeft, ChevronDown, Check } from "lucide-react";
 
 function formatDate(dateStr) {
   if (!dateStr) return "";
@@ -22,11 +31,26 @@ function extractEmail(from) {
   return match ? match[1] : from || "";
 }
 
+// mode: "all" | "single" | "select"
+// singleAccount: string (email)
+// selectedAccounts: string[] (emails)
+
 export default function Inbox() {
   const [selected, setSelected] = useState(null);
   const [replyBody, setReplyBody] = useState("");
   const [replying, setReplying] = useState(false);
   const [replyResult, setReplyResult] = useState(null);
+
+  const [mode, setMode] = useState("all"); // "all" | "single" | "select"
+  const [singleAccount, setSingleAccount] = useState(null);
+  const [selectedAccounts, setSelectedAccounts] = useState([]);
+  const [selectOpen, setSelectOpen] = useState(false);
+
+  // Fetch Gmail accounts list
+  const { data: gmailAccounts = [] } = useQuery({
+    queryKey: ["gmailAccounts"],
+    queryFn: () => base44.entities.GmailAccount.list(),
+  });
 
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ["inbox"],
@@ -37,7 +61,20 @@ export default function Inbox() {
     staleTime: 60000,
   });
 
-  const messages = data || [];
+  const allMessages = data || [];
+
+  // Filter messages based on mode
+  const messages = useMemo(() => {
+    if (mode === "all") return allMessages;
+    const filterEmails = mode === "single"
+      ? (singleAccount ? [singleAccount] : [])
+      : selectedAccounts;
+    if (!filterEmails.length) return allMessages;
+    return allMessages.filter((msg) => {
+      const toEmail = extractEmail(msg.to).toLowerCase();
+      return filterEmails.some((e) => e.toLowerCase() === toEmail);
+    });
+  }, [allMessages, mode, singleAccount, selectedAccounts]);
 
   const handleReply = async () => {
     setReplying(true);
@@ -62,6 +99,23 @@ export default function Inbox() {
     }
   };
 
+  // Label for the dropdown trigger
+  const dropdownLabel = useMemo(() => {
+    if (mode === "all") return "All Inboxes";
+    if (mode === "single") return singleAccount || "Select account";
+    if (mode === "select") {
+      if (!selectedAccounts.length) return "Select Inboxes";
+      if (selectedAccounts.length === 1) return selectedAccounts[0];
+      return `${selectedAccounts.length} inboxes`;
+    }
+  }, [mode, singleAccount, selectedAccounts]);
+
+  const toggleSelectAccount = (email) => {
+    setSelectedAccounts((prev) =>
+      prev.includes(email) ? prev.filter((e) => e !== email) : [...prev, email]
+    );
+  };
+
   if (selected) {
     return (
       <div className="max-w-3xl space-y-4">
@@ -84,6 +138,9 @@ export default function Inbox() {
               <span>·</span>
               <span>{formatDate(selected.date)}</span>
             </div>
+            {selected.to && (
+              <p className="text-xs text-neutral-400 mt-0.5">To: {selected.to}</p>
+            )}
           </div>
 
           <div className="border-t border-neutral-100 pt-4">
@@ -93,7 +150,6 @@ export default function Inbox() {
           </div>
         </div>
 
-        {/* Reply box */}
         <div className="bg-white border border-neutral-200 rounded-lg p-5 space-y-3">
           <p className="text-xs font-medium text-neutral-700">
             Reply to {extractName(selected.from)}
@@ -115,12 +171,8 @@ export default function Inbox() {
                 : <Send className="w-3.5 h-3.5 mr-1.5" />}
               Send Reply
             </Button>
-            {replyResult === "sent" && (
-              <span className="text-xs text-green-600">Reply sent!</span>
-            )}
-            {replyResult === "error" && (
-              <span className="text-xs text-red-500">Failed to send reply.</span>
-            )}
+            {replyResult === "sent" && <span className="text-xs text-green-600">Reply sent!</span>}
+            {replyResult === "error" && <span className="text-xs text-red-500">Failed to send reply.</span>}
           </div>
         </div>
       </div>
@@ -129,15 +181,71 @@ export default function Inbox() {
 
   return (
     <div className="max-w-3xl space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h2 className="text-lg font-semibold text-neutral-900">Inbox</h2>
-          <p className="text-sm text-neutral-500 mt-0.5">Replies and incoming emails from your connected Gmail account.</p>
+          <p className="text-sm text-neutral-500 mt-0.5">Incoming emails from your connected Gmail accounts.</p>
         </div>
-        <Button variant="outline" size="sm" className="text-xs h-9 gap-1.5" onClick={() => refetch()} disabled={isFetching}>
-          <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? "animate-spin" : ""}`} />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* Account selector dropdown */}
+          <DropdownMenu open={selectOpen} onOpenChange={setSelectOpen}>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="text-xs h-9 gap-1.5 max-w-[220px] truncate">
+                <Mail className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">{dropdownLabel}</span>
+                <ChevronDown className="w-3.5 h-3.5 shrink-0 text-neutral-400" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-64">
+              {/* All Inboxes */}
+              <DropdownMenuItem
+                className="text-xs flex items-center gap-2 cursor-pointer"
+                onClick={() => { setMode("all"); setSelectOpen(false); }}
+              >
+                {mode === "all" && <Check className="w-3.5 h-3.5 text-neutral-800" />}
+                {mode !== "all" && <span className="w-3.5" />}
+                All Inboxes
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel className="text-[11px] text-neutral-400 font-normal">Single account</DropdownMenuLabel>
+              {gmailAccounts.map((acc) => (
+                <DropdownMenuItem
+                  key={acc.id}
+                  className="text-xs flex items-center gap-2 cursor-pointer"
+                  onClick={() => { setMode("single"); setSingleAccount(acc.email); setSelectOpen(false); }}
+                >
+                  {mode === "single" && singleAccount === acc.email
+                    ? <Check className="w-3.5 h-3.5 text-neutral-800" />
+                    : <span className="w-3.5" />}
+                  <span className="truncate">{acc.nickname || acc.email}</span>
+                  <span className="text-neutral-400 truncate ml-auto text-[11px]">{acc.email}</span>
+                </DropdownMenuItem>
+              ))}
+
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel className="text-[11px] text-neutral-400 font-normal">Select inboxes</DropdownMenuLabel>
+              {gmailAccounts.map((acc) => (
+                <DropdownMenuCheckboxItem
+                  key={`chk-${acc.id}`}
+                  className="text-xs cursor-pointer"
+                  checked={selectedAccounts.includes(acc.email)}
+                  onCheckedChange={() => { setMode("select"); toggleSelectAccount(acc.email); }}
+                >
+                  <span className="truncate">{acc.nickname || acc.email}</span>
+                </DropdownMenuCheckboxItem>
+              ))}
+              {gmailAccounts.length === 0 && (
+                <DropdownMenuItem disabled className="text-xs text-neutral-400">No accounts connected</DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Button variant="outline" size="sm" className="text-xs h-9 gap-1.5" onClick={() => refetch()} disabled={isFetching}>
+            <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -147,7 +255,7 @@ export default function Inbox() {
       ) : messages.length === 0 ? (
         <div className="border border-dashed border-neutral-300 rounded-lg p-12 text-center">
           <Mail className="w-6 h-6 text-neutral-300 mx-auto mb-2" />
-          <p className="text-sm text-neutral-400">No messages in inbox.</p>
+          <p className="text-sm text-neutral-400">No messages found.</p>
         </div>
       ) : (
         <div className="bg-white border border-neutral-200 rounded-lg divide-y divide-neutral-100 overflow-hidden">
@@ -174,6 +282,9 @@ export default function Inbox() {
                 </p>
                 <p className="text-xs text-neutral-400 truncate mt-0.5">{msg.snippet}</p>
               </div>
+              {msg.to && (
+                <span className="text-[11px] text-neutral-400 shrink-0 hidden sm:block mt-0.5">{extractEmail(msg.to)}</span>
+              )}
             </button>
           ))}
         </div>
