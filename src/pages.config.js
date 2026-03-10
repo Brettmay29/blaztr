@@ -49,22 +49,24 @@
  */
 import Campaigns from './pages/Campaigns';
 import Dashboard from './pages/Dashboard';
+import EmailTesting from './pages/EmailTesting';
 import GmailAccounts from './pages/GmailAccounts';
+import Inbox from './pages/Inbox';
 import SendHub from './pages/SendHub';
 import Templates from './pages/Templates';
-import EmailTesting from './pages/EmailTesting';
-import Inbox from './pages/Inbox';
+import LeadsDatabase from './pages/LeadsDatabase';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "Campaigns": Campaigns,
     "Dashboard": Dashboard,
+    "EmailTesting": EmailTesting,
     "GmailAccounts": GmailAccounts,
+    "Inbox": Inbox,
     "SendHub": SendHub,
     "Templates": Templates,
-    "EmailTesting": EmailTesting,
-    "Inbox": Inbox,
+    "LeadsDatabase": LeadsDatabase,
 }
 
 export const pagesConfig = {
