@@ -21,18 +21,19 @@ export default function EmailTesting() {
   const handleSend = async () => {
     setSending(true);
     setResult(null);
-    const res = await base44.functions.invoke("sendEmail", {
-      gmail_account_id: form.gmail_account_id,
-      to_email: form.to,
-      to_name: form.to,
-      subject: form.subject,
-      body: form.body,
-      lead_id: "test",
-      campaign_id: "test",
-      template_id: "test",
-    });
-    setResult(res.data?.success ? "sent" : "error");
-    setSending(false);
+    try {
+      const res = await base44.functions.invoke("sendEmail", {
+        gmail_account_id: form.gmail_account_id,
+        to: form.to,
+        subject: form.subject,
+        body: form.body,
+      });
+      setResult(res.data?.success ? "sent" : "error");
+    } catch {
+      setResult("error");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
