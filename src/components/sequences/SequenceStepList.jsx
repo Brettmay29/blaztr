@@ -15,7 +15,8 @@ export default function SequenceStepList({
   const [editingStepId, setEditingStepId] = useState(null);
   const [editingName, setEditingName] = useState("");
 
-  const startEdit = (step) => {
+  const startEdit = (e, step) => {
+    e.stopPropagation();
     setEditingStepId(step.id);
     setEditingName(step.name || `Step ${steps.indexOf(step) + 1}`);
   };
@@ -34,22 +35,20 @@ export default function SequenceStepList({
         {steps.map((step, idx) => (
           <div key={step.id}>
             {editingStepId === step.id ? (
-              <div className="space-y-2">
-                <Input
-                  autoFocus
-                  value={editingName}
-                  onChange={(e) => setEditingName(e.target.value)}
-                  onBlur={() => saveEdit(step.id)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") saveEdit(step.id);
-                    if (e.key === "Escape") setEditingStepId(null);
-                  }}
-                  className="h-8 text-sm"
-                />
-              </div>
+              <Input
+                autoFocus
+                value={editingName}
+                onChange={(e) => setEditingName(e.target.value)}
+                onBlur={() => saveEdit(step.id)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") saveEdit(step.id);
+                  if (e.key === "Escape") setEditingStepId(null);
+                }}
+                className="h-8 text-sm font-medium"
+              />
             ) : (
               <button
-                onDoubleClick={() => startEdit(step)}
+                onDoubleClick={(e) => startEdit(e, step)}
                 onClick={() => onSelectStep(step.id)}
                 className={cn(
                   "w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors",
