@@ -13,7 +13,9 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Send, Eye, MessageSquare, Pencil, Trash2 } from "lucide-react";
+import { Plus, Send, Eye, MessageSquare, Pencil, Trash2, Loader2, CheckCircle2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 
 const campaignStatusStyles = {
   Draft: "bg-neutral-100 text-neutral-600",

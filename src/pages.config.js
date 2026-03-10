@@ -47,20 +47,20 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
+import Campaigns from './pages/Campaigns';
 import Dashboard from './pages/Dashboard';
 import GmailAccounts from './pages/GmailAccounts';
-import Templates from './pages/Templates';
-import Campaigns from './pages/Campaigns';
 import SendHub from './pages/SendHub';
+import Templates from './pages/Templates';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "Campaigns": Campaigns,
     "Dashboard": Dashboard,
     "GmailAccounts": GmailAccounts,
-    "Templates": Templates,
-    "Campaigns": Campaigns,
     "SendHub": SendHub,
+    "Templates": Templates,
 }
 
 export const pagesConfig = {
