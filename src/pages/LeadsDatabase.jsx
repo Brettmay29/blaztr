@@ -373,13 +373,13 @@ export default function LeadsDatabase() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">— None —</SelectItem>
-                    {groups.map((g) => (
+                    {customGroups.map((g) => (
                       <SelectItem key={g.id} value={g.id}>
                         {g.name}
                       </SelectItem>
                     ))}
-                    {groups.length === 0 && (
-                      <div className="px-3 py-2 text-xs text-neutral-400">No databases yet</div>
+                    {customGroups.length === 0 && (
+                      <div className="px-3 py-2 text-xs text-neutral-400">No custom folders yet</div>
                     )}
                   </SelectContent>
                 </Select>
