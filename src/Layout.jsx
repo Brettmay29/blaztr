@@ -157,8 +157,8 @@ export default function Layout({ children, currentPageName }) {
             </DropdownMenu>
 
             <img
-              src="https://media.base44.com/images/public/69b02505f9b4d10dd348ac34/a8bb82400_image.png"
-              alt="Blastbot"
+              src="https://media.base44.com/images/public/69b02505f9b4d10dd348ac34/5d966a4c4_image.png"
+              alt="Blaztbot"
               className="h-8 w-auto object-contain"
             />
           </div>
