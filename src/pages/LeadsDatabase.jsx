@@ -194,7 +194,7 @@ export default function LeadsDatabase() {
 
   const handleCreateCustomGroup = async () => {
     if (!customDbName.trim()) return;
-    const group = await base44.entities.LeadsGroup.create({ name: customDbName.trim(), source: "CSV", lead_count: 0 });
+    const group = await base44.entities.LeadsGroup.create({ name: customDbName.trim(), source: "CSV", lead_count: 0, type: "custom" });
     queryClient.invalidateQueries({ queryKey: ["leadsGroups"] });
     setCustomDbName("");
     setCustomGroupId(group.id);
