@@ -42,7 +42,8 @@ export default function LeadsDatabase() {
     queryFn: () => base44.entities.LeadsGroup.list("-created_date", 100),
   });
 
-  const groupLeads = selectedGroupId === "all" ? leads : leads.filter((l) => l.group_id === selectedGroupId);
+  const activeGroupId = customGroupId !== "all" ? customGroupId : selectedGroupId;
+  const groupLeads = activeGroupId === "all" ? leads : leads.filter((l) => l.group_id === activeGroupId);
 
   const filteredLeads = groupLeads.filter((l) => {
     if (filters.search) {
