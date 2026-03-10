@@ -183,7 +183,11 @@ export default function SequenceStepEditor({
                   <button
                     key={v.name}
                     onClick={() => insertVariable(v.name)}
-                    className="w-full text-left px-3 py-2 text-xs text-neutral-700 hover:bg-neutral-50 flex justify-between"
+                    onMouseEnter={() => setHoveredVar(v.name)}
+                    onMouseLeave={() => setHoveredVar(null)}
+                    className={`w-full text-left px-3 py-2 text-xs flex justify-between transition-colors ${
+                      hoveredVar === v.name ? "bg-neutral-200" : "hover:bg-neutral-100"
+                    }`}
                   >
                     <span className="font-mono text-neutral-600">{v.name}</span>
                     <span className="text-neutral-400">{v.label}</span>
