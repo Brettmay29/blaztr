@@ -315,41 +315,99 @@ export default function LeadsDatabase() {
             )}
           </div>
 
-          {/* Uploaded Databases Dropdown */}
-          <div className="sm:w-56 shrink-0">
-            <p className="text-xs font-medium text-neutral-500 mb-1.5">Uploaded Databases</p>
-            <div className="flex items-center gap-1.5">
-            <Select value={selectedGroupId} onValueChange={setSelectedGroupId}>
-              <SelectTrigger className="h-9 text-sm flex-1">
-                <div className="flex items-center gap-2 truncate">
-                  <Database className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
-                  <span className="truncate">{selectedGroupName}</span>
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Databases</SelectItem>
-                {groups.map((g) => (
-                  <SelectItem key={g.id} value={g.id}>
-                    <div className="flex items-center justify-between gap-3 w-full">
-                      <span className="truncate">{g.name}</span>
-                      <span className="text-neutral-400 text-xs shrink-0">{g.lead_count}</span>
+          {/* Right column: Uploaded Databases + Custom Database */}
+          <div className="sm:w-56 shrink-0 space-y-3">
+            {/* Uploaded Databases */}
+            <div>
+              <p className="text-xs font-medium text-neutral-500 mb-1.5">Uploaded Databases</p>
+              <div className="flex items-center gap-1.5">
+                <Select value={selectedGroupId} onValueChange={setSelectedGroupId}>
+                  <SelectTrigger className="h-9 text-sm flex-1">
+                    <div className="flex items-center gap-2 truncate">
+                      <Database className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+                      <span className="truncate">{selectedGroupName}</span>
                     </div>
-                  </SelectItem>
-                ))}
-                {groups.length === 0 && (
-                  <div className="px-3 py-2 text-xs text-neutral-400">No databases yet</div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Databases</SelectItem>
+                    {groups.map((g) => (
+                      <SelectItem key={g.id} value={g.id}>
+                        <div className="flex items-center justify-between gap-3 w-full">
+                          <span className="truncate">{g.name}</span>
+                          <span className="text-neutral-400 text-xs shrink-0">{g.lead_count}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                    {groups.length === 0 && (
+                      <div className="px-3 py-2 text-xs text-neutral-400">No databases yet</div>
+                    )}
+                  </SelectContent>
+                </Select>
+                {selectedGroupId !== "all" && (
+                  <button
+                    onClick={handleDeleteGroup}
+                    className="h-9 w-9 shrink-0 flex items-center justify-center rounded-md border border-neutral-200 text-neutral-400 hover:text-red-500 hover:border-red-300 transition-colors"
+                    title="Delete this database"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
                 )}
-              </SelectContent>
-            </Select>
-            {selectedGroupId !== "all" && (
-              <button
-                onClick={handleDeleteGroup}
-                className="h-9 w-9 shrink-0 flex items-center justify-center rounded-md border border-neutral-200 text-neutral-400 hover:text-red-500 hover:border-red-300 transition-colors"
-                title="Delete this database"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
+              </div>
+            </div>
+
+            {/* Custom Database */}
+            <div>
+              <p className="text-xs font-medium text-neutral-500 mb-1.5">Custom Database</p>
+              <div className="flex items-center gap-1.5">
+                <Select value={customGroupId} onValueChange={setCustomGroupId}>
+                  <SelectTrigger className="h-9 text-sm flex-1">
+                    <div className="flex items-center gap-2 truncate">
+                      <Database className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+                      <span className="truncate">
+                        {customGroupId === "all" ? "Select folder..." : groups.find((g) => g.id === customGroupId)?.name || "Select folder..."}
+                      </span>
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">— None —</SelectItem>
+                    {groups.map((g) => (
+                      <SelectItem key={g.id} value={g.id}>
+                        {g.name}
+                      </SelectItem>
+                    ))}
+                    {groups.length === 0 && (
+                      <div className="px-3 py-2 text-xs text-neutral-400">No databases yet</div>
+                    )}
+                  </SelectContent>
+                </Select>
+                {customGroupId !== "all" && (
+                  <button
+                    onClick={handleDeleteCustomGroup}
+                    className="h-9 w-9 shrink-0 flex items-center justify-center rounded-md border border-neutral-200 text-neutral-400 hover:text-red-500 hover:border-red-300 transition-colors"
+                    title="Delete this database"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+              {/* Create new custom database */}
+              <div className="flex items-center gap-1.5 mt-1.5">
+                <Input
+                  placeholder="New folder name..."
+                  value={customDbName}
+                  onChange={(e) => setCustomDbName(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleCreateCustomGroup()}
+                  className="h-9 text-xs flex-1"
+                />
+                <Button
+                  size="sm"
+                  className="h-9 px-3 text-xs bg-neutral-900 hover:bg-neutral-800 shrink-0"
+                  onClick={handleCreateCustomGroup}
+                  disabled={!customDbName.trim()}
+                >
+                  +
+                </Button>
+              </div>
             </div>
           </div>
         </div>
