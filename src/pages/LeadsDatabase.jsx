@@ -288,8 +288,9 @@ export default function LeadsDatabase() {
           {/* Uploaded Databases Dropdown */}
           <div className="sm:w-56 shrink-0">
             <p className="text-xs font-medium text-neutral-500 mb-1.5">Uploaded Databases</p>
+            <div className="flex items-center gap-1.5">
             <Select value={selectedGroupId} onValueChange={setSelectedGroupId}>
-              <SelectTrigger className="h-9 text-sm">
+              <SelectTrigger className="h-9 text-sm flex-1">
                 <div className="flex items-center gap-2 truncate">
                   <Database className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
                   <span className="truncate">{selectedGroupName}</span>
