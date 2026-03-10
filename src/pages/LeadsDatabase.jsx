@@ -29,6 +29,18 @@ export default function LeadsDatabase() {
   const [customGroupId, setCustomGroupId] = useState("all");
   const [moveToGroupId, setMoveToGroupId] = useState("");
   const [lastUploadedGroupId, setLastUploadedGroupId] = useState("all");
+  const [customDropdownOpen, setCustomDropdownOpen] = useState(false);
+  const customDropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (customDropdownRef.current && !customDropdownRef.current.contains(e.target)) {
+        setCustomDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   // Column mapping state
   const [pendingImport, setPendingImport] = useState(null); // { columns, dataRows, source, name }
