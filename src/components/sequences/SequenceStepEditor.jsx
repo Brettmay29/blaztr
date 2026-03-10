@@ -12,6 +12,7 @@ export default function SequenceStepEditor({
 }) {
   const [showVariables, setShowVariables] = useState(false);
   const [bodyEditorFocused, setBodyEditorFocused] = useState(false);
+  const [isMarkdownMode, setIsMarkdownMode] = useState(false);
 
   const getTextareaElement = () => document.querySelector("textarea");
 
@@ -178,77 +179,113 @@ export default function SequenceStepEditor({
           </div>
         </div>
 
-        <textarea
-          value={step.body}
-          onChange={(e) => onChange({ body: e.target.value })}
-          onFocus={() => setBodyEditorFocused(true)}
-          onBlur={() => setBodyEditorFocused(false)}
-          placeholder="Write your email body. Use variables like {{firstName}} for dynamic content."
-          className="w-full h-72 p-4 border border-t-0 border-neutral-200 rounded-b-lg focus:outline-none focus:ring-2 focus:ring-neutral-900"
-          style={{ fontSize: "10pt", fontFamily: "system-ui, -apple-system, sans-serif" }}
-          disabled={preview}
-        />
+        {isMarkdownMode ? (
+          <textarea
+            value={step.body}
+            onChange={(e) => onChange({ body: e.target.value })}
+            onFocus={() => setBodyEditorFocused(true)}
+            onBlur={() => setBodyEditorFocused(false)}
+            placeholder="Write your email body. Use variables like {{firstName}} for dynamic content."
+            className="w-full h-72 p-4 border border-t-0 border-neutral-200 rounded-b-lg focus:outline-none focus:ring-2 focus:ring-neutral-900"
+            style={{ fontSize: "10pt", fontFamily: "system-ui, -apple-system, sans-serif" }}
+            disabled={preview}
+          />
+        ) : (
+          <div className="border border-t-0 border-neutral-200 rounded-b-lg overflow-hidden">
+            <ReactQuill
+              value={step.body}
+              onChange={(value) => onChange({ body: value })}
+              theme="snow"
+              placeholder="Write your email body. Use variables like {{firstName}} for dynamic content."
+              modules={{
+                toolbar: [
+                  ["bold", "italic", "underline"],
+                  ["link"],
+                  [{ list: "ordered" }, { list: "bullet" }],
+                ],
+              }}
+              readOnly={preview}
+              style={{ height: "288px" }}
+            />
+          </div>
+        )}
 
-        {/* Formatting Toolbar */}
+        {/* Editor Mode Toggle and Toolbar */}
         {!preview && (
           <div className="flex items-center gap-1.5 px-4 py-3 border border-t-0 border-neutral-200 rounded-b-lg bg-neutral-50 flex-wrap">
             <Button
-              size="icon"
-              variant="outline"
-              className="h-8 w-8 p-0 hover:bg-neutral-200"
-              title="Bold"
-              onClick={() => applyFormatting("bold")}
-            >
-              <Bold className="w-3.5 h-3.5" />
-            </Button>
-            <Button
-              size="icon"
-              variant="outline"
-              className="h-8 w-8 p-0 hover:bg-neutral-200"
-              title="Italic"
-              onClick={() => applyFormatting("italic")}
-            >
-              <Italic className="w-3.5 h-3.5" />
-            </Button>
-            <div className="h-5 w-px bg-neutral-300" />
-            <Button
-              size="icon"
-              variant="outline"
-              className="h-8 w-8 p-0 hover:bg-neutral-200"
-              title="Bullet List"
-              onClick={() => applyFormatting("bullet")}
-            >
-              <List className="w-3.5 h-3.5" />
-            </Button>
-            <Button
-              size="icon"
-              variant="outline"
-              className="h-8 w-8 p-0 hover:bg-neutral-200"
-              title="Numbered List"
-              onClick={() => applyFormatting("numbered")}
-            >
-              <ListOrdered className="w-3.5 h-3.5" />
-            </Button>
-            <div className="h-5 w-px bg-neutral-300" />
-            <Button
-              size="icon"
-              variant="outline"
-              className="h-8 w-8 p-0 hover:bg-neutral-200"
-              title="Link"
-              onClick={() => applyFormatting("link")}
-            >
-              <Link className="w-3.5 h-3.5" />
-            </Button>
-            <div className="h-5 w-px bg-neutral-300" />
-            <Button
               size="sm"
-              variant="outline"
-              className="h-8 text-xs hover:bg-neutral-200"
-              title="Add Signature"
-              onClick={() => applyFormatting("signature")}
+              variant={isMarkdownMode ? "default" : "outline"}
+              className="h-8 text-xs"
+              title="Toggle Markdown Mode"
+              onClick={() => setIsMarkdownMode(!isMarkdownMode)}
             >
-              + Signature
+              <Code2 className="w-3.5 h-3.5 mr-1" />
+              {isMarkdownMode ? "Markdown" : "Rich Text"}
             </Button>
+            
+            {isMarkdownMode && (
+              <>
+                <div className="h-5 w-px bg-neutral-300" />
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="h-8 w-8 p-0 hover:bg-neutral-200"
+                  title="Bold"
+                  onClick={() => applyFormatting("bold")}
+                >
+                  <Bold className="w-3.5 h-3.5" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="h-8 w-8 p-0 hover:bg-neutral-200"
+                  title="Italic"
+                  onClick={() => applyFormatting("italic")}
+                >
+                  <Italic className="w-3.5 h-3.5" />
+                </Button>
+                <div className="h-5 w-px bg-neutral-300" />
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="h-8 w-8 p-0 hover:bg-neutral-200"
+                  title="Bullet List"
+                  onClick={() => applyFormatting("bullet")}
+                >
+                  <List className="w-3.5 h-3.5" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="h-8 w-8 p-0 hover:bg-neutral-200"
+                  title="Numbered List"
+                  onClick={() => applyFormatting("numbered")}
+                >
+                  <ListOrdered className="w-3.5 h-3.5" />
+                </Button>
+                <div className="h-5 w-px bg-neutral-300" />
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="h-8 w-8 p-0 hover:bg-neutral-200"
+                  title="Link"
+                  onClick={() => applyFormatting("link")}
+                >
+                  <Link className="w-3.5 h-3.5" />
+                </Button>
+                <div className="h-5 w-px bg-neutral-300" />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 text-xs hover:bg-neutral-200"
+                  title="Add Signature"
+                  onClick={() => applyFormatting("signature")}
+                >
+                  + Signature
+                </Button>
+              </>
+            )}
           </div>
         )}
       </div>
