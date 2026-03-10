@@ -15,26 +15,39 @@ export default function SequenceStepEditor({
   const [showVariables, setShowVariables] = useState(false);
   const [bodyEditorFocused, setBodyEditorFocused] = useState(false);
   const [isMarkdownMode, setIsMarkdownMode] = useState(false);
+  const [hoveredVar, setHoveredVar] = useState(null);
+  const quillRef = React.useRef(null);
 
   const getTextareaElement = () => document.querySelector("textarea");
 
   const insertVariable = (varName) => {
-    const textarea = getTextareaElement();
-    if (!textarea) return;
+    if (isMarkdownMode) {
+      const textarea = getTextareaElement();
+      if (!textarea) return;
 
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const before = step.body.substring(0, start);
-    const after = step.body.substring(end);
-    const newBody = before + varName + after;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const before = step.body.substring(0, start);
+      const after = step.body.substring(end);
+      const newBody = before + varName + after;
 
-    onChange({ body: newBody });
-    setShowVariables(false);
+      onChange({ body: newBody });
+      setShowVariables(false);
 
-    setTimeout(() => {
-      textarea.selectionStart = textarea.selectionEnd = start + varName.length;
-      textarea.focus();
-    }, 0);
+      setTimeout(() => {
+        textarea.selectionStart = textarea.selectionEnd = start + varName.length;
+        textarea.focus();
+      }, 0);
+    } else {
+      // Insert into Quill editor
+      if (quillRef.current?.getEditor) {
+        const editor = quillRef.current.getEditor();
+        const currentLength = editor.getLength();
+        editor.insertText(currentLength - 1, varName + " ");
+        editor.setSelection(currentLength - 1 + varName.length + 1);
+        setShowVariables(false);
+      }
+    }
   };
 
   const applyFormatting = (format) => {
