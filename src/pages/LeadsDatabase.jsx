@@ -324,7 +324,6 @@ export default function LeadsDatabase() {
           </div>
         </div>
       </div>
-      </div>
 
       {/* Leads Table */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
