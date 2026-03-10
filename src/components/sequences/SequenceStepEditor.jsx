@@ -212,6 +212,7 @@ export default function SequenceStepEditor({
         ) : (
           <div className="border border-neutral-200 rounded-lg overflow-hidden">
             <ReactQuill
+              ref={quillRef}
               value={step.body}
               onChange={(value) => onChange({ body: value })}
               theme="snow"
