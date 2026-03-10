@@ -16,7 +16,7 @@ export default function SequenceStepEditor({
   const [bodyEditorFocused, setBodyEditorFocused] = useState(false);
   const [isMarkdownMode, setIsMarkdownMode] = useState(false);
   const [hoveredVar, setHoveredVar] = useState(null);
-  const quillRef = React.useRef(null);
+  const quillRef = useRef(null);
 
   const getTextareaElement = () => document.querySelector("textarea");
 
