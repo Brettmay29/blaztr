@@ -214,12 +214,14 @@ export default function LeadsDatabase() {
   };
 
   const handleMoveSelected = async () => {
+    console.log("handleMoveSelected called, moveToGroupId:", moveToGroupId, "selectedIds:", selectedIds);
     if (!moveToGroupId) return;
     for (const id of selectedIds) {
-      await base44.entities.Lead.update(id, { group_id: moveToGroupId });
+      const result = await base44.entities.Lead.update(id, { group_id: moveToGroupId });
+      console.log("Updated lead", id, "result:", result);
     }
-    await queryClient.invalidateQueries({ queryKey: ["leads"] });
-    await queryClient.invalidateQueries({ queryKey: ["leadsGroups"] });
+    queryClient.invalidateQueries({ queryKey: ["leads"] });
+    queryClient.invalidateQueries({ queryKey: ["leadsGroups"] });
     setSelectedIds([]);
     setMoveToGroupId("");
   };
