@@ -238,6 +238,23 @@ export default function Campaigns() {
                 />
               </div>
             </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Wait between sends</Label>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-neutral-500">Wait</span>
+                <Select value={String(form.send_delay_minutes)} onValueChange={(v) => setForm({ ...form, send_delay_minutes: parseInt(v) })}>
+                  <SelectTrigger className="h-9 text-sm w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1, 5, 10, 15, 30].map((n) => (
+                      <SelectItem key={n} value={String(n)}>{n}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <span className="text-sm text-neutral-500">minutes between sends</span>
+              </div>
+            </div>
             {editing && (
               <div className="space-y-1.5">
                 <Label className="text-xs">Status</Label>
