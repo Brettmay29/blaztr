@@ -345,7 +345,11 @@ export default function LeadsDatabase() {
                   <SelectTrigger className="h-9 text-sm flex-1">
                     <div className="flex items-center gap-2 truncate">
                       <Database className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
-                      <span className="truncate">{selectedGroupName}</span>
+                      <span className="truncate">
+                        {customGroupId !== "all"
+                          ? (lastUploadedGroupId !== "all" ? (groups.find((g) => g.id === lastUploadedGroupId)?.name || "All Databases") : "All Databases")
+                          : selectedGroupName}
+                      </span>
                     </div>
                   </SelectTrigger>
                   <SelectContent>
