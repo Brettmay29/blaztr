@@ -423,9 +423,36 @@ export default function LeadsDatabase() {
       </div>
 
       {selectedIds.length > 0 && (
-        <div className="bg-neutral-900 text-white text-xs rounded-lg px-4 py-2.5 flex items-center justify-between">
-          <span>{selectedIds.length} lead{selectedIds.length > 1 ? "s" : ""} selected</span>
-          <div className="flex items-center gap-2">
+        <div className="bg-neutral-900 text-white text-xs rounded-lg px-4 py-2.5 flex items-center gap-3 flex-wrap">
+          <span className="shrink-0">{selectedIds.length} lead{selectedIds.length > 1 ? "s" : ""} selected</span>
+          {/* Move to */}
+          <span className="text-neutral-400 shrink-0">Move to:</span>
+          <div className="flex items-center gap-1.5">
+            <Select value={moveToGroupId} onValueChange={setMoveToGroupId}>
+              <SelectTrigger className="h-7 text-xs bg-neutral-800 border-neutral-700 text-white w-36">
+                <SelectValue placeholder="Select folder..." />
+              </SelectTrigger>
+              <SelectContent>
+                {groups.map((g) => (
+                  <SelectItem key={g.id} value={g.id} className="text-xs">
+                    {g.name}
+                  </SelectItem>
+                ))}
+                {groups.length === 0 && (
+                  <div className="px-3 py-2 text-xs text-neutral-400">No databases yet</div>
+                )}
+              </SelectContent>
+            </Select>
+            <Button
+              size="sm"
+              className="h-7 text-xs bg-neutral-700 hover:bg-neutral-600 shrink-0"
+              onClick={handleMoveSelected}
+              disabled={!moveToGroupId}
+            >
+              Move
+            </Button>
+          </div>
+          <div className="flex items-center gap-2 ml-auto">
             <Button variant="secondary" size="sm" className="h-7 text-xs" onClick={() => setSelectedIds([])}>
               Clear
             </Button>
