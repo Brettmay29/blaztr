@@ -10,9 +10,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Upload, Link, FileSpreadsheet, Trash2, RefreshCw, CheckCircle2, AlertCircle, ChevronDown, Database } from "lucide-react";
+import { Upload, Link, FileSpreadsheet, Trash2, RefreshCw, CheckCircle2, AlertCircle, Database } from "lucide-react";
 import LeadTable from "../components/dashboard/LeadTable";
 import LeadFilters from "../components/dashboard/LeadFilters";
+import ColumnMapper from "../components/dashboard/ColumnMapper";
 
 export default function LeadsDatabase() {
   const queryClient = useQueryClient();
@@ -24,6 +25,9 @@ export default function LeadsDatabase() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [selectedGroupId, setSelectedGroupId] = useState("all");
   const [filters, setFilters] = useState({ search: "", state: "", industry: "", status: "", market: "" });
+
+  // Column mapping state
+  const [pendingImport, setPendingImport] = useState(null); // { columns, dataRows, source, name }
 
   const { data: leads = [], isLoading } = useQuery({
     queryKey: ["leads"],
@@ -72,48 +76,46 @@ export default function LeadsDatabase() {
     return values;
   };
 
-  const mapRowToLead = (headers, values, groupId) => {
-    const row = {};
-    headers.forEach((h, i) => {
-      // normalize: lowercase, trim, collapse spaces/hyphens/dots to underscores
-      const key = h.toLowerCase().trim().replace(/[\s\-\.]+/g, "_");
-      row[key] = values[i] || "";
-    });
-
-    const pick = (...keys) => {
-      for (const k of keys) if (row[k]) return row[k];
-      return "";
-    };
-
-    return {
-      first_name: pick("first_name", "firstname", "first", "name", "contact_name", "contact"),
-      email: pick("email", "email_address", "e_mail", "mail"),
-      company_name: pick("company_name", "company", "business_name", "business", "organization", "org"),
-      state: pick("state", "province", "region", "st"),
-      industry: pick("industry", "sector", "vertical", "niche"),
-      market: pick("market", "market_type", "segment", "type"),
-      company_website: pick("company_website", "website", "url", "web", "site"),
-      alternate_emails: pick("alternate_emails", "alternate_email", "alt_email", "other_email"),
-      status: "New",
-      sequence_type: "1st",
-      total_sends: 0,
-      opens: 0,
-      clicks: 0,
-      group_id: groupId,
-    };
+  // Parse lines and show the column mapper
+  const prepareImport = (lines, source) => {
+    const name = dbName.trim() || `${source} Import ${new Date().toLocaleDateString()}`;
+    const columns = parseCSVRow(lines[0]);
+    const dataRows = lines.slice(1).map((l) => parseCSVRow(l));
+    setPendingImport({ columns, dataRows, source, name });
   };
 
-  const doImport = async (lines, source) => {
-    const name = dbName.trim() || `${source} Import ${new Date().toLocaleDateString()}`;
-    const headers = parseCSVRow(lines[0]);
-    const rows = lines.slice(1).map((l) => mapRowToLead(headers, parseCSVRow(l), "__PENDING__")).filter((r) => r.email);
+  // Called after user confirms column mapping
+  const handleMappingConfirm = async (mapping) => {
+    const { columns, dataRows, source, name } = pendingImport;
+    setPendingImport(null);
+    setImporting(true);
+    setImportStatus(null);
+
+    const rows = dataRows
+      .map((values) => {
+        const lead = {
+          status: "New",
+          sequence_type: "1st",
+          total_sends: 0,
+          opens: 0,
+          clicks: 0,
+        };
+        columns.forEach((col, i) => {
+          const field = mapping[col];
+          if (field && field !== "__skip__") {
+            lead[field] = values[i] || "";
+          }
+        });
+        return lead;
+      })
+      .filter((r) => r.email);
 
     if (rows.length === 0) {
-      setImportStatus({ type: "error", message: "No valid leads found. Make sure there is an 'email' column." });
+      setImportStatus({ type: "error", message: "No valid leads found — the Email column may be empty." });
+      setImporting(false);
       return;
     }
 
-    // Create group first
     const group = await base44.entities.LeadsGroup.create({ name, source, lead_count: rows.length });
     const rowsWithGroup = rows.map((r) => ({ ...r, group_id: group.id }));
     await base44.entities.Lead.bulkCreate(rowsWithGroup);
@@ -123,22 +125,20 @@ export default function LeadsDatabase() {
     setImportStatus({ type: "success", message: `Imported ${rows.length} leads into "${name}".` });
     setSelectedGroupId(group.id);
     setDbName("");
+    setImporting(false);
   };
 
   const handleCSVUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    setImporting(true);
     setImportStatus(null);
     const text = await file.text();
     const lines = text.split("\n").filter((l) => l.trim());
     if (lines.length < 2) {
       setImportStatus({ type: "error", message: "CSV appears empty or has no data rows." });
-      setImporting(false);
       return;
     }
-    await doImport(lines, "CSV");
-    setImporting(false);
+    prepareImport(lines, "CSV");
     e.target.value = "";
   };
 
@@ -164,8 +164,8 @@ export default function LeadsDatabase() {
       setImporting(false);
       return;
     }
-    await doImport(lines, "Google Sheet");
     setImporting(false);
+    prepareImport(lines, "Google Sheet");
     setSheetUrl("");
   };
 
@@ -181,6 +181,16 @@ export default function LeadsDatabase() {
 
   return (
     <div className="space-y-5">
+      {/* Column Mapper Modal */}
+      {pendingImport && (
+        <ColumnMapper
+          columns={pendingImport.columns}
+          previewRows={pendingImport.dataRows.slice(0, 3)}
+          onConfirm={handleMappingConfirm}
+          onCancel={() => setPendingImport(null)}
+        />
+      )}
+
       {/* Import Panel */}
       <div className="bg-white border border-neutral-200 rounded-xl p-5">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
@@ -210,14 +220,12 @@ export default function LeadsDatabase() {
             </div>
 
             {/* Database name input */}
-            <div className="flex items-center gap-2">
-              <Input
-                placeholder="Database name (optional, e.g. HVAC Texas Q1)"
-                value={dbName}
-                onChange={(e) => setDbName(e.target.value)}
-                className="text-sm h-9 max-w-xs"
-              />
-            </div>
+            <Input
+              placeholder="Database name (optional, e.g. HVAC Texas Q1)"
+              value={dbName}
+              onChange={(e) => setDbName(e.target.value)}
+              className="text-sm h-9 max-w-xs"
+            />
 
             {tab === "csv" && (
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -226,14 +234,7 @@ export default function LeadsDatabase() {
                   {importing ? "Importing..." : "Choose CSV File"}
                   <input type="file" accept=".csv" className="hidden" onChange={handleCSVUpload} disabled={importing} />
                 </label>
-                <p className="text-xs text-neutral-400">
-                  Required: <span className="font-mono bg-neutral-100 px-1 rounded">email</span>.
-                  Optional: <span className="font-mono bg-neutral-100 px-1 rounded">first_name</span>,{" "}
-                  <span className="font-mono bg-neutral-100 px-1 rounded">company_name</span>,{" "}
-                  <span className="font-mono bg-neutral-100 px-1 rounded">state</span>,{" "}
-                  <span className="font-mono bg-neutral-100 px-1 rounded">industry</span>,{" "}
-                  <span className="font-mono bg-neutral-100 px-1 rounded">market</span>
-                </p>
+                <p className="text-xs text-neutral-400">You'll map columns after selecting the file.</p>
               </div>
             )}
 
@@ -256,7 +257,7 @@ export default function LeadsDatabase() {
                   </Button>
                 </div>
                 <p className="text-xs text-neutral-400">
-                  Sheet must be shared as <strong>"Anyone with the link can view"</strong>.
+                  Sheet must be shared as <strong>"Anyone with the link can view"</strong>. You'll map columns next.
                 </p>
               </div>
             )}
