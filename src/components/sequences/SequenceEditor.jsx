@@ -4,8 +4,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Plus, Trash2, Eye } from "lucide-react";
-import SequenceStepList from "./SequenceStepList";
-import SequenceStepEditor from "./SequenceStepEditor";
+import SequenceStepList from "./SequenceStepList.jsx";
+import SequenceStepEditor from "./SequenceStepEditor.jsx";
 
 const VARIABLES = [
   { name: "{{firstName}}", label: "First Name" },

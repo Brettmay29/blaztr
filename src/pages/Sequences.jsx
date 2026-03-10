@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Trash2, Archive, Copy } from "lucide-react";
-import SequenceEditor from "../components/sequences/SequenceEditor";
+import SequenceEditor from "../components/sequences/SequenceEditor.jsx";
 
 export default function Sequences() {
   const queryClient = useQueryClient();
