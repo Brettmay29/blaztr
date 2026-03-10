@@ -201,11 +201,14 @@ export default function SequenceStepEditor({
               placeholder="Write your email body. Use variables like {{firstName}} for dynamic content."
               modules={{
                 toolbar: [
+                  [{ font: ["arial", "courier", "georgia", "helvetica", "tahoma", "times-new-roman", "trebuchet", "verdana"] }],
+                  [{ size: ["small", false, "large", "huge"] }],
                   ["bold", "italic", "underline"],
                   ["link"],
                   [{ list: "ordered" }, { list: "bullet" }],
                 ],
               }}
+              formats={["font", "size", "bold", "italic", "underline", "link", "list"]}
               readOnly={preview}
               style={{ height: "320px" }}
             />
