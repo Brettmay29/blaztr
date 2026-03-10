@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, Bold, Italic, Link, List, ListOrdered } from "lucide-react";
+import { ChevronDown, Bold, Italic, Link, List, ListOrdered, Code2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 
 export default function SequenceStepEditor({
   step,
