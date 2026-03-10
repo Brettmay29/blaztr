@@ -496,11 +496,27 @@ export default function LeadsDatabase() {
                 <SelectValue placeholder="Select folder..." />
               </SelectTrigger>
               <SelectContent>
-                {groups.map((g) => (
+                {uploadedGroups.map((g) => (
                   <SelectItem key={g.id} value={g.id} className="text-xs">
                     {g.name}
                   </SelectItem>
                 ))}
+                {customGroups.length > 0 && (
+                  <>
+                    <div className="px-3 py-1.5 mt-1">
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 h-px bg-neutral-200" />
+                        <span className="text-[10px] text-neutral-400 font-medium whitespace-nowrap">Custom Databases</span>
+                        <div className="flex-1 h-px bg-neutral-200" />
+                      </div>
+                    </div>
+                    {customGroups.map((g) => (
+                      <SelectItem key={g.id} value={g.id} className="text-xs">
+                        {g.name}
+                      </SelectItem>
+                    ))}
+                  </>
+                )}
                 {groups.length === 0 && (
                   <div className="px-3 py-2 text-xs text-neutral-400">No databases yet</div>
                 )}
