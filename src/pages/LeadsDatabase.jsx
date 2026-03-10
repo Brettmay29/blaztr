@@ -184,13 +184,40 @@ export default function LeadsDatabase() {
 
   const handleDeleteGroup = async () => {
     if (selectedGroupId === "all") return;
-    // Delete all leads in this group
     const groupLeadsToDelete = leads.filter((l) => l.group_id === selectedGroupId);
     await Promise.all(groupLeadsToDelete.map((l) => base44.entities.Lead.delete(l.id)));
     await base44.entities.LeadsGroup.delete(selectedGroupId);
     queryClient.invalidateQueries({ queryKey: ["leads"] });
     queryClient.invalidateQueries({ queryKey: ["leadsGroups"] });
     setSelectedGroupId("all");
+  };
+
+  const handleCreateCustomGroup = async () => {
+    if (!customDbName.trim()) return;
+    const group = await base44.entities.LeadsGroup.create({ name: customDbName.trim(), source: "CSV", lead_count: 0 });
+    queryClient.invalidateQueries({ queryKey: ["leadsGroups"] });
+    setCustomDbName("");
+    setCustomGroupId(group.id);
+  };
+
+  const handleDeleteCustomGroup = async () => {
+    if (!customGroupId || customGroupId === "all") return;
+    const groupLeadsToDelete = leads.filter((l) => l.group_id === customGroupId);
+    await Promise.all(groupLeadsToDelete.map((l) => base44.entities.Lead.delete(l.id)));
+    await base44.entities.LeadsGroup.delete(customGroupId);
+    queryClient.invalidateQueries({ queryKey: ["leads"] });
+    queryClient.invalidateQueries({ queryKey: ["leadsGroups"] });
+    setCustomGroupId("all");
+  };
+
+  const handleMoveSelected = async () => {
+    if (!moveToGroupId || moveToGroupId === "all") return;
+    await Promise.all(selectedIds.map((id) => base44.entities.Lead.update(id, { group_id: moveToGroupId })));
+    // Update lead counts for affected groups
+    queryClient.invalidateQueries({ queryKey: ["leads"] });
+    queryClient.invalidateQueries({ queryKey: ["leadsGroups"] });
+    setSelectedIds([]);
+    setMoveToGroupId("");
   };
 
   return (
