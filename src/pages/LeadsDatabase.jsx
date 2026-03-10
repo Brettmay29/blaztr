@@ -214,11 +214,12 @@ export default function LeadsDatabase() {
   };
 
   const handleMoveSelected = async () => {
-    if (!moveToGroupId || moveToGroupId === "all") return;
-    await Promise.all(selectedIds.map((id) => base44.entities.Lead.update(id, { group_id: moveToGroupId })));
-    // Update lead counts for affected groups
-    queryClient.invalidateQueries({ queryKey: ["leads"] });
-    queryClient.invalidateQueries({ queryKey: ["leadsGroups"] });
+    if (!moveToGroupId) return;
+    for (const id of selectedIds) {
+      await base44.entities.Lead.update(id, { group_id: moveToGroupId });
+    }
+    await queryClient.invalidateQueries({ queryKey: ["leads"] });
+    await queryClient.invalidateQueries({ queryKey: ["leadsGroups"] });
     setSelectedIds([]);
     setMoveToGroupId("");
   };
