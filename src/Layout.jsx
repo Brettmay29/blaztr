@@ -90,6 +90,13 @@ export default function Layout({ children, currentPageName }) {
           <h1 className="text-sm font-medium text-neutral-800 capitalize">
             {currentPageName?.replace(/([A-Z])/g, ' $1').trim()}
           </h1>
+          <div className="ml-auto">
+            <img
+              src="https://media.base44.com/images/public/69b02505f9b4d10dd348ac34/a8bb82400_image.png"
+              alt="Blastbot"
+              className="h-8 w-auto object-contain"
+            />
+          </div>
         </header>
 
         <main className="flex-1 p-4 lg:p-6 overflow-auto">
