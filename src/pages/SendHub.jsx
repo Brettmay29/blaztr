@@ -188,9 +188,36 @@ export default function SendHub() {
             </Button>
           </div>
         </div>
-        <p className="text-[11px] text-neutral-400 mt-3">
-          Sends to all New/Pending leads (up to daily limit). No auto-rotation.
-        </p>
+        <div className="flex items-center justify-between mt-3">
+          <p className="text-[11px] text-neutral-400">
+            Sends to all New/Pending leads via real Gmail API (up to daily limit).
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs"
+            onClick={handleCheckReplies}
+            disabled={checkingReplies}
+          >
+            {checkingReplies ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <RefreshCw className="w-3.5 h-3.5 mr-1.5" />}
+            Check Replies
+          </Button>
+        </div>
+
+        {sending && sendProgress.total > 0 && (
+          <div className="mt-3">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[11px] text-neutral-500">Sending...</span>
+              <span className="text-[11px] text-neutral-500">{sendProgress.current} / {sendProgress.total}</span>
+            </div>
+            <div className="w-full bg-neutral-100 rounded-full h-1.5">
+              <div
+                className="bg-neutral-900 h-1.5 rounded-full transition-all duration-300"
+                style={{ width: `${(sendProgress.current / sendProgress.total) * 100}%` }}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Progress Stats */}
