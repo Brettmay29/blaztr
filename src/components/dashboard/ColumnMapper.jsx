@@ -28,6 +28,7 @@ function guessMapping(colName) {
   const n = colName.toLowerCase().trim().replace(/[\s\-\.]+/g, "_");
   if (["email", "email_address", "e_mail", "mail"].includes(n)) return "email";
   if (["first_name", "firstname", "first", "name", "contact_name", "contact"].includes(n)) return "first_name";
+  if (["last_name", "lastname", "last", "surname", "family_name"].includes(n)) return "last_name";
   if (["company_name", "company", "business_name", "business", "organization", "org"].includes(n)) return "company_name";
   if (["state", "province", "region", "st"].includes(n)) return "state";
   if (["industry", "sector", "vertical", "niche"].includes(n)) return "industry";
