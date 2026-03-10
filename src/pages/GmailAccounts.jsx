@@ -90,14 +90,26 @@ export default function GmailAccounts() {
           <h2 className="text-lg font-semibold text-neutral-900">Gmail Accounts</h2>
           <p className="text-sm text-neutral-500 mt-0.5">Add up to 10 Gmail accounts for sending.</p>
         </div>
-        <Button
-          size="sm"
-          className="bg-neutral-900 hover:bg-neutral-800 text-xs h-9"
-          onClick={openNew}
-          disabled={accounts.length >= 10}
-        >
-          <Plus className="w-3.5 h-3.5 mr-1.5" /> Connect Gmail
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-xs h-9"
+            onClick={handleDetectGmail}
+            disabled={detecting || accounts.length >= 10}
+          >
+            {detecting ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Zap className="w-3.5 h-3.5 mr-1.5" />}
+            Auto-Detect
+          </Button>
+          <Button
+            size="sm"
+            className="bg-neutral-900 hover:bg-neutral-800 text-xs h-9"
+            onClick={openNew}
+            disabled={accounts.length >= 10}
+          >
+            <Plus className="w-3.5 h-3.5 mr-1.5" /> Add Manual
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-2">
