@@ -223,13 +223,19 @@ export default function LeadsDatabase() {
     queryClient.invalidateQueries({ queryKey: ["leads"] });
     queryClient.invalidateQueries({ queryKey: ["leadsGroups"] });
     setSelectedIds([]);
+    // Track the source uploaded group before navigating
+    const sourceGroup = groups.find((g) => g.id === activeGroupId);
+    if (sourceGroup && sourceGroup.type !== "custom") {
+      setLastUploadedGroupId(activeGroupId);
+    }
     // Navigate to the destination group so the user can see the moved leads
     const destGroup = groups.find((g) => g.id === moveToGroupId);
     if (destGroup?.type === "custom") {
       setCustomGroupId(moveToGroupId);
-      setSelectedGroupId(moveToGroupId);
+      setSelectedGroupId("all");
     } else {
       setSelectedGroupId(moveToGroupId);
+      setCustomGroupId("all");
     }
     setMoveToGroupId("");
   };
