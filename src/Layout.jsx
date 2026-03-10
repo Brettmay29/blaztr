@@ -28,6 +28,7 @@ import {
 const navItems = [
   { name: "Dashboard", page: "Dashboard", icon: LayoutDashboard },
   { name: "Campaigns", page: "Campaigns", icon: Send },
+  { name: "Email Testing", page: "EmailTesting", icon: Mail },
   { name: "Templates", page: "Templates", icon: FileText },
   { name: "Gmail Accounts", page: "GmailAccounts", icon: Mail },
   { name: "Send Hub", page: "SendHub", icon: Zap },
