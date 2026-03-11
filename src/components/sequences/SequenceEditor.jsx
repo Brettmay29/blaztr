@@ -31,6 +31,8 @@ export default function SequenceEditor({ sequence, onBack }) {
     mutationFn: (data) => base44.entities.Sequence.update(sequence.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["sequences"] });
+      setSavedToast(true);
+      setTimeout(() => setSavedToast(false), 2000);
     },
   });
 
