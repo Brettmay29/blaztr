@@ -42,7 +42,7 @@ export default function Campaigns() {
     name: "",
     gmail_account_id: "",
     gmail_nickname: "",
-    sequence_type: "1st Email Only",
+    sequence_id: "",
     send_window_start: "09:00",
     send_window_end: "17:00",
     daily_limit: 30,
