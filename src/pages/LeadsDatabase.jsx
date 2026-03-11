@@ -256,6 +256,29 @@ export default function LeadsDatabase() {
 
   return (
     <div className="space-y-5">
+      {/* Page-level tabs */}
+      <div className="flex gap-1 bg-neutral-100 rounded-lg p-1 w-fit">
+        <button
+          onClick={() => setPageTab("database")}
+          className={`px-4 py-1.5 rounded-md text-xs font-medium transition-colors ${
+            pageTab === "database" ? "bg-white shadow-sm text-neutral-900" : "text-neutral-500 hover:text-neutral-700"
+          }`}
+        >
+          Leads Database
+        </button>
+        <button
+          onClick={() => setPageTab("analytics")}
+          className={`px-4 py-1.5 rounded-md text-xs font-medium transition-colors ${
+            pageTab === "analytics" ? "bg-white shadow-sm text-neutral-900" : "text-neutral-500 hover:text-neutral-700"
+          }`}
+        >
+          Analytics
+        </button>
+      </div>
+
+      {pageTab === "analytics" && <LeadsAnalytics />}
+
+      {pageTab === "database" && <>
       {/* Column Mapper Modal */}
       {pendingImport && (
         <ColumnMapper
