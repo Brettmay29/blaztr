@@ -158,10 +158,10 @@ export default function SendHub() {
     Replied: <MessageSquare className="w-3.5 h-3.5 text-green-600" />,
   };
 
-  const queuedCount = sendLogs.filter((l) => l.status === "Queued").length;
-  const sentCount = sendLogs.filter((l) => l.status === "Sent" || l.status === "Opened" || l.status === "Replied").length;
-  const openCount = sendLogs.filter((l) => l.status === "Opened").length;
-  const replyCount = sendLogs.filter((l) => l.status === "Replied").length;
+  const queuedCount = filteredSendLogs.filter((l) => l.status === "Queued").length;
+  const sentCount = filteredSendLogs.filter((l) => l.status === "Sent" || l.status === "Opened" || l.status === "Replied").length;
+  const openCount = filteredSendLogs.filter((l) => l.status === "Opened").length;
+  const replyCount = filteredSendLogs.filter((l) => l.status === "Replied").length;
 
   return (
     <div className="space-y-6">
