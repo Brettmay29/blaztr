@@ -162,6 +162,7 @@ export default function SequenceEditor({ sequence, onBack }) {
         <div className="flex-1 overflow-auto bg-white">
           {showPreview ? (
             <SequenceStepEditor
+              key={selectedStepId + "-preview"}
               step={selectedStep}
               onChange={handleUpdateSelectedStep}
               variables={VARIABLES}
@@ -169,6 +170,7 @@ export default function SequenceEditor({ sequence, onBack }) {
             />
           ) : (
             <SequenceStepEditor
+              key={selectedStepId}
               step={selectedStep}
               onChange={handleUpdateSelectedStep}
               variables={VARIABLES}
