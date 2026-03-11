@@ -97,6 +97,13 @@ export default function SequenceEditor({ sequence, onBack }) {
 
   return (
     <div className="flex flex-col h-screen bg-neutral-50">
+      {/* Saved Toast */}
+      {savedToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-neutral-900 text-white text-sm px-4 py-2.5 rounded-lg shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2">
+          <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+          Sequence saved
+        </div>
+      )}
       {/* Header */}
       <div className="bg-white border-b border-neutral-200 px-6 py-4 flex items-center justify-between sticky top-0 z-20">
         <div className="flex items-center gap-3">
