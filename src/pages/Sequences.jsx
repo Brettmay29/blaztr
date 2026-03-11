@@ -91,6 +91,44 @@ export default function Sequences() {
         </div>
       </div>
 
+      {creatingFolder && (
+        <div className="bg-white border border-neutral-200 rounded-lg p-4 space-y-3">
+          <input
+            autoFocus
+            type="text"
+            placeholder="Folder name (e.g., HVAC Sequences)"
+            value={folderName}
+            onChange={(e) => setFolderName(e.target.value)}
+            className="w-full px-3 py-2 border border-neutral-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && folderName.trim()) {
+                alert(`Folder "${folderName.trim()}" created!`);
+                setFolderName("");
+                setCreatingFolder(false);
+              }
+              if (e.key === "Escape") setCreatingFolder(false);
+            }}
+          />
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              disabled={!folderName.trim()}
+              onClick={() => {
+                alert(`Folder "${folderName.trim()}" created!`);
+                setFolderName("");
+                setCreatingFolder(false);
+              }}
+              className="bg-neutral-900 hover:bg-neutral-800"
+            >
+              Create Folder
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => { setCreatingFolder(false); setFolderName(""); }}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
+
       {creatingNew && (
         <div className="bg-white border border-neutral-200 rounded-lg p-4 space-y-3">
           <input
