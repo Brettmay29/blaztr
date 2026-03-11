@@ -353,13 +353,19 @@ export default function Campaigns() {
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Sequence</Label>
-              <Select value={form.sequence_type} onValueChange={(v) => setForm({ ...form, sequence_type: v })}>
+              <Select value={form.sequence_id} onValueChange={(v) => setForm({ ...form, sequence_id: v })}>
                 <SelectTrigger className="h-9 text-sm">
-                  <SelectValue />
+                  <SelectValue placeholder="Select a sequence" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1st Email Only">1st Email Only</SelectItem>
-                  <SelectItem value="1st + Follow-up (3 days)">1st + Follow-up (3 days)</SelectItem>
+                  {sequences.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.name}
+                    </SelectItem>
+                  ))}
+                  {sequences.length === 0 && (
+                    <SelectItem value={null} disabled>No sequences found</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
