@@ -23,6 +23,7 @@ export default function SequenceEditor({ sequence, onBack }) {
   const [selectedStepId, setSelectedStepId] = useState(sequence.steps?.[0]?.id || null);
   const [showPreview, setShowPreview] = useState(false);
   const [editingName, setEditingName] = useState(false);
+  const [savedToast, setSavedToast] = useState(false);
   const nameInputRef = useRef(null);
   const queryClient = useQueryClient();
 
