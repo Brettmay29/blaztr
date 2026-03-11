@@ -142,7 +142,7 @@ export default function SendHub() {
       {/* Controls */}
       <div className="bg-white border border-neutral-200 rounded-lg p-5">
         <h2 className="text-sm font-semibold text-neutral-900 mb-4 flex items-center gap-2">
-          <Zap className="w-4 h-4" /> Launch Campaign
+          <Rocket className="w-4 h-4" /> Launch Campaign
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="space-y-1.5">
