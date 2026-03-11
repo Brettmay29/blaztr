@@ -375,6 +375,16 @@ export default function Campaigns() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="specific_schedule"
+                checked={form.specific_schedule}
+                onCheckedChange={(v) => setForm({ ...form, specific_schedule: !!v })}
+              />
+              <label htmlFor="specific_schedule" className="text-sm text-neutral-700 cursor-pointer select-none">
+                Specific Schedule
+              </label>
+            </div>
             <div className="grid grid-cols-3 gap-3">
               <div className={`space-y-1.5 ${form.start_immediately ? "opacity-40 pointer-events-none" : ""}`}>
                 <Label className="text-xs">Window Start</Label>
