@@ -164,7 +164,7 @@ export default function Layout({ children, currentPageName }) {
             </DropdownMenu>
 
             <img
-              src="https://media.base44.com/images/public/69b02505f9b4d10dd348ac34/58127b56e_image.png"
+              src="https://media.base44.com/images/public/69b02505f9b4d10dd348ac34/b5f6d23e2_Screenshot2026-03-10at112331PM.png"
               alt="Blazter"
               className="h-8 w-auto object-contain"
             />
