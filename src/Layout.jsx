@@ -9,7 +9,7 @@ import {
   Send,
   Menu,
   X,
-  Zap,
+  Rocket,
   Plug,
   User,
   LogOut,
