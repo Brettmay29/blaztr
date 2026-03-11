@@ -148,6 +148,7 @@ export default function Campaigns() {
       send_window_start: c.send_window_start || "09:00",
       send_window_end: c.send_window_end || "17:00",
       send_days: c.send_days?.length ? c.send_days : ["Mon", "Tue", "Wed", "Thu", "Fri"],
+      specific_schedule: c.specific_schedule || false,
       daily_limit: c.daily_limit || 30,
       send_delay_minutes: c.send_delay_minutes || 1,
       start_immediately: c.start_immediately || false,
