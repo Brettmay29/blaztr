@@ -278,7 +278,7 @@ export default function LeadsDatabase() {
 
       {pageTab === "analytics" && <LeadsAnalytics />}
 
-      {pageTab === "database" && <>
+      {pageTab === "database" && <div className="space-y-5">
       {/* Column Mapper Modal */}
       {pendingImport && (
         <ColumnMapper
