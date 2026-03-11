@@ -1,10 +1,92 @@
 import React, { useState, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, Bold, Italic, Link, List, ListOrdered, Code2 } from "lucide-react";
+import { ChevronDown, Bold, Italic, Link, List, ListOrdered, Code2, Eye, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+
+const SAMPLE = {
+  firstName: "John",
+  lastName: "Doe",
+  email: "john@example.com",
+  companyName: "Acme Corp",
+  companyWebsite: "acme.com",
+  industry: "Technology",
+  state: "NY",
+  market: "Enterprise",
+};
+
+function resolveVariables(text) {
+  if (!text) return "";
+  return text
+    .replace(/\{\{firstName\}\}/g, SAMPLE.firstName)
+    .replace(/\{\{lastName\}\}/g, SAMPLE.lastName)
+    .replace(/\{\{email\}\}/g, SAMPLE.email)
+    .replace(/\{\{companyName\}\}/g, SAMPLE.companyName)
+    .replace(/\{\{companyWebsite\}\}/g, SAMPLE.companyWebsite)
+    .replace(/\{\{industry\}\}/g, SAMPLE.industry)
+    .replace(/\{\{state\}\}/g, SAMPLE.state)
+    .replace(/\{\{market\}\}/g, SAMPLE.market);
+}
+
+function EmailPreviewModal({ step, onClose }) {
+  const resolvedSubject = resolveVariables(step.subject);
+  const resolvedBody = resolveVariables(step.body);
+
+  // Strip HTML tags for plain text display, or render as HTML
+  const isHtml = /<[a-z][\s\S]*>/i.test(resolvedBody);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+      <div
+        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Modal Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-200">
+          <h2 className="text-sm font-semibold text-neutral-900">Email Preview</h2>
+          <button onClick={onClose} className="text-neutral-400 hover:text-neutral-700 transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Email Client-like UI */}
+        <div className="flex-1 overflow-auto p-5 space-y-4">
+          {/* Meta */}
+          <div className="space-y-2 text-sm border-b border-neutral-100 pb-4">
+            <div className="flex gap-2">
+              <span className="text-neutral-400 w-16 shrink-0">From:</span>
+              <span className="text-neutral-700">you@youremail.com</span>
+            </div>
+            <div className="flex gap-2">
+              <span className="text-neutral-400 w-16 shrink-0">To:</span>
+              <span className="text-neutral-700">{SAMPLE.firstName} {SAMPLE.lastName} &lt;{SAMPLE.email}&gt;</span>
+            </div>
+            <div className="flex gap-2">
+              <span className="text-neutral-400 w-16 shrink-0">Subject:</span>
+              <span className="text-neutral-800 font-medium">{resolvedSubject || <em className="text-neutral-400">(no subject)</em>}</span>
+            </div>
+          </div>
+
+          {/* Body */}
+          <div className="text-sm text-neutral-800 leading-relaxed">
+            {isHtml ? (
+              <div dangerouslySetInnerHTML={{ __html: resolvedBody }} />
+            ) : (
+              <div className="whitespace-pre-wrap">{resolvedBody}</div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer note */}
+        <div className="px-5 py-3 border-t border-neutral-100 bg-neutral-50 text-xs text-neutral-400">
+          Variables replaced with sample data for preview.
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function SequenceStepEditor({
   step,
