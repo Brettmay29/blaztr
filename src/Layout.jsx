@@ -33,7 +33,7 @@ const navItems = [
   { name: "Inbox", page: "Inbox", icon: Mail },
   { name: "Sequences", page: "Sequences", icon: FileText },
   { name: "Leads Database", page: "LeadsDatabase", icon: FileSpreadsheet },
-  { name: "Analytics", page: "Analytics", icon: LayoutDashboard },
+  { name: "Analytics", page: "Analytics", icon: FlaskConical },
   { name: "Email Testing", page: "EmailTesting", icon: Mail },
   { name: "Templates", page: "Templates", icon: FileText },
   { name: "Gmail Accounts", page: "GmailAccounts", icon: Mail },
