@@ -79,10 +79,16 @@ export default function Sequences() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-neutral-900">Sequences</h2>
-        <Button onClick={() => setCreatingNew(true)} className="bg-neutral-900 hover:bg-neutral-800">
-          <Plus className="w-4 h-4 mr-2" />
-          New Sequence
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={() => setCreatingNew(true)} className="bg-neutral-900 hover:bg-neutral-800">
+            <Plus className="w-4 h-4 mr-2" />
+            New Sequence
+          </Button>
+          <Button variant="outline" onClick={() => setCreatingFolder(true)}>
+            <FolderPlus className="w-4 h-4 mr-2" />
+            New Folder
+          </Button>
+        </div>
       </div>
 
       {creatingNew && (
