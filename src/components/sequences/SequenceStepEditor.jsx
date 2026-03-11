@@ -331,6 +331,18 @@ export default function SequenceStepEditor({
               {isMarkdownMode ? "Markdown" : "Rich Text"}
             </Button>
             
+            <div className="ml-auto">
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 text-xs"
+                onClick={() => setShowPreview(true)}
+              >
+                <Eye className="w-3.5 h-3.5 mr-1" />
+                Preview
+              </Button>
+            </div>
+
             {isMarkdownMode && (
               <>
                 <div className="h-5 w-px bg-neutral-300" />
