@@ -170,50 +170,65 @@ export default function SendHub() {
         <h2 className="text-sm font-semibold text-neutral-900 mb-4 flex items-center gap-2">
           <Rocket className="w-4 h-4" /> Launch Campaign
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="space-y-1.5">
-            <Label className="text-xs">Gmail Account</Label>
-            <Select value={selectedGmail} onValueChange={setSelectedGmail}>
-              <SelectTrigger className="h-9 text-sm">
-                <SelectValue placeholder="Select sender" />
-              </SelectTrigger>
-              <SelectContent>
-                {gmailAccounts.map((acc) => (
-                  <SelectItem key={acc.id} value={acc.id}>
-                    {acc.nickname} ({acc.sent_today || 0}/{acc.daily_limit || 30})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs">Campaign</Label>
-            <Select value={selectedCampaign} onValueChange={setSelectedCampaign}>
-              <SelectTrigger className="h-9 text-sm">
-                <SelectValue placeholder="Select campaign" />
-              </SelectTrigger>
-              <SelectContent>
-                {campaigns.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-end">
-            <Button
-              className="bg-neutral-900 hover:bg-neutral-800 w-full h-9 text-xs"
-              disabled={!selectedCampaign || !selectedGmail || selectedLeads.length === 0 || sending}
-              onClick={handleStartCampaign}
-            >
-              {sending ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
-              ) : (
-                <Send className="w-3.5 h-3.5 mr-1.5" />
-              )}
-              Start Campaign ({selectedLeads.length} leads)
-            </Button>
-          </div>
-        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+           <div className="space-y-1.5">
+             <Label className="text-xs">Email Account</Label>
+             <Select value={selectedGmail} onValueChange={setSelectedGmail}>
+               <SelectTrigger className="h-9 text-sm">
+                 <SelectValue placeholder="Select sender" />
+               </SelectTrigger>
+               <SelectContent>
+                 {gmailAccounts.map((acc) => (
+                   <SelectItem key={acc.id} value={acc.id}>
+                     {acc.nickname} ({acc.sent_today || 0}/{acc.daily_limit || 30})
+                   </SelectItem>
+                 ))}
+               </SelectContent>
+             </Select>
+           </div>
+           <div className="space-y-1.5">
+             <Label className="text-xs">Database List</Label>
+             <Select value={selectedLeadGroup} onValueChange={setSelectedLeadGroup}>
+               <SelectTrigger className="h-9 text-sm">
+                 <SelectValue placeholder="Select database" />
+               </SelectTrigger>
+               <SelectContent>
+                 {leadsGroups.map((g) => (
+                   <SelectItem key={g.id} value={g.id}>
+                     {g.name} ({g.lead_count || 0})
+                   </SelectItem>
+                 ))}
+               </SelectContent>
+             </Select>
+           </div>
+           <div className="space-y-1.5">
+             <Label className="text-xs">Campaign</Label>
+             <Select value={selectedCampaign} onValueChange={setSelectedCampaign}>
+               <SelectTrigger className="h-9 text-sm">
+                 <SelectValue placeholder="Select campaign" />
+               </SelectTrigger>
+               <SelectContent>
+                 {campaigns.filter((c) => c.status === "Active").map((c) => (
+                   <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                 ))}
+               </SelectContent>
+             </Select>
+           </div>
+           <div className="flex items-end">
+             <Button
+               className="bg-neutral-900 hover:bg-neutral-800 w-full h-9 text-xs"
+               disabled={!selectedCampaign || !selectedGmail || !selectedLeadGroup || selectedLeads.length === 0 || sending}
+               onClick={handleStartCampaign}
+             >
+               {sending ? (
+                 <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
+               ) : (
+                 <Send className="w-3.5 h-3.5 mr-1.5" />
+               )}
+               Start Campaign
+             </Button>
+           </div>
+         </div>
         <div className="flex items-center justify-between mt-3">
           <p className="text-[11px] text-neutral-400">
             Sends to all New/Pending leads via real Gmail API (up to daily limit).
