@@ -409,6 +409,11 @@ export default function SequenceStepEditor({
         )}
       </div>
 
+      {/* Preview Modal */}
+      {showPreview && (
+        <EmailPreviewModal step={step} onClose={() => setShowPreview(false)} />
+      )}
+
       {/* Preview */}
       {preview && (
         <div className="bg-neutral-50 p-4 rounded-lg space-y-2 border border-neutral-200">
