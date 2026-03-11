@@ -38,6 +38,7 @@ const navItems = [
   { name: "Templates", page: "Templates", icon: FileText },
   { name: "Gmail Accounts", page: "GmailAccounts", icon: Mail },
   { name: "Send Hub", page: "SendHub", icon: Zap },
+  { name: "Integrations", page: "Integrations", icon: Plug },
 ];
 
 export default function Layout({ children, currentPageName }) {

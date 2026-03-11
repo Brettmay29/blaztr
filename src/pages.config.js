@@ -57,6 +57,7 @@ import SendHub from './pages/SendHub';
 import Sequences from './pages/Sequences';
 import Templates from './pages/Templates';
 import Analytics from './pages/Analytics';
+import Integrations from './pages/Integrations';
 import __Layout from './Layout.jsx';
 
 
@@ -71,6 +72,7 @@ export const PAGES = {
     "Sequences": Sequences,
     "Templates": Templates,
     "Analytics": Analytics,
+    "Integrations": Integrations,
 }
 
 export const pagesConfig = {
