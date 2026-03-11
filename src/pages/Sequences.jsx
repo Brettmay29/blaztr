@@ -10,6 +10,24 @@ export default function Sequences() {
   const queryClient = useQueryClient();
   const [editingId, setEditingId] = useState(null);
   const [creatingNew, setCreatingNew] = useState(false);
+  const [renamingId, setRenamingId] = useState(null);
+  const [renameValue, setRenameValue] = useState("");
+
+  const renameMutation = useMutation({
+    mutationFn: ({ id, name }) => base44.entities.Sequence.update(id, { name }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sequences"] });
+      setRenamingId(null);
+    },
+  });
+
+  const handleRenameCommit = (id) => {
+    if (renameValue.trim()) {
+      renameMutation.mutate({ id, name: renameValue.trim() });
+    } else {
+      setRenamingId(null);
+    }
+  };
 
   const { data: sequences = [] } = useQuery({
     queryKey: ["sequences"],

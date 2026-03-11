@@ -54,8 +54,8 @@ import GmailAccounts from './pages/GmailAccounts';
 import Inbox from './pages/Inbox';
 import LeadsDatabase from './pages/LeadsDatabase';
 import SendHub from './pages/SendHub';
-import Templates from './pages/Templates';
 import Sequences from './pages/Sequences';
+import Templates from './pages/Templates';
 import __Layout from './Layout.jsx';
 
 
@@ -67,8 +67,8 @@ export const PAGES = {
     "Inbox": Inbox,
     "LeadsDatabase": LeadsDatabase,
     "SendHub": SendHub,
-    "Templates": Templates,
     "Sequences": Sequences,
+    "Templates": Templates,
 }
 
 export const pagesConfig = {
