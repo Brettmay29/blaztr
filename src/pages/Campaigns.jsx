@@ -14,7 +14,18 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Send, Eye, MessageSquare, Pencil, Trash2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
+import {
+  Plus, Send, Eye, MessageSquare, Pencil, Trash2,
+  FolderPlus, Folder, FolderOpen, ChevronDown, ChevronRight, MoreHorizontal,
+} from "lucide-react";
 
 const campaignStatusStyles = {
   Draft: "bg-neutral-100 text-neutral-600",
@@ -35,12 +46,23 @@ export default function Campaigns() {
     send_window_start: "09:00",
     send_window_end: "17:00",
     daily_limit: 30,
+    send_delay_minutes: 1,
+    start_immediately: false,
     status: "Draft",
   });
+
+  const [creatingFolder, setCreatingFolder] = useState(false);
+  const [folderName, setFolderName] = useState("");
+  const [collapsedFolders, setCollapsedFolders] = useState({});
 
   const { data: campaigns = [] } = useQuery({
     queryKey: ["campaigns"],
     queryFn: () => base44.entities.Campaign.list("-created_date"),
+  });
+
+  const { data: folders = [] } = useQuery({
+    queryKey: ["campaignFolders"],
+    queryFn: () => base44.entities.CampaignFolder.list("-created_date", 100),
   });
 
   const { data: gmailAccounts = [] } = useQuery({
@@ -61,6 +83,32 @@ export default function Campaigns() {
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Campaign.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["campaigns"] }),
+  });
+
+  const createFolderMutation = useMutation({
+    mutationFn: (name) => base44.entities.CampaignFolder.create({ name }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["campaignFolders"] });
+      setFolderName("");
+      setCreatingFolder(false);
+    },
+  });
+
+  const deleteFolderMutation = useMutation({
+    mutationFn: async (folderId) => {
+      const inFolder = campaigns.filter((c) => c.folder_id === folderId);
+      await Promise.all(inFolder.map((c) => base44.entities.Campaign.update(c.id, { folder_id: null })));
+      return base44.entities.CampaignFolder.delete(folderId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["campaignFolders"] });
+      queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+    },
+  });
+
+  const moveMutation = useMutation({
+    mutationFn: ({ id, folder_id }) => base44.entities.Campaign.update(id, { folder_id: folder_id || null }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["campaigns"] }),
   });
 
@@ -108,68 +156,171 @@ export default function Campaigns() {
     setForm({ ...form, gmail_account_id: accId, gmail_nickname: acc?.nickname || "" });
   };
 
+  const toggleFolder = (folderId) =>
+    setCollapsedFolders((prev) => ({ ...prev, [folderId]: !prev[folderId] }));
+
+  const ungrouped = campaigns.filter((c) => !c.folder_id);
+
+  const CampaignRow = ({ c }) => (
+    <div className="bg-white border border-neutral-200 rounded-lg p-4 hover:border-neutral-300 transition-colors">
+      <div className="flex items-start justify-between">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1.5">
+            <p className="text-sm font-medium text-neutral-900">{c.name}</p>
+            <Badge className={campaignStatusStyles[c.status] + " text-[11px]"}>{c.status}</Badge>
+          </div>
+          <div className="flex items-center gap-4 text-xs text-neutral-500">
+            {c.gmail_nickname && <span>via {c.gmail_nickname}</span>}
+            <span>{c.sequence_type}</span>
+            <span>{c.send_window_start}–{c.send_window_end}</span>
+            <span>Limit: {c.daily_limit}/day</span>
+          </div>
+          <div className="flex items-center gap-4 mt-2">
+            <div className="flex items-center gap-1 text-xs text-neutral-500">
+              <Send className="w-3 h-3" /> {c.total_sent || 0} sent
+            </div>
+            <div className="flex items-center gap-1 text-xs text-neutral-500">
+              <Eye className="w-3 h-3" /> {c.total_opens || 0} opens
+            </div>
+            <div className="flex items-center gap-1 text-xs text-neutral-500">
+              <MessageSquare className="w-3 h-3" /> {c.total_replies || 0} replies
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(c)}>
+            <Pencil className="w-3.5 h-3.5" />
+          </Button>
+          {folders.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="icon" variant="ghost" className="h-8 w-8" title="Move to folder">
+                  <MoreHorizontal className="w-4 h-4 text-neutral-500" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel className="text-xs text-neutral-500">Move to folder</DropdownMenuLabel>
+                {c.folder_id && (
+                  <>
+                    <DropdownMenuItem onClick={() => moveMutation.mutate({ id: c.id, folder_id: null })}>
+                      Remove from folder
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+                {folders.map((f) => (
+                  <DropdownMenuItem
+                    key={f.id}
+                    disabled={c.folder_id === f.id}
+                    onClick={() => moveMutation.mutate({ id: c.id, folder_id: f.id })}
+                  >
+                    <Folder className="w-3.5 h-3.5 mr-2 text-neutral-400" />
+                    {f.name}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-700" onClick={() => deleteMutation.mutate(c.id)}>
+            <Trash2 className="w-3.5 h-3.5" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="space-y-6 max-w-3xl">
+    <div className="space-y-5 max-w-3xl">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-neutral-900">Campaigns</h2>
           <p className="text-sm text-neutral-500 mt-0.5">Create and manage email campaigns.</p>
         </div>
-      </div>
-
-      <div>
-          <div className="flex justify-end mb-3">
-            <Button size="sm" className="bg-neutral-900 hover:bg-neutral-800 text-xs h-9" onClick={openNew}>
-              <Plus className="w-3.5 h-3.5 mr-1.5" /> New Campaign
-            </Button>
-          </div>
-          <div className="space-y-3">
-        {campaigns.length === 0 && (
-          <div className="border border-dashed border-neutral-300 rounded-lg p-12 text-center">
-            <Send className="w-6 h-6 text-neutral-300 mx-auto mb-2" />
-            <p className="text-sm text-neutral-400">No campaigns yet.</p>
-          </div>
-        )}
-        {campaigns.map((c) => (
-          <div key={c.id} className="bg-white border border-neutral-200 rounded-lg p-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="flex items-center gap-2 mb-1.5">
-                  <p className="text-sm font-medium text-neutral-900">{c.name}</p>
-                  <Badge className={campaignStatusStyles[c.status] + " text-[11px]"}>{c.status}</Badge>
-                </div>
-                <div className="flex items-center gap-4 text-xs text-neutral-500">
-                  {c.gmail_nickname && <span>via {c.gmail_nickname}</span>}
-                  <span>{c.sequence_type}</span>
-                  <span>{c.send_window_start}–{c.send_window_end}</span>
-                  <span>Limit: {c.daily_limit}/day</span>
-                </div>
-                <div className="flex items-center gap-4 mt-2">
-                  <div className="flex items-center gap-1 text-xs text-neutral-500">
-                    <Send className="w-3 h-3" /> {c.total_sent || 0} sent
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-neutral-500">
-                    <Eye className="w-3 h-3" /> {c.total_opens || 0} opens
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-neutral-500">
-                    <MessageSquare className="w-3 h-3" /> {c.total_replies || 0} replies
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-1">
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(c)}>
-                  <Pencil className="w-3.5 h-3.5" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500" onClick={() => deleteMutation.mutate(c.id)}>
-                  <Trash2 className="w-3.5 h-3.5" />
-                </Button>
-              </div>
-            </div>
-          </div>
-          ))}
+        <div className="flex items-center gap-2">
+          <Button size="sm" className="bg-neutral-900 hover:bg-neutral-800 text-xs h-9" onClick={openNew}>
+            <Plus className="w-3.5 h-3.5 mr-1.5" /> New Campaign
+          </Button>
+          <Button size="sm" variant="outline" className="text-xs h-9" onClick={() => setCreatingFolder(true)}>
+            <FolderPlus className="w-3.5 h-3.5 mr-1.5" /> New Folder
+          </Button>
         </div>
       </div>
 
+      {/* New Folder input */}
+      {creatingFolder && (
+        <div className="bg-white border border-neutral-200 rounded-lg p-4 space-y-3">
+          <input
+            autoFocus
+            type="text"
+            placeholder="Folder name (e.g., Q1 Campaigns)"
+            value={folderName}
+            onChange={(e) => setFolderName(e.target.value)}
+            className="w-full px-3 py-2 border border-neutral-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && folderName.trim()) createFolderMutation.mutate(folderName.trim());
+              if (e.key === "Escape") { setCreatingFolder(false); setFolderName(""); }
+            }}
+          />
+          <div className="flex gap-2">
+            <Button size="sm" disabled={!folderName.trim()} onClick={() => createFolderMutation.mutate(folderName.trim())} className="bg-neutral-900 hover:bg-neutral-800">
+              Create Folder
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => { setCreatingFolder(false); setFolderName(""); }}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Folders */}
+      {folders.map((folder) => {
+        const folderCampaigns = campaigns.filter((c) => c.folder_id === folder.id);
+        const isCollapsed = collapsedFolders[folder.id];
+        return (
+          <div key={folder.id} className="border border-neutral-200 rounded-lg overflow-hidden">
+            <div
+              className="flex items-center gap-2 px-4 py-3 bg-neutral-50 cursor-pointer hover:bg-neutral-100 transition-colors"
+              onClick={() => toggleFolder(folder.id)}
+            >
+              {isCollapsed ? <ChevronRight className="w-4 h-4 text-neutral-400" /> : <ChevronDown className="w-4 h-4 text-neutral-400" />}
+              {isCollapsed ? <Folder className="w-4 h-4 text-neutral-500" /> : <FolderOpen className="w-4 h-4 text-neutral-500" />}
+              <span className="text-sm font-medium text-neutral-800">{folder.name}</span>
+              <span className="text-xs text-neutral-400 ml-1">({folderCampaigns.length})</span>
+              <button
+                className="ml-auto text-neutral-400 hover:text-red-500 transition-colors p-1"
+                onClick={(e) => { e.stopPropagation(); deleteFolderMutation.mutate(folder.id); }}
+                title="Delete folder"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            {!isCollapsed && (
+              <div className="p-3 space-y-2 bg-white">
+                {folderCampaigns.length === 0 ? (
+                  <p className="text-xs text-neutral-400 text-center py-3">No campaigns in this folder yet.</p>
+                ) : (
+                  folderCampaigns.map((c) => <CampaignRow key={c.id} c={c} />)
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {/* Ungrouped campaigns */}
+      <div className="space-y-3">
+        {ungrouped.map((c) => <CampaignRow key={c.id} c={c} />)}
+      </div>
+
+      {campaigns.length === 0 && folders.length === 0 && !creatingFolder && (
+        <div className="border border-dashed border-neutral-300 rounded-lg p-12 text-center">
+          <Send className="w-6 h-6 text-neutral-300 mx-auto mb-2" />
+          <p className="text-sm text-neutral-400">No campaigns yet.</p>
+        </div>
+      )}
+
+      {/* Campaign Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
