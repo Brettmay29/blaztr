@@ -70,6 +70,11 @@ export default function Campaigns() {
     queryFn: () => base44.entities.GmailAccount.list(),
   });
 
+  const { data: sequences = [] } = useQuery({
+    queryKey: ["sequences"],
+    queryFn: () => base44.entities.Sequence.list("-created_date", 100),
+  });
+
   const saveMutation = useMutation({
     mutationFn: (data) =>
       editing
