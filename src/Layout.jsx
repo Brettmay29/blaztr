@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
   LayoutDashboard,
+  FlaskConical,
   Mail,
   FileText,
   Send,
