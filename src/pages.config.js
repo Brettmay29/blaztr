@@ -48,6 +48,7 @@
  * The mainPage value must match a key in the PAGES object exactly.
  */
 import Analytics from './pages/Analytics';
+import Campaigns from './pages/Campaigns';
 import Dashboard from './pages/Dashboard';
 import EmailTesting from './pages/EmailTesting';
 import GmailAccounts from './pages/GmailAccounts';
@@ -57,12 +58,12 @@ import LeadsDatabase from './pages/LeadsDatabase';
 import SendHub from './pages/SendHub';
 import Sequences from './pages/Sequences';
 import Templates from './pages/Templates';
-import Campaigns from './pages/Campaigns';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "Analytics": Analytics,
+    "Campaigns": Campaigns,
     "Dashboard": Dashboard,
     "EmailTesting": EmailTesting,
     "GmailAccounts": GmailAccounts,
@@ -72,7 +73,6 @@ export const PAGES = {
     "SendHub": SendHub,
     "Sequences": Sequences,
     "Templates": Templates,
-    "Campaigns": Campaigns,
 }
 
 export const pagesConfig = {
