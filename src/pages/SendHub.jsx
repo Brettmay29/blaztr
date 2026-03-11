@@ -47,7 +47,23 @@ export default function SendHub() {
     queryFn: () => base44.entities.SendLog.list("-created_date", 200),
   });
 
-  const selectedLeads = leads.filter((l) => l.status === "New" || l.status === "Pending");
+  const { data: leadsGroups = [] } = useQuery({
+    queryKey: ["leadsGroups"],
+    queryFn: () => base44.entities.LeadsGroup.list("-created_date", 100),
+  });
+
+  const { data: sequences = [] } = useQuery({
+    queryKey: ["sequences"],
+    queryFn: () => base44.entities.Sequence.list(),
+  });
+
+  const selectedLeads = selectedLeadGroup
+    ? leads.filter((l) => l.group_id === selectedLeadGroup && (l.status === "New" || l.status === "Pending"))
+    : leads.filter((l) => l.status === "New" || l.status === "Pending");
+
+  const filteredSendLogs = selectedFilterCampaign
+    ? sendLogs.filter((log) => log.campaign_id === selectedFilterCampaign)
+    : sendLogs;
 
   const handleStartCampaign = async () => {
     if (!selectedCampaign || !selectedGmail) return;
