@@ -130,11 +130,11 @@ export default function Sequences() {
                   type="text"
                   value={renameValue}
                   onChange={(e) => setRenameValue(e.target.value)}
-                  onBlur={() => handleRenameCommit(seq.id)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") handleRenameCommit(seq.id);
+                    if (e.key === "Enter") { e.preventDefault(); handleRenameCommit(seq.id); }
                     if (e.key === "Escape") setRenamingId(null);
                   }}
+                  onBlur={() => handleRenameCommit(seq.id)}
                   className="font-medium text-neutral-900 border border-neutral-300 rounded px-2 py-0.5 text-sm focus:outline-none focus:border-neutral-500 w-full max-w-xs"
                   onClick={(e) => e.stopPropagation()}
                 />
