@@ -12,6 +12,8 @@ export default function Sequences() {
   const [creatingNew, setCreatingNew] = useState(false);
   const [renamingId, setRenamingId] = useState(null);
   const [renameValue, setRenameValue] = useState("");
+  const [creatingFolder, setCreatingFolder] = useState(false);
+  const [folderName, setFolderName] = useState("");
 
   const renameMutation = useMutation({
     mutationFn: ({ id, name }) => base44.entities.Sequence.update(id, { name }),
