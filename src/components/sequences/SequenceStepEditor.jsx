@@ -319,6 +319,7 @@ export default function SequenceStepEditor({
         {/* Editor Mode Toggle */}
         {!preview && (
           <div className="flex items-center gap-1.5 px-4 py-2 border border-t-0 border-neutral-200 rounded-b-lg bg-neutral-50">
+
             <Button
               size="sm"
               variant={isMarkdownMode ? "default" : "outline"}
