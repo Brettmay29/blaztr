@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Zap, Send, Loader2, CheckCircle, AlertCircle, Clock, Eye, MessageSquare, RefreshCw } from "lucide-react";
+import { Rocket, Send, Loader2, CheckCircle, AlertCircle, Clock, Eye, MessageSquare, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
