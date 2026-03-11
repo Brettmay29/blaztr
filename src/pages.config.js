@@ -57,7 +57,6 @@ import LeadsDatabase from './pages/LeadsDatabase';
 import SendHub from './pages/SendHub';
 import Sequences from './pages/Sequences';
 import Templates from './pages/Templates';
-import Campaigns from './pages/Campaigns';
 import __Layout from './Layout.jsx';
 
 
@@ -72,7 +71,6 @@ export const PAGES = {
     "SendHub": SendHub,
     "Sequences": Sequences,
     "Templates": Templates,
-    "Campaigns": Campaigns,
 }
 
 export const pagesConfig = {
