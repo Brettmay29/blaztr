@@ -66,13 +66,15 @@ export default function SendHub() {
     : sendLogs;
 
   const handleStartCampaign = async () => {
-    if (!selectedCampaign || !selectedGmail) return;
+    if (!selectedCampaign || !selectedGmail || !selectedLeadGroup) return;
     setSending(true);
 
     const campaign = campaigns.find((c) => c.id === selectedCampaign);
     const gmail = gmailAccounts.find((a) => a.id === selectedGmail);
+    const sequence = sequences.find((s) => s.id === campaign?.sequence_id);
     const dailyLimit = gmail?.daily_limit || 30;
     const leadsToSend = selectedLeads.slice(0, dailyLimit);
+    const sendDelay = (campaign?.send_delay_minutes || 0) * 60 * 1000; // Convert to milliseconds
 
     setSendProgress({ current: 0, total: leadsToSend.length });
 
@@ -83,9 +85,10 @@ export default function SendHub() {
       const lead = leadsToSend[i];
       setSendProgress({ current: i + 1, total: leadsToSend.length });
 
-      // Replace placeholders in subject/body using campaign name as subject for now
-      const subject = campaign?.name || "Quick question";
-      const body = `Hi ${lead.first_name || "there"},\n\nI came across ${lead.company_name || "your company"} and wanted to connect.\n\nBest regards`;
+      // Get email copy from sequence first step
+      const firstStep = sequence?.steps?.[0];
+      const subject = firstStep?.subject || campaign?.name || "Quick question";
+      const body = firstStep?.body || `Hi ${lead.first_name || "there"},\n\nI came across ${lead.company_name || "your company"} and wanted to connect.\n\nBest regards`;
 
       const res = await base44.functions.invoke("sendEmail", {
         to: lead.email,
@@ -101,6 +104,11 @@ export default function SendHub() {
         successCount++;
       } else {
         failCount++;
+      }
+
+      // Add delay between sends (but not after the last one)
+      if (i < leadsToSend.length - 1 && sendDelay > 0) {
+        await new Promise((resolve) => setTimeout(resolve, sendDelay));
       }
     }
 
