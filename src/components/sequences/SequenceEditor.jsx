@@ -95,7 +95,7 @@ export default function SequenceEditor({ sequence, onBack }) {
             type="text"
             value={localSeq.name}
             onChange={(e) => setLocalSeq({ ...localSeq, name: e.target.value })}
-            className="text-lg font-semibold border-0 bg-transparent focus:outline-none focus:ring-0"
+            className="text-lg font-semibold bg-transparent border border-transparent rounded px-2 py-0.5 hover:border-neutral-300 focus:border-neutral-400 focus:outline-none focus:bg-neutral-50 transition-colors cursor-text"
           />
         </div>
         <div className="flex items-center gap-2">
