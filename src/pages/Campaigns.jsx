@@ -45,6 +45,7 @@ export default function Campaigns() {
     sequence_id: "",
     send_window_start: "09:00",
     send_window_end: "17:00",
+    send_days: ["Mon", "Tue", "Wed", "Thu", "Fri"],
     daily_limit: 30,
     send_delay_minutes: 1,
     start_immediately: false,
