@@ -32,6 +32,7 @@ const navItems = [
   { name: "Dashboard", page: "Dashboard", icon: LayoutDashboard },
   { name: "Campaigns", page: "Campaigns", icon: Send },
   { name: "Inbox", page: "Inbox", icon: Mail },
+  { name: "Launch Hub", page: "SendHub", icon: Rocket },
   { name: "Sequences", page: "Sequences", icon: FileText },
   { name: "Leads Database", page: "LeadsDatabase", icon: FileSpreadsheet },
   { name: "Analytics", page: "Analytics", icon: FlaskConical },
