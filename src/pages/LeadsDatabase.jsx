@@ -18,6 +18,7 @@ import LeadsAnalytics from "../components/dashboard/LeadsAnalytics";
 
 export default function LeadsDatabase() {
   const queryClient = useQueryClient();
+  const [pageTab, setPageTab] = useState("database");
   const [tab, setTab] = useState("csv");
   const [sheetUrl, setSheetUrl] = useState("");
   const [dbName, setDbName] = useState("");
