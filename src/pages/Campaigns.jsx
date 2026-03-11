@@ -49,6 +49,7 @@ export default function Campaigns() {
     daily_limit: 30,
     send_delay_minutes: 1,
     start_immediately: false,
+    specific_schedule: false,
     status: "Draft",
   });
 
