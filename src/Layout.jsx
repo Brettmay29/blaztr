@@ -10,6 +10,7 @@ import {
   Menu,
   X,
   Zap,
+  Plug,
   User,
   LogOut,
   Settings,
