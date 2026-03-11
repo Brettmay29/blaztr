@@ -401,6 +401,34 @@ export default function Campaigns() {
                 />
               </div>
             </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Send Days</Label>
+              <div className="flex gap-1.5 flex-wrap">
+                {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => {
+                  const active = (form.send_days || []).includes(day);
+                  return (
+                    <button
+                      key={day}
+                      type="button"
+                      onClick={() => {
+                        const days = form.send_days || [];
+                        setForm({
+                          ...form,
+                          send_days: active ? days.filter((d) => d !== day) : [...days, day],
+                        });
+                      }}
+                      className={`px-2.5 py-1 rounded-md text-xs font-medium border transition-colors ${
+                        active
+                          ? "bg-neutral-900 text-white border-neutral-900"
+                          : "bg-white text-neutral-500 border-neutral-200 hover:border-neutral-400"
+                      }`}
+                    >
+                      {day}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
             <div className="flex items-center gap-2 pt-1">
               <Checkbox
                 id="start_immediately"
