@@ -442,7 +442,7 @@ export default function Campaigns() {
                 })}
               </div>
             </div>
-            <div className="flex items-center gap-2 pt-1">
+            <div className={`flex items-center gap-2 pt-1 ${form.specific_schedule ? "opacity-40 pointer-events-none" : ""}`}>
               <Checkbox
                 id="start_immediately"
                 checked={form.start_immediately}
