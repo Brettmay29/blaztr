@@ -68,7 +68,7 @@ export default function Layout({ children, currentPageName }) {
         )}
       >
         <div className="h-14 flex items-center px-5 border-b border-neutral-100">
-          <span className="text-sm font-semibold tracking-wide text-neutral-900">Blaztbot</span>
+          <span className="text-sm font-semibold tracking-wide text-neutral-900">Blazter</span>
           <button
             className="ml-auto lg:hidden text-neutral-400 hover:text-neutral-600"
             onClick={() => setSidebarOpen(false)}
@@ -164,8 +164,8 @@ export default function Layout({ children, currentPageName }) {
             </DropdownMenu>
 
             <img
-              src="https://media.base44.com/images/public/69b02505f9b4d10dd348ac34/5d966a4c4_image.png"
-              alt="Blaztbot"
+              src="https://media.base44.com/images/public/69b02505f9b4d10dd348ac34/58127b56e_image.png"
+              alt="Blazter"
               className="h-8 w-auto object-contain"
             />
           </div>
