@@ -15,7 +15,8 @@ import {
   LogOut,
   Settings,
   ChevronDown,
-  FileSpreadsheet
+  Database,
+  Code
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { base44 } from "@/api/base44Client";
