@@ -139,18 +139,24 @@ export default function Sequences() {
                   onClick={(e) => e.stopPropagation()}
                 />
               ) : (
-                <h3
-                  className="font-medium text-neutral-900 cursor-pointer hover:text-neutral-600"
-                  onClick={() => setEditingId(seq.id)}
-                  onDoubleClick={(e) => {
-                    e.stopPropagation();
-                    setRenamingId(seq.id);
-                    setRenameValue(seq.name);
-                  }}
-                  title="Click to open, double-click to rename"
-                >
-                  {seq.name}
-                </h3>
+                <div className="flex items-center gap-2">
+                  <h3
+                    className="font-medium text-neutral-900 cursor-pointer hover:text-neutral-600"
+                    onClick={() => setEditingId(seq.id)}
+                  >
+                    {seq.name}
+                  </h3>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setRenamingId(seq.id);
+                      setRenameValue(seq.name);
+                    }}
+                    className="text-[11px] text-neutral-400 border border-neutral-300 rounded-full px-2 py-0.5 hover:bg-neutral-100 hover:text-neutral-600 transition-colors"
+                  >
+                    Edit
+                  </button>
+                </div>
               )}
               <p className="text-xs text-neutral-500 mt-1">
                 {seq.steps?.length || 0} step{(seq.steps?.length || 0) !== 1 ? "s" : ""}
