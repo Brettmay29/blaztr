@@ -312,14 +312,14 @@ export default function SendHub() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sendLogs.length === 0 && (
+              {filteredSendLogs.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center text-neutral-400 py-10 text-sm">
                     No sends yet. Launch a campaign to get started.
                   </TableCell>
                 </TableRow>
               )}
-              {sendLogs.map((log) => (
+              {filteredSendLogs.map((log) => (
                 <TableRow key={log.id}>
                   <TableCell>
                     <div className="flex items-center gap-1.5">
