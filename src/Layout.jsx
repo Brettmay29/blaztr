@@ -39,7 +39,7 @@ const navItems = [
   { name: "Analytics", page: "Analytics", icon: FlaskConical },
   { name: "Email Testing", page: "EmailTesting", icon: Mail },
   { name: "Templates", page: "Templates", icon: FileText },
-  { name: "Gmail Accounts", page: "GmailAccounts", icon: Mail },
+  { name: "Email Accounts", page: "GmailAccounts", icon: Users },
 
   { name: "Integrations", page: "Integrations", icon: Plug },
 ];
