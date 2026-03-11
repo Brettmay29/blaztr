@@ -38,7 +38,7 @@ const navItems = [
   { name: "Email Testing", page: "EmailTesting", icon: Mail },
   { name: "Templates", page: "Templates", icon: FileText },
   { name: "Gmail Accounts", page: "GmailAccounts", icon: Mail },
-  { name: "Send Hub", page: "SendHub", icon: Zap },
+
   { name: "Integrations", page: "Integrations", icon: Plug },
 ];
 
