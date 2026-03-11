@@ -22,11 +22,11 @@ export default function Sequences() {
   });
 
   const handleRenameCommit = (id) => {
-    if (renameValue.trim()) {
-      renameMutation.mutate({ id, name: renameValue.trim() });
-    } else {
-      setRenamingId(null);
+    const trimmed = renameValue.trim();
+    if (trimmed) {
+      renameMutation.mutate({ id, name: trimmed });
     }
+    setRenamingId(null);
   };
 
   const { data: sequences = [] } = useQuery({
