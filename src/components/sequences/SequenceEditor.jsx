@@ -101,10 +101,10 @@ export default function SequenceEditor({ sequence, onBack }) {
               value={localSeq.name}
               onChange={(e) => setLocalSeq({ ...localSeq, name: e.target.value })}
               onKeyDown={(e) => {
-                if (e.key === "Enter") { e.preventDefault(); setEditingName(false); }
+                if (e.key === "Enter") { e.preventDefault(); commitName(); }
                 if (e.key === "Escape") setEditingName(false);
               }}
-              onBlur={() => setEditingName(false)}
+              onBlur={commitName}
               className="text-lg font-semibold border border-neutral-300 rounded px-2 py-0.5 focus:outline-none focus:border-neutral-500 bg-white"
             />
           ) : (
