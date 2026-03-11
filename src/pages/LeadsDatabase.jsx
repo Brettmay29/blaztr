@@ -578,7 +578,7 @@ export default function LeadsDatabase() {
           onToggleAll={handleToggleAll}
         />
       )}
-      </>}
+      </div>}
     </div>
   );
 }
