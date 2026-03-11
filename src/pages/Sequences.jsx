@@ -123,8 +123,35 @@ export default function Sequences() {
       <div className="grid gap-3">
         {sequences.map((seq) => (
           <div key={seq.id} className="bg-white border border-neutral-200 rounded-lg p-4 flex items-center justify-between hover:border-neutral-300 transition-colors">
-            <div className="flex-1 cursor-pointer" onClick={() => setEditingId(seq.id)}>
-              <h3 className="font-medium text-neutral-900">{seq.name}</h3>
+            <div className="flex-1 min-w-0">
+              {renamingId === seq.id ? (
+                <input
+                  autoFocus
+                  type="text"
+                  value={renameValue}
+                  onChange={(e) => setRenameValue(e.target.value)}
+                  onBlur={() => handleRenameCommit(seq.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleRenameCommit(seq.id);
+                    if (e.key === "Escape") setRenamingId(null);
+                  }}
+                  className="font-medium text-neutral-900 border border-neutral-300 rounded px-2 py-0.5 text-sm focus:outline-none focus:border-neutral-500 w-full max-w-xs"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              ) : (
+                <h3
+                  className="font-medium text-neutral-900 cursor-pointer hover:text-neutral-600"
+                  onClick={() => setEditingId(seq.id)}
+                  onDoubleClick={(e) => {
+                    e.stopPropagation();
+                    setRenamingId(seq.id);
+                    setRenameValue(seq.name);
+                  }}
+                  title="Click to open, double-click to rename"
+                >
+                  {seq.name}
+                </h3>
+              )}
               <p className="text-xs text-neutral-500 mt-1">
                 {seq.steps?.length || 0} step{(seq.steps?.length || 0) !== 1 ? "s" : ""}
               </p>
