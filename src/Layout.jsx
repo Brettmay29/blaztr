@@ -16,7 +16,7 @@ import {
   Settings,
   ChevronDown,
   Database,
-  Code
+  Code2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { base44 } from "@/api/base44Client";
