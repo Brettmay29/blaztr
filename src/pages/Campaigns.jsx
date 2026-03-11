@@ -176,7 +176,7 @@ export default function Campaigns() {
           </div>
           <div className="flex items-center gap-4 text-xs text-neutral-500">
             {c.gmail_nickname && <span>via {c.gmail_nickname}</span>}
-            <span>{c.sequence_type}</span>
+            {c.sequence_id && <span>{sequences.find(s => s.id === c.sequence_id)?.name || ""}</span>}
             <span>{c.send_window_start}–{c.send_window_end}</span>
             <span>Limit: {c.daily_limit}/day</span>
           </div>
