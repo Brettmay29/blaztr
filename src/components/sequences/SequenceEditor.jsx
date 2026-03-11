@@ -93,12 +93,31 @@ export default function SequenceEditor({ sequence, onBack }) {
           <button onClick={onBack} className="text-neutral-500 hover:text-neutral-700">
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <input
-            type="text"
-            value={localSeq.name}
-            onChange={(e) => setLocalSeq({ ...localSeq, name: e.target.value })}
-            className="text-lg font-semibold bg-transparent border border-transparent rounded px-2 py-0.5 hover:border-neutral-300 focus:border-neutral-400 focus:outline-none focus:bg-neutral-50 transition-colors cursor-text"
-          />
+          {editingName ? (
+            <input
+              ref={nameInputRef}
+              autoFocus
+              type="text"
+              value={localSeq.name}
+              onChange={(e) => setLocalSeq({ ...localSeq, name: e.target.value })}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") { e.preventDefault(); setEditingName(false); }
+                if (e.key === "Escape") setEditingName(false);
+              }}
+              onBlur={() => setEditingName(false)}
+              className="text-lg font-semibold border border-neutral-300 rounded px-2 py-0.5 focus:outline-none focus:border-neutral-500 bg-white"
+            />
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-semibold text-neutral-900">{localSeq.name}</span>
+              <button
+                onClick={() => setEditingName(true)}
+                className="text-[11px] text-neutral-400 border border-neutral-300 rounded-full px-2 py-0.5 hover:bg-neutral-100 hover:text-neutral-600 transition-colors"
+              >
+                Edit
+              </button>
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => setShowPreview(!showPreview)}>
