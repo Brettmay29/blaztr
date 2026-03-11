@@ -83,6 +83,13 @@ export default function SequenceEditor({ sequence, onBack }) {
     });
   };
 
+  const commitName = () => {
+    setEditingName(false);
+    if (localSeq.name.trim()) {
+      updateMutation.mutate({ name: localSeq.name.trim(), steps: localSeq.steps, status: localSeq.status });
+    }
+  };
+
   if (!selectedStep) return null;
 
   return (
