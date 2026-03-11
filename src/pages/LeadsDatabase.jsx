@@ -14,6 +14,7 @@ import { Upload, Link, FileSpreadsheet, Trash2, RefreshCw, CheckCircle2, AlertCi
 import LeadTable from "../components/dashboard/LeadTable";
 import LeadFilters from "../components/dashboard/LeadFilters";
 import ColumnMapper from "../components/dashboard/ColumnMapper";
+import LeadsAnalytics from "../components/dashboard/LeadsAnalytics";
 
 export default function LeadsDatabase() {
   const queryClient = useQueryClient();
