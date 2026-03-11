@@ -22,6 +22,8 @@ export default function SequenceEditor({ sequence, onBack }) {
   const [localSeq, setLocalSeq] = useState(sequence);
   const [selectedStepId, setSelectedStepId] = useState(sequence.steps?.[0]?.id || null);
   const [showPreview, setShowPreview] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const nameInputRef = React.useRef(null);
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
