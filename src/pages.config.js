@@ -48,7 +48,6 @@
  * The mainPage value must match a key in the PAGES object exactly.
  */
 import Analytics from './pages/Analytics';
-import Campaigns from './pages/Campaigns';
 import Dashboard from './pages/Dashboard';
 import EmailTesting from './pages/EmailTesting';
 import GmailAccounts from './pages/GmailAccounts';
@@ -63,7 +62,6 @@ import __Layout from './Layout.jsx';
 
 export const PAGES = {
     "Analytics": Analytics,
-    "Campaigns": Campaigns,
     "Dashboard": Dashboard,
     "EmailTesting": EmailTesting,
     "GmailAccounts": GmailAccounts,
