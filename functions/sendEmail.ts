@@ -71,22 +71,7 @@ Deno.serve(async (req) => {
     const { accessToken } = await base44.asServiceRole.connectors.getConnection('gmail');
 
     // Build RFC 2822 email with CSS styling to control signature spacing
-    const emailContent = `
-<html>
-<head>
-<style>
-  body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
-  .body-content { margin: 0; padding: 0; }
-  .signature { margin-top: 12px; margin-bottom: 0; padding: 0; line-height: 1.2; }
-  .signature p { margin: 0; padding: 0; }
-</style>
-</head>
-<body>
-<div class="body-content">${processedBody}</div>
-<div class="signature">${sampleSender.signature}</div>
-</body>
-</html>
-    `;
+    const emailContent = `<html><head><style>body{font-family:Arial,sans-serif;margin:0;padding:0;}.body-content{margin:0;padding:0;}.signature{margin-top:12px;margin-bottom:0;padding:0;line-height:1.2;}.signature p{margin:0;padding:0;}</style></head><body><div class="body-content">${processedBody}</div><div class="signature">${sampleSender.signature}</div></body></html>`;
     
     const emailLines = [
       `To: ${to}`,
