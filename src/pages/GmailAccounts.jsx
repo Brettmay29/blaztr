@@ -213,8 +213,14 @@ export default function GmailAccounts() {
                 placeholder="Add your email signature here..."
                 theme="snow"
                 modules={{
-                  toolbar: [["bold", "italic", "underline", "link"], [{ list: "ordered" }, { list: "bullet" }]]
+                  toolbar: [
+                    [{ font: ["sans-serif", "serif", "monospace", "georgia", "courier"] }],
+                    [{ size: ["small", false, "large", "huge"] }],
+                    ["bold", "italic", "underline", "link"],
+                    [{ list: "ordered" }, { list: "bullet" }]
+                  ]
                 }}
+                formats={["font", "size", "bold", "italic", "underline", "link", "list"]}
                 style={{ height: "180px" }}
               />
 
