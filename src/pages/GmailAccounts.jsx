@@ -221,7 +221,14 @@ export default function GmailAccounts() {
                   <ReactQuill
                     ref={quillRef}
                     value={form.signature}
-                    onChange={(value) => setForm({ ...form, signature: value })}
+                    onChange={(value) => {
+                      // Remove wrapping <p> tags that ReactQuill adds
+                      let cleanedValue = value;
+                      if (cleanedValue.startsWith('<p>') && cleanedValue.endsWith('</p>')) {
+                        cleanedValue = cleanedValue.replace(/^<p>/, '').replace(/<\/p>$/, '');
+                      }
+                      setForm({ ...form, signature: cleanedValue });
+                    }}
                     theme="snow"
                     placeholder="Add your email signature here..."
                     modules={{
@@ -242,7 +249,16 @@ export default function GmailAccounts() {
                   size="sm"
                   variant={isMarkdownMode ? "default" : "outline"}
                   className="h-8 text-xs"
-                  onClick={() => setIsMarkdownMode(!isMarkdownMode)}
+                  onClick={() => {
+                    // When switching to markdown, ensure we're showing clean HTML
+                    if (!isMarkdownMode) {
+                      // Switch to markdown mode - content is already clean
+                      setIsMarkdownMode(true);
+                    } else {
+                      // Switch to rich text - wrap clean content for editor
+                      setIsMarkdownMode(false);
+                    }
+                  }}
                 >
                   <Code2 className="w-3.5 h-3.5 mr-1" />
                   {isMarkdownMode ? "Markdown" : "Rich Text"}
