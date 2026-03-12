@@ -166,8 +166,8 @@ export default function SendHub() {
   return (
     <div className="space-y-6">
       {/* Controls */}
-      <div className="bg-white border border-neutral-200 rounded-lg p-5">
-        <h2 className="text-sm font-semibold text-neutral-900 mb-4 flex items-center gap-2">
+      <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-5">
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mb-4 flex items-center gap-2">
           <Rocket className="w-4 h-4" /> Launch Campaign
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
