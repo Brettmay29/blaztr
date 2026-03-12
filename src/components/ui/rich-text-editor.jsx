@@ -111,10 +111,13 @@ export default function RichTextEditor({ value = "", onChange, placeholder = "",
         suppressContentEditableWarning
         onInput={handleInput}
         className={cn(
-          "p-3 min-h-48 focus:outline-none bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 text-sm",
+          "p-3 min-h-48 focus:outline-none bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 text-sm font-sans",
           className
         )}
-        style={{ wordWrap: "break-word" }}
+        style={{ 
+          wordWrap: "break-word",
+          color: "inherit"
+        }}
         data-placeholder={placeholder}
       />
     </div>
