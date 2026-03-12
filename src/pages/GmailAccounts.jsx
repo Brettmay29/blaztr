@@ -214,17 +214,7 @@ export default function GmailAccounts() {
                 className="w-full h-40 p-4 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white dark:focus:ring-neutral-100"
                 style={{ fontSize: "10pt", fontFamily: "system-ui, -apple-system, sans-serif" }}
               />
-              <div className="flex items-center gap-1.5 px-4 py-2 border border-t-0 border-neutral-200 dark:border-neutral-700 rounded-b-lg bg-neutral-50 dark:bg-neutral-800">
-                <Button
-                  size="sm"
-                  variant={isMarkdownMode ? "default" : "outline"}
-                  className="h-8 text-xs"
-                  onClick={() => setIsMarkdownMode(!isMarkdownMode)}
-                >
-                  <Code2 className="w-3.5 h-3.5 mr-1" />
-                  {isMarkdownMode ? "Markdown" : "Rich Text"}
-                </Button>
-              </div>
+
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Daily Limit</Label>
