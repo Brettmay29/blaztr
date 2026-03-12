@@ -74,7 +74,16 @@ Deno.serve(async (req) => {
     };
 
     const processedSubject = replaceVariables(subject);
-    const processedBody = replaceVariables(body);
+    let processedBody = replaceVariables(body);
+    
+    // Wrap signature in tight line-height style if it contains HTML
+    processedBody = processedBody.replace(/\{\{senderSignature\}\}/g, (match) => {
+      const sig = sampleSender.signature;
+      if (sig && sig.includes('<')) {
+        return `<div style="line-height: 1.2;">${sig}</div>`;
+      }
+      return sig;
+    });
 
     let accessToken;
     try {
