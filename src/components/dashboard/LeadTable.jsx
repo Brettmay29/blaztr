@@ -57,7 +57,7 @@ export default function LeadTable({ leads, selectedIds, onToggle, onToggleAll })
           <TableBody>
             {leads.length === 0 && (
               <TableRow>
-                <TableCell colSpan={12} className="text-center text-neutral-400 py-12 text-sm">
+                <TableCell colSpan={12} className="text-center text-neutral-400 dark:text-neutral-500 py-12 text-sm">
                   No leads found. Import leads to get started.
                 </TableCell>
               </TableRow>
