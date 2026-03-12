@@ -58,9 +58,9 @@ const AuthenticatedApp = () => {
           key={path}
           path={`/${path}`}
           element={
-            <LayoutWrapper currentPageName={path}>
-              <Page />
-            </LayoutWrapper>
+            needsOnboarding
+              ? <Navigate to="/Onboarding" replace />
+              : <LayoutWrapper currentPageName={path}><Page /></LayoutWrapper>
           }
         />
       ))}
