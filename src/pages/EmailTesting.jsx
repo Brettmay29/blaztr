@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import RichTextEditor from "@/components/ui/rich-text-editor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Send, Loader2, CheckCircle2, ChevronDown } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Send, Loader2, CheckCircle2, ChevronDown, Eye } from "lucide-react";
 
 const isBodyEmpty = (val) => !val || val === "<p><br></p>" || val.replace(/<[^>]*>/g, "").trim() === "";
 
@@ -30,6 +31,7 @@ export default function EmailTesting() {
    const [result, setResult] = useState(null);
    const [showVariables, setShowVariables] = useState(false);
    const [hoveredVar, setHoveredVar] = useState(null);
+   const [showPreview, setShowPreview] = useState(false);
 
    const { data: gmailAccounts = [] } = useQuery({
      queryKey: ["gmail_accounts"],
@@ -37,13 +39,75 @@ export default function EmailTesting() {
    });
 
    const { data: leads = [] } = useQuery({
-     queryKey: ["leads"],
-     queryFn: () => base44.entities.Lead.list(),
-   });
+      queryKey: ["leads"],
+      queryFn: () => base44.entities.Lead.list(),
+    });
+
+   const { data: gmailAccountData } = useQuery({
+      queryKey: ["gmail_account", form.gmail_account_id],
+      queryFn: () => form.gmail_account_id ? base44.entities.GmailAccount.get(form.gmail_account_id) : null,
+      enabled: !!form.gmail_account_id,
+    });
+
+   const { data: leadData } = useQuery({
+      queryKey: ["lead", form.lead_id],
+      queryFn: () => form.lead_id ? base44.entities.Lead.get(form.lead_id) : null,
+      enabled: !!form.lead_id,
+    });
 
    const insertVariable = (varName) => {
       setForm({ ...form, body: form.body + varName + " " });
       setShowVariables(false);
+   };
+
+   const stripHTML = (text) => {
+      if (!text) return text;
+      return text
+        .replace(/<div>/g, '')
+        .replace(/<\/div>/g, '\n')
+        .replace(/<br\s*\/?>/g, '\n')
+        .replace(/<[^>]*>/g, '')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&')
+        .trim();
+   };
+
+   const replaceVariables = (text) => {
+      if (!text) return text;
+      let result = text;
+
+      const sampleLead = {
+        first_name: leadData?.first_name || 'John',
+        last_name: leadData?.last_name || 'Doe',
+        email: leadData?.email || 'john@example.com',
+        company_name: leadData?.company_name || 'Acme Corp',
+        company_website: leadData?.company_website || 'acme.com',
+        industry: leadData?.industry || 'Technology',
+        state: leadData?.state || 'NY',
+        market: leadData?.market || 'Enterprise',
+      };
+
+      const sampleSender = {
+        first_name: gmailAccountData?.first_name || '',
+        last_name: gmailAccountData?.last_name || '',
+        signature: gmailAccountData?.signature || '',
+      };
+
+      result = result.replace(/\{\{firstName\}\}/gi, sampleLead.first_name);
+      result = result.replace(/\{\{lastName\}\}/gi, sampleLead.last_name);
+      result = result.replace(/\{\{email\}\}/gi, sampleLead.email);
+      result = result.replace(/\{\{companyName\}\}/gi, sampleLead.company_name);
+      result = result.replace(/\{\{companyWebsite\}\}/gi, sampleLead.company_website);
+      result = result.replace(/\{\{industry\}\}/gi, sampleLead.industry);
+      result = result.replace(/\{\{state\}\}/gi, sampleLead.state);
+      result = result.replace(/\{\{market\}\}/gi, sampleLead.market);
+      result = result.replace(/\{\{senderFirstName\}\}/gi, sampleSender.first_name);
+      result = result.replace(/\{\{senderLastName\}\}/gi, sampleSender.last_name);
+      result = result.replace(/\{\{senderSignature\}\}/gi, sampleSender.signature);
+
+      return result;
    };
 
    const handleSend = async () => {
@@ -171,6 +235,15 @@ export default function EmailTesting() {
 
         <div className="flex items-center gap-3 pt-1">
           <Button
+            variant="outline"
+            className="text-xs h-9"
+            onClick={() => setShowPreview(true)}
+            disabled={!form.gmail_account_id || !form.subject || isBodyEmpty(form.body)}
+          >
+            <Eye className="w-3.5 h-3.5 mr-1.5" />
+            Preview
+          </Button>
+          <Button
             className="bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 text-xs h-9"
             onClick={handleSend}
             disabled={sending || !form.gmail_account_id || !form.to || !form.subject || isBodyEmpty(form.body)}
@@ -188,6 +261,33 @@ export default function EmailTesting() {
           )}
         </div>
       </div>
-    </div>
-  );
-}
+
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Email Preview</DialogTitle>
+          </DialogHeader>
+          <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden">
+            <div className="bg-neutral-100 dark:bg-neutral-800 px-4 py-3 border-b border-neutral-200 dark:border-neutral-700 space-y-2">
+              <div className="text-sm">
+                <span className="font-semibold text-neutral-700 dark:text-neutral-300">From:</span>
+                <span className="ml-2 text-neutral-600 dark:text-neutral-400">{gmailAccountData?.email}</span>
+              </div>
+              <div className="text-sm">
+                <span className="font-semibold text-neutral-700 dark:text-neutral-300">To:</span>
+                <span className="ml-2 text-neutral-600 dark:text-neutral-400">{form.to || '(not set)'}</span>
+              </div>
+              <div className="text-sm">
+                <span className="font-semibold text-neutral-700 dark:text-neutral-300">Subject:</span>
+                <span className="ml-2 text-neutral-900 dark:text-neutral-100">{replaceVariables(form.subject)}</span>
+              </div>
+            </div>
+            <div className="p-4 text-sm text-neutral-800 dark:text-neutral-200 whitespace-pre-wrap break-words">
+              {stripHTML(replaceVariables(form.body))}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      </div>
+      );
+      }
