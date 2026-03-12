@@ -77,7 +77,7 @@ export default function Layout({ children, currentPageName }) {
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
-        <div className="h-14 flex items-center px-5 border-b border-neutral-100">
+        <div className="h-14 flex items-center px-5 border-b border-neutral-100 dark:border-neutral-800">
           <span className="text-sm font-semibold tracking-wide text-neutral-900">Blaztr</span>
           <button
             className="ml-auto lg:hidden text-neutral-400 hover:text-neutral-600"
