@@ -76,9 +76,20 @@ export default function EmailTesting() {
         .trim();
    };
 
+   const decodeHTMLEntities = (text) => {
+      if (!text) return text;
+      return text
+        .replace(/&#123;/g, '{')
+        .replace(/&#125;/g, '}')
+        .replace(/&lcub;/g, '{')
+        .replace(/&rcub;/g, '}')
+        .replace(/&lbrace;/g, '{')
+        .replace(/&rbrace;/g, '}');
+   };
+
    const replaceVariables = (text) => {
       if (!text) return text;
-      let result = text;
+      let result = decodeHTMLEntities(text);
 
       const sampleLead = {
         first_name: leadData?.first_name || 'John',
@@ -107,8 +118,8 @@ export default function EmailTesting() {
       result = result.replace(/\{\{market\}\}/gi, sampleLead.market);
       result = result.replace(/\{\{senderFirstName\}\}/gi, sampleSender.first_name);
       result = result.replace(/\{\{senderLastName\}\}/gi, sampleSender.last_name);
-      // Add newline before signature and strip any leading HTML from it
-      const cleanedSignature = sampleSender.signature.replace(/<br\s*\/?>/g, '\n');
+      // Clean signature HTML before injecting
+      const cleanedSignature = stripHTML(sampleSender.signature);
       result = result.replace(/\{\{senderSignature\}\}/gi, '\n' + cleanedSignature);
 
       return result;
