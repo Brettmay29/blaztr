@@ -75,14 +75,14 @@ Deno.serve(async (req) => {
 <html>
 <head>
 <style>
-  body { font-family: Arial, sans-serif; }
-  .signature { margin-top: 10px; margin-bottom: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+  .body-content { margin: 0; padding: 0; }
+  .signature { margin-top: 12px; margin-bottom: 0; padding: 0; line-height: 1.2; }
   .signature p { margin: 0; padding: 0; }
-  .signature br { line-height: 0; }
 </style>
 </head>
 <body>
-${processedBody}
+<div class="body-content">${processedBody}</div>
 <div class="signature">${sampleSender.signature}</div>
 </body>
 </html>
