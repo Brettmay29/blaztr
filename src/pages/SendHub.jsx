@@ -333,7 +333,7 @@ export default function SendHub() {
                   <TableCell>
                     <Badge variant="outline" className="text-[11px]">{log.sequence_step}</Badge>
                   </TableCell>
-                  <TableCell className="text-xs text-neutral-400">
+                  <TableCell className="text-xs text-neutral-400 dark:text-neutral-500">
                     {log.created_date ? format(new Date(log.created_date), "MMM d, h:mm a") : "—"}
                   </TableCell>
                 </TableRow>
