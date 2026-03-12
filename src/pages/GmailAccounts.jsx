@@ -12,7 +12,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Plus, Settings, Trash2, Zap, Loader2, Code2 } from "lucide-react";
+import { Mail, Plus, Settings, Trash2, Zap, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 
