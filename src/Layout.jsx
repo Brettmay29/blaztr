@@ -133,7 +133,7 @@ export default function Layout({ children, currentPageName }) {
             <Menu className="w-5 h-5" />
           </button>
           <h1 className="text-sm font-medium text-neutral-800 dark:text-neutral-200 capitalize">
-            {currentPageName === 'SendHub' ? 'Launch Hub' : currentPageName?.replace(/([A-Z])/g, ' $1').trim()}
+            {currentPageName === 'SendHub' ? 'Launch Hub' : currentPageName === 'GmailAccounts' ? 'Email Accounts' : currentPageName?.replace(/([A-Z])/g, ' $1').trim()}
           </h1>
           <div className="ml-auto flex items-center gap-3">
             <DropdownMenu>
