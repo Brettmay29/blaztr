@@ -126,10 +126,10 @@ export default function Inbox() {
           <ArrowLeft className="w-3.5 h-3.5" /> Back to Inbox
         </button>
 
-        <div className="bg-white border border-neutral-200 rounded-lg p-5 space-y-4">
+        <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-5 space-y-4">
           <div>
             <div className="flex items-start justify-between gap-2">
-              <h2 className="text-sm font-semibold text-neutral-900">{selected.subject || "(no subject)"}</h2>
+              <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">{selected.subject || "(no subject)"}</h2>
               {selected.isUnread && <Badge className="bg-blue-50 text-blue-700 text-[11px] shrink-0">Unread</Badge>}
             </div>
             <div className="flex items-center gap-2 mt-1 text-xs text-neutral-500">
@@ -143,14 +143,14 @@ export default function Inbox() {
             )}
           </div>
 
-          <div className="border-t border-neutral-100 pt-4">
-            <pre className="text-sm text-neutral-700 whitespace-pre-wrap font-sans leading-relaxed">
+          <div className="border-t border-neutral-100 dark:border-neutral-800 pt-4">
+            <pre className="text-sm text-neutral-700 dark:text-neutral-300 whitespace-pre-wrap font-sans leading-relaxed">
               {selected.body || selected.snippet}
             </pre>
           </div>
         </div>
 
-        <div className="bg-white border border-neutral-200 rounded-lg p-5 space-y-3">
+        <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-5 space-y-3">
           <p className="text-xs font-medium text-neutral-700">
             Reply to {extractName(selected.from)}
           </p>
@@ -183,8 +183,8 @@ export default function Inbox() {
     <div className="max-w-3xl space-y-4">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h2 className="text-lg font-semibold text-neutral-900">Inbox</h2>
-          <p className="text-sm text-neutral-500 mt-0.5">Incoming emails from your connected Gmail accounts.</p>
+          <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">Inbox</h2>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">Incoming emails from your connected Gmail accounts.</p>
         </div>
         <div className="flex items-center gap-2">
           {/* Account selector dropdown */}
@@ -258,11 +258,11 @@ export default function Inbox() {
           <p className="text-sm text-neutral-400">No messages found.</p>
         </div>
       ) : (
-        <div className="bg-white border border-neutral-200 rounded-lg divide-y divide-neutral-100 overflow-hidden">
+        <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg divide-y divide-neutral-100 dark:divide-neutral-800 overflow-hidden">
           {messages.map((msg) => (
             <button
               key={msg.id}
-              className="w-full text-left px-4 py-3 hover:bg-neutral-50 transition-colors flex items-start gap-3"
+              className="w-full text-left px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors flex items-start gap-3"
               onClick={() => { setSelected(msg); setReplyBody(""); setReplyResult(null); }}
             >
               <div className="mt-0.5 shrink-0">
@@ -272,7 +272,7 @@ export default function Inbox() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
-                  <span className={`text-sm truncate ${msg.isUnread ? "font-semibold text-neutral-900" : "font-medium text-neutral-700"}`}>
+                  <span className={`text-sm truncate ${msg.isUnread ? "font-semibold text-neutral-900 dark:text-white" : "font-medium text-neutral-700 dark:text-neutral-300"}`}>
                     {extractName(msg.from)}
                   </span>
                   <span className="text-[11px] text-neutral-400 shrink-0">{formatDate(msg.date)}</span>
