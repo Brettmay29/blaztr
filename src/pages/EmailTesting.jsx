@@ -25,27 +25,21 @@ const VARIABLES = [
 ];
 
 export default function EmailTesting() {
-  const [form, setForm] = useState({ gmail_account_id: "", to: "", subject: "", body: "" });
-  const [sending, setSending] = useState(false);
-  const [result, setResult] = useState(null);
-  const [showVariables, setShowVariables] = useState(false);
-  const [hoveredVar, setHoveredVar] = useState(null);
-  const quillRef = useRef(null);
+   const [form, setForm] = useState({ gmail_account_id: "", to: "", subject: "", body: "" });
+   const [sending, setSending] = useState(false);
+   const [result, setResult] = useState(null);
+   const [showVariables, setShowVariables] = useState(false);
+   const [hoveredVar, setHoveredVar] = useState(null);
 
-  const { data: gmailAccounts = [] } = useQuery({
-    queryKey: ["gmail_accounts"],
-    queryFn: () => base44.entities.GmailAccount.list(),
-  });
+   const { data: gmailAccounts = [] } = useQuery({
+     queryKey: ["gmail_accounts"],
+     queryFn: () => base44.entities.GmailAccount.list(),
+   });
 
-  const insertVariable = (varName) => {
-    if (quillRef.current?.getEditor) {
-      const editor = quillRef.current.getEditor();
-      const currentLength = editor.getLength();
-      editor.insertText(currentLength - 1, varName + " ");
-      editor.setSelection(currentLength - 1 + varName.length + 1);
-      setShowVariables(false);
-    }
-  };
+   const insertVariable = (varName) => {
+     setForm({ ...form, body: form.body + varName + " " });
+     setShowVariables(false);
+   };
 
   const handleSend = async () => {
     setSending(true);
