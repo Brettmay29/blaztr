@@ -38,7 +38,7 @@ export default function LeadFilters({ filters, onFilterChange, leads }) {
       </Select>
 
       <Select value={filters.industry || "__all__"} onValueChange={(v) => handleChange("industry", v)}>
-        <SelectTrigger className="w-[140px] h-9 text-sm bg-white">
+        <SelectTrigger className="w-[140px] h-9 text-sm bg-white dark:bg-neutral-900">
           <SelectValue placeholder="Industry" />
         </SelectTrigger>
         <SelectContent>
