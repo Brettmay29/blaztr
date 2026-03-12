@@ -1,11 +1,10 @@
 import { useState } from "react";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import RichTextEditor from "@/components/ui/rich-text-editor";
 import {
   Dialog,
   DialogContent,
@@ -206,24 +205,13 @@ export default function GmailAccounts() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Signature</Label>
-              <ReactQuill
-                value={form.signature}
-                onChange={(value) => setForm({ ...form, signature: value })}
-                placeholder="Add your email signature here..."
-                theme="snow"
-                modules={{
-                  toolbar: [
-                    [{ font: ["sans-serif", "serif", "monospace", "georgia", "courier"] }],
-                    [{ size: ["small", false, "large", "huge"] }],
-                    ["bold", "italic", "underline", "link"],
-                    [{ list: "ordered" }, { list: "bullet" }]
-                  ]
-                }}
-                formats={["font", "size", "bold", "italic", "underline", "link", "list"]}
-                style={{ height: "180px", marginBottom: "80px" }}
-              />
-            </div>
+               <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Signature</Label>
+               <RichTextEditor
+                 value={form.signature}
+                 onChange={(signature) => setForm({ ...form, signature })}
+                 placeholder="Add your email signature here..."
+               />
+             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Daily Limit</Label>
               <Input
