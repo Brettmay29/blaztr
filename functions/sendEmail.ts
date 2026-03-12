@@ -32,23 +32,23 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Sample data for testing
+    const sampleLead = {
+      first_name: leadData?.first_name || 'John',
+      last_name: leadData?.last_name || 'Doe',
+      email: leadData?.email || 'john@example.com',
+      company_name: leadData?.company_name || 'Acme Corp',
+      company_website: leadData?.company_website || 'acme.com',
+      industry: leadData?.industry || 'Technology',
+      state: leadData?.state || 'NY',
+      market: leadData?.market || 'Enterprise',
+    };
+
     // Replace variables in subject and body
     const replaceVariables = (text) => {
       if (!text) return text;
       let result = text;
       
-      // Sample data for testing
-      const sampleLead = {
-        first_name: leadData?.first_name || 'John',
-        last_name: leadData?.last_name || 'Doe',
-        email: leadData?.email || 'john@example.com',
-        company_name: leadData?.company_name || 'Acme Corp',
-        company_website: leadData?.company_website || 'acme.com',
-        industry: leadData?.industry || 'Technology',
-        state: leadData?.state || 'NY',
-        market: leadData?.market || 'Enterprise',
-      };
-
       // Lead variables
       result = result.replace(/\{\{firstName\}\}/g, sampleLead.first_name);
       result = result.replace(/\{\{lastName\}\}/g, sampleLead.last_name);
