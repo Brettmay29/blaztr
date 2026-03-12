@@ -140,7 +140,7 @@ export default function Layout({ children, currentPageName }) {
                     )}
                   </div>
                   <div className="hidden sm:flex flex-col items-start">
-                    <span className="text-[12px] font-medium text-neutral-800 leading-none">
+                    <span className="text-[12px] font-medium text-neutral-800 dark:text-neutral-200 leading-none">
                       {user?.full_name || "Account"}
                     </span>
                     <span className="text-[11px] text-neutral-400 leading-none mt-0.5">
