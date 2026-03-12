@@ -39,13 +39,19 @@ const AuthenticatedApp = () => {
     }
   }
 
+  const { user } = useAuth();
+  const needsOnboarding = user && !user.full_name;
+
   // Render the main app
   return (
     <Routes>
+      {/* Onboarding — no layout wrapper, standalone page */}
+      <Route path="/Onboarding" element={<Onboarding />} />
+
       <Route path="/" element={
-        <LayoutWrapper currentPageName={mainPageKey}>
-          <MainPage />
-        </LayoutWrapper>
+        needsOnboarding
+          ? <Navigate to="/Onboarding" replace />
+          : <LayoutWrapper currentPageName={mainPageKey}><MainPage /></LayoutWrapper>
       } />
       {Object.entries(Pages).map(([path, Page]) => (
         <Route
