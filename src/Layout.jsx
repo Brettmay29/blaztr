@@ -103,7 +103,7 @@ export default function Layout({ children, currentPageName }) {
         </nav>
 
         <div className="p-4 border-t border-neutral-100">
-          <p className="text-[11px] text-neutral-400">v1.0 MVP</p>
+          <p className="text-[11px] text-neutral-400">Blaztr | v1.0 (beta)</p>
         </div>
       </aside>
 
