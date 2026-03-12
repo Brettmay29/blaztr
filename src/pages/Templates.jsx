@@ -1,9 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -15,6 +14,8 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Plus, Pencil, Trash2 } from "lucide-react";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 
 const placeholders = ["{first_name}", "{company_name}", "{state}", "{market}", "{company_website}"];
 
@@ -23,6 +24,7 @@ export default function Templates() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ name: "", subject: "", body: "", type: "Intro" });
+  const quillRef = useRef(null);
 
   const { data: templates = [] } = useQuery({
     queryKey: ["templates"],
@@ -152,12 +154,26 @@ export default function Templates() {
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Email Body</Label>
-              <Textarea
-                placeholder="Hi {first_name}, I noticed {company_name} in {state}..."
-                value={form.body}
-                onChange={(e) => setForm({ ...form, body: e.target.value })}
-                className="min-h-[160px] text-sm"
-              />
+              <div className="border border-neutral-200 rounded-lg overflow-hidden">
+                <ReactQuill
+                  ref={quillRef}
+                  value={form.body}
+                  onChange={(value) => setForm({ ...form, body: value })}
+                  theme="snow"
+                  placeholder="Hi {first_name}, I noticed {company_name} in {state}..."
+                  modules={{
+                    toolbar: [
+                      [{ font: ["arial", "courier", "georgia", "helvetica", "tahoma", "times-new-roman", "trebuchet", "verdana"] }],
+                      [{ size: ["small", false, "large", "huge"] }],
+                      ["bold", "italic", "underline"],
+                      ["link"],
+                      [{ list: "ordered" }, { list: "bullet" }],
+                    ],
+                  }}
+                  formats={["font", "size", "bold", "italic", "underline", "link", "list"]}
+                  style={{ height: "200px" }}
+                />
+              </div>
             </div>
           </div>
           <DialogFooter>
