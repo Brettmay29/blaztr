@@ -31,6 +31,7 @@ export default function LeadsDatabase() {
   const [customDbName, setCustomDbName] = useState("");
   const [customGroupId, setCustomGroupId] = useState("all");
   const [moveToGroupId, setMoveToGroupId] = useState("");
+  const [editingLead, setEditingLead] = useState(null);
   const [lastUploadedGroupId, setLastUploadedGroupId] = useState("all");
   const [customDropdownOpen, setCustomDropdownOpen] = useState(false);
   const customDropdownRef = useRef(null);
