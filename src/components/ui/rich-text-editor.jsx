@@ -15,6 +15,12 @@ export default function RichTextEditor({ value = "", onChange, placeholder = "",
     onChange(e.currentTarget.innerHTML);
   };
 
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const text = e.clipboardData.getData("text/plain");
+    document.execCommand("insertText", false, text);
+  };
+
   React.useEffect(() => {
     if (editorRef.current && editorRef.current.innerHTML !== value) {
       editorRef.current.innerHTML = value;
@@ -110,6 +116,7 @@ export default function RichTextEditor({ value = "", onChange, placeholder = "",
         contentEditable
         suppressContentEditableWarning
         onInput={handleInput}
+        onPaste={handlePaste}
         className={cn(
           "p-3 min-h-48 focus:outline-none bg-white dark:bg-neutral-900 text-sm font-sans",
           className
