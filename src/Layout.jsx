@@ -147,13 +147,17 @@ export default function Layout({ children, currentPageName }) {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-[13px] cursor-pointer" onClick={() => {}}>
-                  <User className="w-3.5 h-3.5 mr-2 text-neutral-500" />
-                  Profile
+                <DropdownMenuItem className="text-[13px] cursor-pointer" asChild>
+                  <Link to="/Account?tab=profile">
+                    <User className="w-3.5 h-3.5 mr-2 text-neutral-500" />
+                    Profile
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-[13px] cursor-pointer" onClick={() => {}}>
-                  <Settings className="w-3.5 h-3.5 mr-2 text-neutral-500" />
-                  Settings
+                <DropdownMenuItem className="text-[13px] cursor-pointer" asChild>
+                  <Link to="/Account?tab=settings">
+                    <Settings className="w-3.5 h-3.5 mr-2 text-neutral-500" />
+                    Settings
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
