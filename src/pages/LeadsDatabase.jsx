@@ -10,11 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Upload, Link, FileSpreadsheet, Trash2, RefreshCw, CheckCircle2, AlertCircle, Database, X, ChevronDown, Check } from "lucide-react";
+import { Upload, Link, FileSpreadsheet, Trash2, RefreshCw, CheckCircle2, AlertCircle, Database, X, ChevronDown, Check, Pencil } from "lucide-react";
 import LeadTable from "../components/dashboard/LeadTable";
 import LeadFilters from "../components/dashboard/LeadFilters";
 import ColumnMapper from "../components/dashboard/ColumnMapper";
 import LeadsAnalytics from "../components/dashboard/LeadsAnalytics";
+import EditLeadDialog from "../components/dashboard/EditLeadDialog";
 
 export default function LeadsDatabase() {
   const queryClient = useQueryClient();
