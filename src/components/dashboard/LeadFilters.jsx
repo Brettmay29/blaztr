@@ -50,7 +50,7 @@ export default function LeadFilters({ filters, onFilterChange, leads }) {
       </Select>
 
       <Select value={filters.market || "__all__"} onValueChange={(v) => handleChange("market", v)}>
-        <SelectTrigger className="w-[130px] h-9 text-sm bg-white">
+        <SelectTrigger className="w-[130px] h-9 text-sm bg-white dark:bg-neutral-900">
           <SelectValue placeholder="Market" />
         </SelectTrigger>
         <SelectContent>
