@@ -12,23 +12,23 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing required fields: to, subject, body' }, { status: 400 });
     }
 
-    // Fetch lead and gmail account data for variable replacement
-    let leadData = null;
+    // Fetch gmail account data for variable replacement (required for sender info)
     let gmailAccountData = null;
+    let leadData = null;
+
+    if (gmail_account_id) {
+      try {
+        gmailAccountData = await base44.asServiceRole.entities.GmailAccount.get(gmail_account_id);
+      } catch (err) {
+        return Response.json({ error: `Failed to fetch Gmail account: ${err.message}` }, { status: 400 });
+      }
+    }
 
     if (lead_id) {
       try {
         leadData = await base44.asServiceRole.entities.Lead.get(lead_id);
       } catch {
-        // Lead not found, use defaults
-      }
-    }
-
-    if (gmail_account_id) {
-      try {
-        gmailAccountData = await base44.asServiceRole.entities.GmailAccount.get(gmail_account_id);
-      } catch {
-        // Account not found, use defaults
+        // Lead not found, continue with defaults
       }
     }
 
