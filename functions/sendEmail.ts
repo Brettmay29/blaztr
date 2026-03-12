@@ -109,7 +109,7 @@ Deno.serve(async (req) => {
       result = result.replace(/\{\{senderLastName\}\}/gi, sampleSender.last_name);
       // Clean signature HTML before injecting
       const cleanedSignature = stripHTML(sampleSender.signature);
-      result = result.replace(/\{\{senderSignature\}\}/gi, '\n' + cleanedSignature);
+      result = result.replace(/\{\{senderSignature\}\}/gi, cleanedSignature);
 
       return result;
     };
