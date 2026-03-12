@@ -282,9 +282,9 @@ export default function SendHub() {
       </div>
 
       {/* Send Logs Table */}
-       <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden">
-         <div className="px-4 py-3 border-b border-neutral-100 flex items-center justify-between">
-           <h3 className="text-sm font-medium text-neutral-800">Send Logs</h3>
+       <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg overflow-hidden">
+         <div className="px-4 py-3 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
+           <h3 className="text-sm font-medium text-neutral-800 dark:text-neutral-200">Send Logs</h3>
            <div className="w-48">
              <Select value={selectedFilterCampaign} onValueChange={setSelectedFilterCampaign}>
                <SelectTrigger className="h-8 text-xs">
