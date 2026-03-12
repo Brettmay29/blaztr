@@ -205,7 +205,7 @@ export default function GmailAccounts() {
                 />
               </div>
             </div>
-            <div className="space-y-2 mb-6">
+            <div className="space-y-2">
               <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Signature</Label>
               <ReactQuill
                 value={form.signature}
@@ -221,19 +221,17 @@ export default function GmailAccounts() {
                   ]
                 }}
                 formats={["font", "size", "bold", "italic", "underline", "link", "list"]}
-                style={{ height: "180px" }}
+                style={{ height: "180px", marginBottom: "80px" }}
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs">Daily Limit</Label>
-                <Input
-                  type="number"
-                  value={form.daily_limit}
-                  onChange={(e) => setForm({ ...form, daily_limit: parseInt(e.target.value) || 30 })}
-                  className="h-9 text-sm"
-                />
-              </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Daily Limit</Label>
+              <Input
+                type="number"
+                value={form.daily_limit}
+                onChange={(e) => setForm({ ...form, daily_limit: parseInt(e.target.value) || 30 })}
+                className="h-9 text-sm w-24"
+              />
             </div>
           </div>
           <DialogFooter>
