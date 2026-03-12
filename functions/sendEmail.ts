@@ -76,7 +76,13 @@ Deno.serve(async (req) => {
     const processedSubject = replaceVariables(subject);
     const processedBody = replaceVariables(body);
 
-    const { accessToken } = await base44.asServiceRole.connectors.getConnection('gmail');
+    let accessToken;
+    try {
+      const conn = await base44.asServiceRole.connectors.getConnection('gmail');
+      accessToken = conn.accessToken;
+    } catch (err) {
+      return Response.json({ error: 'Failed to connect to Gmail. Please authorize the Gmail connector in settings.', details: err.message }, { status: 500 });
+    }
 
     // Build RFC 2822 email - processedBody already contains HTML from editor
     const emailContent = processedBody + (sampleSender.signature ? `<div style="margin-top:12px;line-height:1.2;">${sampleSender.signature}</div>` : '');
