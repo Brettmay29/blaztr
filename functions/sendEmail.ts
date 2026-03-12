@@ -55,10 +55,12 @@ Deno.serve(async (req) => {
       signature: gmailAccountData.signature || '',
     };
 
-    // Strip HTML tags first, then replace variables
+    // Strip HTML tags
     const stripHTML = (text) => {
       if (!text) return text;
       return text
+        .replace(/<p>/g, '')
+        .replace(/<\/p>/g, '\n')
         .replace(/<div>/g, '')
         .replace(/<\/div>/g, '\n')
         .replace(/<br\s*\/?>/g, '\n')
@@ -88,7 +90,9 @@ Deno.serve(async (req) => {
       // Sender variables
       result = result.replace(/\{\{senderFirstName\}\}/gi, sampleSender.first_name);
       result = result.replace(/\{\{senderLastName\}\}/gi, sampleSender.last_name);
-      result = result.replace(/\{\{senderSignature\}\}/gi, sampleSender.signature);
+      // Clean signature HTML before injecting
+      const cleanedSignature = stripHTML(sampleSender.signature);
+      result = result.replace(/\{\{senderSignature\}\}/gi, '\n' + cleanedSignature);
 
       return result;
     };
