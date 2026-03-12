@@ -94,8 +94,8 @@ Deno.serve(async (req) => {
     };
 
     const processedSubject = replaceVariables(subject);
-    let processedBody = stripHTML(body);
-    processedBody = replaceVariables(processedBody);
+    let processedBody = replaceVariables(body);
+    processedBody = stripHTML(processedBody);
     
     // Debug log
     console.log('=== EMAIL SEND DEBUG ===');
@@ -111,8 +111,8 @@ Deno.serve(async (req) => {
     console.log('Subject after replace:', processedSubject);
     console.log('---');
     console.log('Original body (first 150 chars):', body?.substring(0, 150));
-    console.log('After HTML strip (first 150 chars):', stripHTML(body)?.substring(0, 150));
-    console.log('After variable replace (first 150 chars):', processedBody?.substring(0, 150));
+    console.log('After variable replace (first 150 chars):', replaceVariables(body)?.substring(0, 150));
+    console.log('After HTML strip (final, first 150 chars):', processedBody?.substring(0, 150));
     console.log('=== END DEBUG ===');
 
     let accessToken;
