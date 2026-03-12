@@ -116,7 +116,7 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-14 bg-white border-b border-neutral-200 flex items-center px-4 lg:px-6 sticky top-0 z-30">
+        <header className="h-14 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 flex items-center px-4 lg:px-6 sticky top-0 z-30">
           <button
             className="lg:hidden mr-3 text-neutral-500 hover:text-neutral-800"
             onClick={() => setSidebarOpen(true)}
