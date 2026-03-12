@@ -69,7 +69,7 @@ export default function Layout({ children, currentPageName }) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex">
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 flex">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
