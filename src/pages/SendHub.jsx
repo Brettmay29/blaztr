@@ -251,9 +251,9 @@ export default function SendHub() {
               <span className="text-[11px] text-neutral-500">Sending...</span>
               <span className="text-[11px] text-neutral-500">{sendProgress.current} / {sendProgress.total}</span>
             </div>
-            <div className="w-full bg-neutral-100 rounded-full h-1.5">
+            <div className="w-full bg-neutral-100 dark:bg-neutral-800 rounded-full h-1.5">
               <div
-                className="bg-neutral-900 h-1.5 rounded-full transition-all duration-300"
+                className="bg-neutral-900 dark:bg-neutral-100 h-1.5 rounded-full transition-all duration-300"
                 style={{ width: `${(sendProgress.current / sendProgress.total) * 100}%` }}
               />
             </div>
