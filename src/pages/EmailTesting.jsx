@@ -105,7 +105,7 @@ export default function EmailTesting() {
       result = result.replace(/\{\{market\}\}/gi, sampleLead.market);
       result = result.replace(/\{\{senderFirstName\}\}/gi, sampleSender.first_name);
       result = result.replace(/\{\{senderLastName\}\}/gi, sampleSender.last_name);
-      result = result.replace(/\{\{senderSignature\}\}/gi, sampleSender.signature);
+      result = result.replace(/\{\{senderSignature\}\}/gi, '\n' + sampleSender.signature);
 
       return result;
    };
