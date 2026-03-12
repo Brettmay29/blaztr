@@ -1,3 +1,6 @@
+// Apply saved theme before first render to avoid flash
+(() => { if (localStorage.getItem("theme") === "dark") document.documentElement.classList.add("dark"); })();
+
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
