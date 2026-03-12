@@ -176,19 +176,7 @@ export default function EmailTesting() {
               />
             </div>
           )}
-
-          <div className="flex items-center gap-1.5 px-3 py-2 border border-t-0 border-neutral-200 dark:border-neutral-700 rounded-b-lg bg-neutral-50 dark:bg-neutral-800">
-            <Button
-              size="sm"
-              variant={isMarkdownMode ? "default" : "outline"}
-              className="h-7 text-xs"
-              onClick={() => setIsMarkdownMode(!isMarkdownMode)}
-            >
-              <Code2 className="w-3.5 h-3.5 mr-1" />
-              {isMarkdownMode ? "Markdown" : "Rich Text"}
-            </Button>
           </div>
-        </div>
 
         <div className="flex items-center gap-3 pt-1">
           <Button
