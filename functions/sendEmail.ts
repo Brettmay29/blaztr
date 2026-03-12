@@ -99,12 +99,21 @@ Deno.serve(async (req) => {
     
     // Debug log
     console.log('=== EMAIL SEND DEBUG ===');
-    console.log('Gmail Account:', gmailAccountData?.nickname, gmailAccountData?.email);
-    console.log('Sender:', sampleSender.first_name, sampleSender.last_name);
-    console.log('Original body (first 100 chars):', body?.substring(0, 100));
-    console.log('After HTML strip (first 100 chars):', stripHTML(body)?.substring(0, 100));
-    console.log('After variable replace (first 100 chars):', processedBody?.substring(0, 100));
+    console.log('From Gmail Account:', gmailAccountData.email, '(' + gmailAccountData.nickname + ')');
+    console.log('Sender Data:', { first_name: sampleSender.first_name, last_name: sampleSender.last_name });
+    if (leadData) {
+      console.log('Lead Data:', { first_name: sampleLead.first_name, company: sampleLead.company_name });
+    } else {
+      console.log('Lead Data: None (using defaults)');
+    }
+    console.log('---');
+    console.log('Original subject:', subject);
     console.log('Subject after replace:', processedSubject);
+    console.log('---');
+    console.log('Original body (first 150 chars):', body?.substring(0, 150));
+    console.log('After HTML strip (first 150 chars):', stripHTML(body)?.substring(0, 150));
+    console.log('After variable replace (first 150 chars):', processedBody?.substring(0, 150));
+    console.log('=== END DEBUG ===');
 
     let accessToken;
     try {
