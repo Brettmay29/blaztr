@@ -231,6 +231,12 @@ export default function LeadsDatabase() {
     setCustomGroupId("all");
   };
 
+  const handleEditSave = async (id, data) => {
+    await base44.entities.Lead.update(id, data);
+    queryClient.invalidateQueries({ queryKey: ["leads"] });
+    setSelectedIds([]);
+  };
+
   const handleMoveSelected = async () => {
     if (!moveToGroupId) return;
     for (const id of selectedIds) {
