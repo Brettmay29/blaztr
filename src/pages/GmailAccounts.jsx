@@ -139,7 +139,7 @@ export default function GmailAccounts() {
                 Connected
               </Badge>
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(acc)}>
-                <Pencil className="w-3.5 h-3.5" />
+                <Settings className="w-3.5 h-3.5" />
               </Button>
               <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-600" onClick={() => deleteMutation.mutate(acc.id)}>
                 <Trash2 className="w-3.5 h-3.5" />
