@@ -1,4 +1,6 @@
 import { useState } from "react";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -205,12 +207,15 @@ export default function GmailAccounts() {
             </div>
             <div className="space-y-2">
               <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Signature</Label>
-              <textarea
+              <ReactQuill
                 value={form.signature}
-                onChange={(e) => setForm({ ...form, signature: e.target.value })}
+                onChange={(value) => setForm({ ...form, signature: value })}
                 placeholder="Add your email signature here..."
-                className="w-full h-40 p-4 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white dark:focus:ring-neutral-100"
-                style={{ fontSize: "10pt", fontFamily: "system-ui, -apple-system, sans-serif" }}
+                theme="snow"
+                modules={{
+                  toolbar: [["bold", "italic", "underline", "link"], [{ list: "ordered" }, { list: "bullet" }]]
+                }}
+                style={{ height: "180px" }}
               />
 
             </div>
