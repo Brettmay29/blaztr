@@ -44,6 +44,12 @@ Deno.serve(async (req) => {
       market: leadData?.market || 'Enterprise',
     };
 
+    const sampleSender = {
+      first_name: gmailAccountData?.first_name || 'Brett',
+      last_name: gmailAccountData?.last_name || 'Smith',
+      signature: gmailAccountData?.signature || '',
+    };
+
     // Replace variables in subject and body
     const replaceVariables = (text) => {
       if (!text) return text;
@@ -69,12 +75,6 @@ Deno.serve(async (req) => {
 
     const processedSubject = replaceVariables(subject);
     const processedBody = replaceVariables(body);
-
-    const sampleSender = {
-      first_name: gmailAccountData?.first_name || 'Brett',
-      last_name: gmailAccountData?.last_name || 'Smith',
-      signature: gmailAccountData?.signature || '',
-    };
 
     let accessToken;
     try {
