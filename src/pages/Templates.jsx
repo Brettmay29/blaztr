@@ -69,7 +69,7 @@ export default function Templates() {
           <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">Email Templates</h2>
           <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">Create templates with merge placeholders.</p>
         </div>
-        <Button size="sm" className="bg-neutral-900 hover:bg-neutral-800 text-xs h-9" onClick={openNew}>
+        <Button size="sm" variant="outline" className="text-xs h-9" onClick={openNew}>
           <Plus className="w-3.5 h-3.5 mr-1.5" /> New Template
         </Button>
       </div>

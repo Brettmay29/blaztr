@@ -203,7 +203,7 @@ export default function Sequences() {
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">Sequences</h2>
         <div className="flex items-center gap-2">
-          <Button onClick={() => setCreatingNew(true)} className="bg-neutral-900 hover:bg-neutral-800">
+          <Button variant="outline" onClick={() => setCreatingNew(true)}>
             <Plus className="w-4 h-4 mr-2" />
             New Sequence
           </Button>
