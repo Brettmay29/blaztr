@@ -29,24 +29,38 @@ Deno.serve(async (req) => {
       if (!text) return text;
       let result = text;
       
+      // Sample data for testing
+      const sampleLead = {
+        first_name: leadData?.first_name || 'John',
+        last_name: leadData?.last_name || 'Doe',
+        email: leadData?.email || 'john@example.com',
+        company_name: leadData?.company_name || 'Acme Corp',
+        company_website: leadData?.company_website || 'acme.com',
+        industry: leadData?.industry || 'Technology',
+        state: leadData?.state || 'NY',
+        market: leadData?.market || 'Enterprise',
+      };
+
+      const sampleSender = {
+        first_name: gmailAccountData?.first_name || 'Brett',
+        last_name: gmailAccountData?.last_name || 'Smith',
+        signature: gmailAccountData?.signature || '',
+      };
+
       // Lead variables
-      if (leadData) {
-        result = result.replace(/\{\{firstName\}\}/g, leadData.first_name || '');
-        result = result.replace(/\{\{lastName\}\}/g, leadData.last_name || '');
-        result = result.replace(/\{\{email\}\}/g, leadData.email || '');
-        result = result.replace(/\{\{companyName\}\}/g, leadData.company_name || '');
-        result = result.replace(/\{\{companyWebsite\}\}/g, leadData.company_website || '');
-        result = result.replace(/\{\{industry\}\}/g, leadData.industry || '');
-        result = result.replace(/\{\{state\}\}/g, leadData.state || '');
-        result = result.replace(/\{\{market\}\}/g, leadData.market || '');
-      }
+      result = result.replace(/\{\{firstName\}\}/g, sampleLead.first_name);
+      result = result.replace(/\{\{lastName\}\}/g, sampleLead.last_name);
+      result = result.replace(/\{\{email\}\}/g, sampleLead.email);
+      result = result.replace(/\{\{companyName\}\}/g, sampleLead.company_name);
+      result = result.replace(/\{\{companyWebsite\}\}/g, sampleLead.company_website);
+      result = result.replace(/\{\{industry\}\}/g, sampleLead.industry);
+      result = result.replace(/\{\{state\}\}/g, sampleLead.state);
+      result = result.replace(/\{\{market\}\}/g, sampleLead.market);
 
       // Sender variables
-      if (gmailAccountData) {
-        result = result.replace(/\{\{senderFirstName\}\}/g, gmailAccountData.first_name || '');
-        result = result.replace(/\{\{senderLastName\}\}/g, gmailAccountData.last_name || '');
-        result = result.replace(/\{\{senderSignature\}\}/g, gmailAccountData.signature || '');
-      }
+      result = result.replace(/\{\{senderFirstName\}\}/g, sampleSender.first_name);
+      result = result.replace(/\{\{senderLastName\}\}/g, sampleSender.last_name);
+      result = result.replace(/\{\{senderSignature\}\}/g, sampleSender.signature);
 
       return result;
     };
