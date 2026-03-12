@@ -26,7 +26,7 @@ export default function LeadFilters({ filters, onFilterChange, leads }) {
       </div>
 
       <Select value={filters.state || "__all__"} onValueChange={(v) => handleChange("state", v)}>
-        <SelectTrigger className="w-[130px] h-9 text-sm bg-white">
+        <SelectTrigger className="w-[130px] h-9 text-sm bg-white dark:bg-neutral-900">
           <SelectValue placeholder="State" />
         </SelectTrigger>
         <SelectContent>
