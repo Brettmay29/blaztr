@@ -5,6 +5,8 @@ import { pagesConfig } from './pages.config'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
+// Initialize theme from localStorage
+if (localStorage.getItem("theme") === "dark") document.documentElement.classList.add("dark");
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Account from './pages/Account';
 
