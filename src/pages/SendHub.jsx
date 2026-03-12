@@ -327,9 +327,9 @@ export default function SendHub() {
                       <span className="text-xs text-neutral-600 dark:text-neutral-300">{log.status}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-sm text-neutral-700">{log.lead_name}</TableCell>
-                  <TableCell className="text-sm text-neutral-500">{log.lead_email}</TableCell>
-                  <TableCell className="text-sm text-neutral-500">{log.subject}</TableCell>
+                  <TableCell className="text-sm text-neutral-700 dark:text-neutral-300">{log.lead_name}</TableCell>
+                  <TableCell className="text-sm text-neutral-500 dark:text-neutral-400">{log.lead_email}</TableCell>
+                  <TableCell className="text-sm text-neutral-500 dark:text-neutral-400">{log.subject}</TableCell>
                   <TableCell>
                     <Badge variant="outline" className="text-[11px]">{log.sequence_step}</Badge>
                   </TableCell>
