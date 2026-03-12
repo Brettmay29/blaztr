@@ -243,6 +243,49 @@ export default function EmailTesting() {
             </div>
           </div>
 
+          <style>{`
+            .email-editor .ql-toolbar {
+              background-color: hsl(var(--input));
+              border: none;
+              border-radius: 0.375rem 0.375rem 0 0;
+              padding: 8px 12px;
+            }
+            .email-editor .ql-toolbar.ql-snow .ql-formats button,
+            .email-editor .ql-toolbar.ql-snow .ql-formats select {
+              color: hsl(var(--foreground));
+            }
+            .email-editor .ql-toolbar.ql-snow .ql-stroke {
+              stroke: hsl(var(--foreground));
+            }
+            .email-editor .ql-toolbar.ql-snow .ql-fill {
+              fill: hsl(var(--foreground));
+            }
+            .email-editor .ql-toolbar.ql-snow button:hover .ql-stroke,
+            .email-editor .ql-toolbar.ql-snow button:active .ql-stroke,
+            .email-editor .ql-toolbar.ql-snow button.ql-active .ql-stroke {
+              stroke: hsl(var(--foreground));
+            }
+            .email-editor .ql-toolbar.ql-snow button:hover .ql-fill,
+            .email-editor .ql-toolbar.ql-snow button:active .ql-fill,
+            .email-editor .ql-toolbar.ql-snow button.ql-active .ql-fill {
+              fill: hsl(var(--foreground));
+            }
+            .email-editor .ql-toolbar.ql-snow .ql-picker-label {
+              color: hsl(var(--foreground));
+            }
+            .email-editor .ql-container {
+              background-color: hsl(var(--input));
+              border: none;
+              border-radius: 0 0 0.375rem 0.375rem;
+            }
+            .email-editor .ql-editor {
+              color: hsl(var(--foreground));
+              min-height: 300px;
+            }
+            .email-editor .ql-editor.ql-blank::before {
+              color: hsl(var(--muted-foreground));
+            }
+          `}</style>
           <ReactQuill
             value={form.body}
             onChange={(body) => setForm({ ...form, body })}
@@ -260,7 +303,7 @@ export default function EmailTesting() {
               ],
             }}
             theme="snow"
-            className="bg-white dark:bg-neutral-800 dark:text-white rounded-lg"
+            className="email-editor"
           />
           </div>
 
