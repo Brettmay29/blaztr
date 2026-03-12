@@ -324,7 +324,7 @@ export default function SendHub() {
                   <TableCell>
                     <div className="flex items-center gap-1.5">
                       {logStatusIcon[log.status] || logStatusIcon.Queued}
-                      <span className="text-xs text-neutral-600">{log.status}</span>
+                      <span className="text-xs text-neutral-600 dark:text-neutral-300">{log.status}</span>
                     </div>
                   </TableCell>
                   <TableCell className="text-sm text-neutral-700">{log.lead_name}</TableCell>
