@@ -98,8 +98,8 @@ export default function Layout({ children, currentPageName }) {
                 className={cn(
                   "flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors",
                   isActive
-                    ? "bg-neutral-900 text-white"
-                    : "text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100"
+                    ? "bg-neutral-900 dark:bg-white text-white dark:text-neutral-900"
+                    : "text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800"
                 )}
               >
                 <item.icon className="w-4 h-4" />
