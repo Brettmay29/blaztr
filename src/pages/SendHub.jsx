@@ -172,7 +172,7 @@ export default function SendHub() {
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
            <div className="space-y-1.5">
-             <Label className="text-xs">Email Account</Label>
+             <Label className="text-xs text-neutral-600 dark:text-neutral-400">Email Account</Label>
              <Select value={selectedGmail} onValueChange={setSelectedGmail}>
                <SelectTrigger className="h-9 text-sm">
                  <SelectValue placeholder="Select sender" />
