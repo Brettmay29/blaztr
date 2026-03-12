@@ -27,6 +27,7 @@ export default function Onboarding() {
     setSaving(true);
     await base44.auth.updateMe({
       full_name: fullName.trim(),
+      onboarding_completed: true,
       ...(photoUrl ? { profile_photo: photoUrl } : {}),
     });
     navigate("/Home");

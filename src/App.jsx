@@ -21,8 +21,6 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
   const [currentUser, setCurrentUser] = useState(undefined);
-  const isNewUser = new URLSearchParams(window.location.search).get('is_new_user') === 'true';
-
   useEffect(() => {
     base44.auth.me().then(setCurrentUser).catch(() => setCurrentUser(null));
   }, []);
@@ -46,7 +44,7 @@ const AuthenticatedApp = () => {
     }
   }
 
-  const needsOnboarding = isNewUser || (currentUser && !currentUser.full_name);
+  const needsOnboarding = currentUser && !currentUser.onboarding_completed;
 
   // Render the main app
   return (
