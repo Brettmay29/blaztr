@@ -70,13 +70,30 @@ Deno.serve(async (req) => {
 
     const { accessToken } = await base44.asServiceRole.connectors.getConnection('gmail');
 
-    // Build RFC 2822 email
+    // Build RFC 2822 email with CSS styling to control signature spacing
+    const emailContent = `
+<html>
+<head>
+<style>
+  body { font-family: Arial, sans-serif; }
+  .signature { margin-top: 10px; margin-bottom: 0; padding: 0; }
+  .signature p { margin: 0; padding: 0; }
+  .signature br { line-height: 0; }
+</style>
+</head>
+<body>
+${processedBody}
+<div class="signature">${sampleSender.signature}</div>
+</body>
+</html>
+    `;
+    
     const emailLines = [
       `To: ${to}`,
       `Subject: ${processedSubject}`,
       `Content-Type: text/html; charset=UTF-8`,
       ``,
-      processedBody,
+      emailContent,
     ];
     const raw = emailLines.join('\r\n');
     const encodedEmail = btoa(unescape(encodeURIComponent(raw)))
