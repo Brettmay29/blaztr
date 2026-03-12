@@ -50,43 +50,47 @@ Deno.serve(async (req) => {
       signature: gmailAccountData?.signature || '',
     };
 
-    // Replace variables in subject and body
+    // Strip HTML tags first, then replace variables
+    const stripHTML = (text) => {
+      if (!text) return text;
+      return text
+        .replace(/<div>/g, '')
+        .replace(/<\/div>/g, '\n')
+        .replace(/<br\s*\/?>/g, '\n')
+        .replace(/<[^>]*>/g, '')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&')
+        .trim();
+    };
+
+    // Replace variables (case-insensitive)
     const replaceVariables = (text) => {
       if (!text) return text;
       let result = text;
-      
+
       // Lead variables
-      result = result.replace(/\{\{firstName\}\}/g, sampleLead.first_name);
-      result = result.replace(/\{\{lastName\}\}/g, sampleLead.last_name);
-      result = result.replace(/\{\{email\}\}/g, sampleLead.email);
-      result = result.replace(/\{\{companyName\}\}/g, sampleLead.company_name);
-      result = result.replace(/\{\{companyWebsite\}\}/g, sampleLead.company_website);
-      result = result.replace(/\{\{industry\}\}/g, sampleLead.industry);
-      result = result.replace(/\{\{state\}\}/g, sampleLead.state);
-      result = result.replace(/\{\{market\}\}/g, sampleLead.market);
+      result = result.replace(/\{\{firstName\}\}/gi, sampleLead.first_name);
+      result = result.replace(/\{\{lastName\}\}/gi, sampleLead.last_name);
+      result = result.replace(/\{\{email\}\}/gi, sampleLead.email);
+      result = result.replace(/\{\{companyName\}\}/gi, sampleLead.company_name);
+      result = result.replace(/\{\{companyWebsite\}\}/gi, sampleLead.company_website);
+      result = result.replace(/\{\{industry\}\}/gi, sampleLead.industry);
+      result = result.replace(/\{\{state\}\}/gi, sampleLead.state);
+      result = result.replace(/\{\{market\}\}/gi, sampleLead.market);
 
       // Sender variables
-      result = result.replace(/\{\{senderFirstName\}\}/g, sampleSender.first_name);
-      result = result.replace(/\{\{senderLastName\}\}/g, sampleSender.last_name);
-      result = result.replace(/\{\{senderSignature\}\}/g, sampleSender.signature);
+      result = result.replace(/\{\{senderFirstName\}\}/gi, sampleSender.first_name);
+      result = result.replace(/\{\{senderLastName\}\}/gi, sampleSender.last_name);
+      result = result.replace(/\{\{senderSignature\}\}/gi, sampleSender.signature);
 
       return result;
     };
 
     const processedSubject = replaceVariables(subject);
-    let processedBody = replaceVariables(body);
-    
-    // Strip HTML tags and convert to plain text
-    processedBody = processedBody
-      .replace(/<div>/g, '')
-      .replace(/<\/div>/g, '\n')
-      .replace(/<br\s*\/?>/g, '\n')
-      .replace(/<[^>]*>/g, '')
-      .replace(/&nbsp;/g, ' ')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&amp;/g, '&')
-      .trim();
+    let processedBody = stripHTML(body);
+    processedBody = replaceVariables(processedBody);
 
     let accessToken;
     try {
