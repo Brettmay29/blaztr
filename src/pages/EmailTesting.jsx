@@ -4,10 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Send, Loader2, CheckCircle2, ChevronDown } from "lucide-react";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
 
 const isBodyEmpty = (val) => !val || val === "<p><br></p>" || val.replace(/<[^>]*>/g, "").trim() === "";
 
@@ -106,7 +105,7 @@ export default function EmailTesting() {
             placeholder="Test subject line"
             value={form.subject}
             onChange={(e) => setForm({ ...form, subject: e.target.value })}
-            className="h-9 text-base"
+            className="h-9 text-sm"
           />
         </div>
 
@@ -145,26 +144,12 @@ export default function EmailTesting() {
             </div>
           </div>
 
-          <div className="border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden [&_.ql-toolbar]:bg-neutral-100 [&_.ql-toolbar]:dark:bg-neutral-800 [&_.ql-toolbar]:border-neutral-200 [&_.ql-toolbar]:dark:border-neutral-700 [&_.ql-container]:bg-white [&_.ql-container]:dark:bg-neutral-900 [&_.ql-container]:border-neutral-200 [&_.ql-container]:dark:border-neutral-700 [&_.ql-editor]:text-neutral-900 [&_.ql-editor]:dark:text-neutral-100 [&_.ql-editor.ql-blank::before]:text-neutral-400 [&_.ql-editor.ql-blank::before]:dark:text-neutral-500 [&_.ql-stroke]:stroke-neutral-600 [&_.ql-stroke]:dark:stroke-neutral-300 [&_.ql-fill]:fill-neutral-600 [&_.ql-fill]:dark:fill-neutral-300 [&_.ql-picker-label]:text-neutral-600 [&_.ql-picker-label]:dark:text-neutral-300 [&_.ql-picker-options]:bg-white [&_.ql-picker-options]:dark:bg-neutral-800 [&_.ql-picker-options]:border-neutral-200 [&_.ql-picker-options]:dark:border-neutral-700 [&_.ql-picker-item]:dark:text-neutral-300 [&_.ql-toolbar_button:hover_.ql-stroke]:dark:stroke-white [&_.ql-toolbar_button:hover_.ql-fill]:dark:fill-white">
-            <ReactQuill
-                ref={quillRef}
-                value={form.body}
-                onChange={(value) => setForm({ ...form, body: value })}
-                theme="snow"
-                placeholder="Write your email body here..."
-                modules={{
-                  toolbar: [
-                    [{ font: ["sans-serif", "serif", "monospace", "georgia", "courier"] }],
-                    [{ size: ["small", false, "large", "huge"] }],
-                    ["bold", "italic", "underline"],
-                    ["link"],
-                    [{ list: "ordered" }, { list: "bullet" }],
-                  ],
-                }}
-                formats={["font", "size", "bold", "italic", "underline", "link", "list"]}
-                style={{ height: "200px" }}
-              />
-          </div>
+          <Textarea
+            placeholder="Write your email body here..."
+            value={form.body}
+            onChange={(e) => setForm({ ...form, body: e.target.value })}
+            className="h-48 text-sm font-sans resize-none"
+          />
           </div>
 
         <div className="flex items-center gap-3 pt-1">
