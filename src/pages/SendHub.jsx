@@ -314,7 +314,7 @@ export default function SendHub() {
             <TableBody>
               {filteredSendLogs.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-neutral-400 py-10 text-sm">
+                  <TableCell colSpan={6} className="text-center text-neutral-400 dark:text-neutral-500 py-10 text-sm">
                     No sends yet. Launch a campaign to get started.
                   </TableCell>
                 </TableRow>
