@@ -42,6 +42,8 @@ const AuthenticatedApp = () => {
   }
 
   const [currentUser, setCurrentUser] = useState(undefined);
+  const isNewUser = new URLSearchParams(window.location.search).get('is_new_user') === 'true';
+
   useEffect(() => {
     base44.auth.me().then(setCurrentUser).catch(() => setCurrentUser(null));
   }, []);
@@ -55,7 +57,7 @@ const AuthenticatedApp = () => {
     );
   }
 
-  const needsOnboarding = currentUser && !currentUser.full_name;
+  const needsOnboarding = isNewUser || (currentUser && !currentUser.full_name);
 
   // Render the main app
   return (
