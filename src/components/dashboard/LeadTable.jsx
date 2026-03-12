@@ -66,8 +66,8 @@ export default function LeadTable({ leads, selectedIds, onToggle, onToggleAll })
               <TableRow
                 key={lead.id}
                 className={cn(
-                  "transition-colors",
-                  selectedIds.includes(lead.id) && "bg-neutral-50"
+                  "transition-colors cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800/50",
+                  selectedIds.includes(lead.id) && "bg-neutral-50 dark:bg-neutral-800/50"
                 )}
               >
                 <TableCell>
