@@ -173,11 +173,11 @@ export default function Campaigns() {
   const ungrouped = campaigns.filter((c) => !c.folder_id);
 
   const CampaignRow = ({ c }) => (
-    <div className="bg-white border border-neutral-200 rounded-lg p-4 hover:border-neutral-300 transition-colors">
+    <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-4 hover:border-neutral-300 dark:hover:border-neutral-700 transition-colors">
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1.5">
-            <p className="text-sm font-medium text-neutral-900">{c.name}</p>
+            <p className="text-sm font-medium text-neutral-900 dark:text-white">{c.name}</p>
             <Badge className={campaignStatusStyles[c.status] + " text-[11px]"}>{c.status}</Badge>
           </div>
           <div className="flex items-center gap-4 text-xs text-neutral-500">
@@ -248,7 +248,7 @@ export default function Campaigns() {
           <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">Create and manage email campaigns.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button size="sm" className="bg-neutral-900 hover:bg-neutral-800 text-xs h-9" onClick={openNew}>
+          <Button size="sm" variant="outline" className="text-xs h-9" onClick={openNew}>
             <Plus className="w-3.5 h-3.5 mr-1.5" /> New Campaign
           </Button>
           <Button size="sm" variant="outline" className="text-xs h-9" onClick={() => setCreatingFolder(true)}>
@@ -258,14 +258,14 @@ export default function Campaigns() {
       </div>
 
       {creatingFolder && (
-        <div className="bg-white border border-neutral-200 rounded-lg p-4 space-y-3">
+        <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-4 space-y-3">
           <input
             autoFocus
             type="text"
             placeholder="Folder name (e.g., Q1 Campaigns)"
             value={folderName}
             onChange={(e) => setFolderName(e.target.value)}
-            className="w-full px-3 py-2 border border-neutral-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900"
+            className="w-full px-3 py-2 border border-neutral-200 dark:border-neutral-700 rounded-md text-sm bg-transparent dark:text-white dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-500"
             onKeyDown={(e) => {
               if (e.key === "Enter" && folderName.trim()) createFolderMutation.mutate(folderName.trim());
               if (e.key === "Escape") { setCreatingFolder(false); setFolderName(""); }
@@ -286,14 +286,14 @@ export default function Campaigns() {
         const folderCampaigns = campaigns.filter((c) => c.folder_id === folder.id);
         const isCollapsed = collapsedFolders[folder.id];
         return (
-          <div key={folder.id} className="border border-neutral-200 rounded-lg overflow-hidden">
+          <div key={folder.id} className="border border-neutral-200 dark:border-neutral-800 rounded-lg overflow-hidden">
             <div
-              className="flex items-center gap-2 px-4 py-3 bg-neutral-50 cursor-pointer hover:bg-neutral-100 transition-colors"
+              className="flex items-center gap-2 px-4 py-3 bg-neutral-50 dark:bg-neutral-800/50 cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
               onClick={() => toggleFolder(folder.id)}
             >
               {isCollapsed ? <ChevronRight className="w-4 h-4 text-neutral-400" /> : <ChevronDown className="w-4 h-4 text-neutral-400" />}
               {isCollapsed ? <Folder className="w-4 h-4 text-neutral-500" /> : <FolderOpen className="w-4 h-4 text-neutral-500" />}
-              <span className="text-sm font-medium text-neutral-800">{folder.name}</span>
+              <span className="text-sm font-medium text-neutral-800 dark:text-neutral-200">{folder.name}</span>
               <span className="text-xs text-neutral-400 ml-1">({folderCampaigns.length})</span>
               <button
                 className="ml-auto text-neutral-400 hover:text-red-500 transition-colors p-1"
@@ -304,7 +304,7 @@ export default function Campaigns() {
               </button>
             </div>
             {!isCollapsed && (
-              <div className="p-3 space-y-2 bg-white">
+              <div className="p-3 space-y-2 bg-white dark:bg-neutral-900/50">
                 {folderCampaigns.length === 0 ? (
                   <p className="text-xs text-neutral-400 text-center py-3">No campaigns in this folder yet.</p>
                 ) : (
