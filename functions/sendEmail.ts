@@ -113,22 +113,31 @@ Deno.serve(async (req) => {
     let processedBody = replaceVariables(body);
     processedBody = stripHTML(processedBody);
     
-    // Debug log
+    // Debug log - comprehensive
     console.log('=== EMAIL SEND DEBUG ===');
-    console.log('From Gmail Account:', gmailAccountData.email, '(' + gmailAccountData.nickname + ')');
-    console.log('Sender Data:', { first_name: sampleSender.first_name, last_name: sampleSender.last_name });
-    if (leadData) {
-      console.log('Lead Data:', { first_name: sampleLead.first_name, company: sampleLead.company_name });
-    } else {
-      console.log('Lead Data: None (using defaults)');
-    }
+    console.log('STEP 1 - Raw body received:');
+    console.log(body?.substring(0, 300));
     console.log('---');
-    console.log('Original subject:', subject);
-    console.log('Subject after replace:', processedSubject);
+    
+    const afterDecode = decodeHTMLEntities(body);
+    console.log('STEP 2 - After decodeHTMLEntities:');
+    console.log(afterDecode?.substring(0, 300));
     console.log('---');
-    console.log('Original body (first 150 chars):', body?.substring(0, 150));
-    console.log('After variable replace (first 150 chars):', replaceVariables(body)?.substring(0, 150));
-    console.log('After HTML strip (final, first 150 chars):', processedBody?.substring(0, 150));
+    
+    const afterReplace = replaceVariables(body);
+    console.log('STEP 3 - After replaceVariables:');
+    console.log(afterReplace?.substring(0, 300));
+    console.log('---');
+    
+    console.log('STEP 4 - After stripHTML (final):');
+    console.log(processedBody?.substring(0, 300));
+    console.log('---');
+    
+    console.log('Variable substitution check:');
+    console.log('- firstName to replace:', `{{firstName}}`);
+    console.log('- sampleLead.first_name:', sampleLead.first_name);
+    console.log('- Test regex match:', /\{\{firstName\}\}/gi.test(body));
+    console.log('- Body contains {{firstName}}:', body?.includes('{{firstName}}'));
     console.log('=== END DEBUG ===');
 
     let accessToken;
