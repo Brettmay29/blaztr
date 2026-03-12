@@ -40,7 +40,8 @@ const AuthenticatedApp = () => {
   }
 
   // Check URL param as fallback for brand-new signups
-  const isNewUser = new URLSearchParams(window.location.search).get('is_new_user') === 'true';
+  const location = useLocation();
+  const isNewUser = new URLSearchParams(location.search).get('is_new_user') === 'true';
   const needsOnboarding = isNewUser || (user && !user.onboarding_completed);
 
   // Render the main app
