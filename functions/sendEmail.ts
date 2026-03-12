@@ -76,6 +76,12 @@ Deno.serve(async (req) => {
     const processedSubject = replaceVariables(subject);
     const processedBody = replaceVariables(body);
 
+    const sampleSender = {
+      first_name: gmailAccountData?.first_name || 'Brett',
+      last_name: gmailAccountData?.last_name || 'Smith',
+      signature: gmailAccountData?.signature || '',
+    };
+
     let accessToken;
     try {
       const conn = await base44.asServiceRole.connectors.getConnection('gmail');
