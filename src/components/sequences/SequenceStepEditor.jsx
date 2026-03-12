@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, Bold, Italic, Link, List, ListOrdered, Code2, Eye, X } from "lucide-react";
+import { ChevronDown, Eye, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
@@ -112,71 +112,7 @@ export default function SequenceStepEditor({
     }
   };
 
-  const applyFormatting = (format) => {
-    const textarea = getTextareaElement();
-    if (!textarea) return;
 
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = step.body.substring(start, end);
-    const before = step.body.substring(0, start);
-    const after = step.body.substring(end);
-
-    let newBody = "";
-    let newCursorPos = start;
-
-    switch (format) {
-      case "bold":
-        if (selectedText) {
-          newBody = before + "**" + selectedText + "**" + after;
-          newCursorPos = end + 4;
-        } else {
-          newBody = before + "****" + after;
-          newCursorPos = start + 2;
-        }
-        break;
-      case "italic":
-        if (selectedText) {
-          newBody = before + "*" + selectedText + "*" + after;
-          newCursorPos = end + 2;
-        } else {
-          newBody = before + "**" + after;
-          newCursorPos = start + 1;
-        }
-        break;
-      case "bullet":
-        newBody = before + "\n• " + selectedText + after;
-        newCursorPos = start + 3 + selectedText.length;
-        break;
-      case "numbered":
-        newBody = before + "\n1. " + selectedText + after;
-        newCursorPos = start + 4 + selectedText.length;
-        break;
-      case "link":
-        if (selectedText) {
-          newBody = before + "[" + selectedText + "](https://example.com)" + after;
-          newCursorPos = end + 19;
-        } else {
-          newBody = before + "[link](https://example.com)" + after;
-          newCursorPos = start + 6;
-        }
-        break;
-      case "signature":
-        const sig = "\n\n---\n[Your Name]\n[Your Title]\n[Company]";
-        newBody = step.body + sig;
-        newCursorPos = step.body.length;
-        break;
-      default:
-        return;
-    }
-
-    onChange({ body: newBody });
-
-    setTimeout(() => {
-      textarea.selectionStart = textarea.selectionEnd = newCursorPos;
-      textarea.focus();
-    }, 0);
-  };
 
   return (
     <div className="p-6 space-y-6 max-w-3xl">
