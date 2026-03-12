@@ -76,14 +76,14 @@ export default function LeadTable({ leads, selectedIds, onToggle, onToggleAll })
                     onCheckedChange={() => onToggle(lead.id)}
                   />
                 </TableCell>
-                <TableCell className="font-medium text-sm text-neutral-900 whitespace-nowrap">
-                  {lead.first_name}
+                <TableCell className="font-medium text-sm text-neutral-900 dark:text-neutral-100 whitespace-nowrap">
+                 {lead.first_name}
                 </TableCell>
-                <TableCell className="text-sm text-neutral-600 whitespace-nowrap">{lead.email}</TableCell>
-                <TableCell className="text-sm text-neutral-600 whitespace-nowrap">{lead.company_name}</TableCell>
-                <TableCell className="text-sm text-neutral-500">{lead.state}</TableCell>
-                <TableCell className="text-sm text-neutral-500">{lead.industry}</TableCell>
-                <TableCell className="text-sm text-neutral-500">{lead.market}</TableCell>
+                <TableCell className="text-sm text-neutral-600 dark:text-neutral-300 whitespace-nowrap">{lead.email}</TableCell>
+                <TableCell className="text-sm text-neutral-600 dark:text-neutral-300 whitespace-nowrap">{lead.company_name}</TableCell>
+                <TableCell className="text-sm text-neutral-500 dark:text-neutral-400">{lead.state}</TableCell>
+                <TableCell className="text-sm text-neutral-500 dark:text-neutral-400">{lead.industry}</TableCell>
+                <TableCell className="text-sm text-neutral-500 dark:text-neutral-400">{lead.market}</TableCell>
                 <TableCell>
                   <Badge variant="secondary" className={cn("text-[11px] font-medium", statusStyles[lead.status] || statusStyles.New)}>
                     {lead.status || "New"}
