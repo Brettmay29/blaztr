@@ -89,11 +89,11 @@ export default function Templates() {
           </div>
         )}
         {templates.map((t) => (
-          <div key={t.id} className="bg-white border border-neutral-200 rounded-lg p-4">
+          <div key={t.id} className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-4">
             <div className="flex items-start justify-between">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <p className="text-sm font-medium text-neutral-900">{t.name}</p>
+                  <p className="text-sm font-medium text-neutral-900 dark:text-white">{t.name}</p>
                   <Badge variant="secondary" className="text-[11px]">{t.type}</Badge>
                 </div>
                 <p className="text-xs text-neutral-500 mb-2">Subject: {t.subject}</p>

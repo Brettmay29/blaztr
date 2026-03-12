@@ -113,7 +113,7 @@ export default function Sequences() {
   const ungrouped = sequences.filter((s) => !s.folder_id);
 
   const SequenceRow = ({ seq }) => (
-    <div className="bg-white border border-neutral-200 rounded-lg p-4 flex items-center justify-between hover:border-neutral-300 transition-colors">
+    <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-4 flex items-center justify-between hover:border-neutral-300 dark:hover:border-neutral-700 transition-colors">
       <div className="flex-1 min-w-0">
         {renamingId === seq.id ? (
           <input
@@ -126,13 +126,13 @@ export default function Sequences() {
               if (e.key === "Escape") setRenamingId(null);
             }}
             onBlur={() => handleRenameCommit(seq.id)}
-            className="font-medium text-neutral-900 border border-neutral-300 rounded px-2 py-0.5 text-sm focus:outline-none focus:border-neutral-500 w-full max-w-xs"
+            className="font-medium text-neutral-900 dark:text-white dark:bg-neutral-800 dark:border-neutral-600 border border-neutral-300 rounded px-2 py-0.5 text-sm focus:outline-none focus:border-neutral-500 w-full max-w-xs"
             onClick={(e) => e.stopPropagation()}
           />
         ) : (
           <div className="flex items-center gap-2">
             <h3
-              className="font-medium text-neutral-900 cursor-pointer hover:text-neutral-600"
+              className="font-medium text-neutral-900 dark:text-white cursor-pointer hover:text-neutral-600 dark:hover:text-neutral-300"
               onClick={() => setEditingId(seq.id)}
             >
               {seq.name}
@@ -215,14 +215,14 @@ export default function Sequences() {
       </div>
 
       {creatingFolder && (
-        <div className="bg-white border border-neutral-200 rounded-lg p-4 space-y-3">
+        <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-4 space-y-3">
           <input
             autoFocus
             type="text"
             placeholder="Folder name (e.g., HVAC Sequences)"
             value={folderName}
             onChange={(e) => setFolderName(e.target.value)}
-            className="w-full px-3 py-2 border border-neutral-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900"
+            className="w-full px-3 py-2 border border-neutral-200 dark:border-neutral-700 rounded-md text-sm bg-transparent dark:text-white dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-500"
             onKeyDown={(e) => {
               if (e.key === "Enter" && folderName.trim()) createFolderMutation.mutate(folderName.trim());
               if (e.key === "Escape") { setCreatingFolder(false); setFolderName(""); }
@@ -240,12 +240,12 @@ export default function Sequences() {
       )}
 
       {creatingNew && (
-        <div className="bg-white border border-neutral-200 rounded-lg p-4 space-y-3">
+        <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-4 space-y-3">
           <input
             autoFocus
             type="text"
             placeholder="Sequence name (e.g., HVAC Outreach)"
-            className="w-full px-3 py-2 border border-neutral-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900"
+            className="w-full px-3 py-2 border border-neutral-200 dark:border-neutral-700 rounded-md text-sm bg-transparent dark:text-white dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-500"
             onKeyDown={(e) => {
               if (e.key === "Enter" && e.target.value.trim()) createMutation.mutate(e.target.value.trim());
             }}
@@ -271,14 +271,14 @@ export default function Sequences() {
         const folderSeqs = sequences.filter((s) => s.folder_id === folder.id);
         const isCollapsed = collapsedFolders[folder.id];
         return (
-          <div key={folder.id} className="border border-neutral-200 rounded-lg overflow-hidden">
+          <div key={folder.id} className="border border-neutral-200 dark:border-neutral-800 rounded-lg overflow-hidden">
             <div
-              className="flex items-center gap-2 px-4 py-3 bg-neutral-50 cursor-pointer hover:bg-neutral-100 transition-colors"
+              className="flex items-center gap-2 px-4 py-3 bg-neutral-50 dark:bg-neutral-800/50 cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
               onClick={() => toggleFolder(folder.id)}
             >
               {isCollapsed ? <ChevronRight className="w-4 h-4 text-neutral-400" /> : <ChevronDown className="w-4 h-4 text-neutral-400" />}
               {isCollapsed ? <Folder className="w-4 h-4 text-neutral-500" /> : <FolderOpen className="w-4 h-4 text-neutral-500" />}
-              <span className="text-sm font-medium text-neutral-800">{folder.name}</span>
+              <span className="text-sm font-medium text-neutral-800 dark:text-neutral-200">{folder.name}</span>
               <span className="text-xs text-neutral-400 ml-1">({folderSeqs.length})</span>
               <button
                 className="ml-auto text-neutral-400 hover:text-red-500 transition-colors p-1"
@@ -289,7 +289,7 @@ export default function Sequences() {
               </button>
             </div>
             {!isCollapsed && (
-              <div className="p-3 space-y-2 bg-white">
+              <div className="p-3 space-y-2 bg-white dark:bg-neutral-900/50">
                 {folderSeqs.length === 0 ? (
                   <p className="text-xs text-neutral-400 text-center py-3">No sequences in this folder yet.</p>
                 ) : (

@@ -120,13 +120,13 @@ export default function GmailAccounts() {
           </div>
         )}
         {accounts.map((acc) => (
-          <div key={acc.id} className="bg-white border border-neutral-200 rounded-lg p-4 flex items-center justify-between">
+          <div key={acc.id} className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-neutral-100 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
                 <Mail className="w-4 h-4 text-neutral-500" />
               </div>
               <div>
-                <p className="text-sm font-medium text-neutral-900">{acc.nickname}</p>
+                <p className="text-sm font-medium text-neutral-900 dark:text-white">{acc.nickname}</p>
                 <p className="text-xs text-neutral-500">{acc.email}</p>
               </div>
             </div>
