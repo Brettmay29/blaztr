@@ -89,9 +89,9 @@ export default function LeadTable({ leads, selectedIds, onToggle, onToggleAll })
                     {lead.status || "New"}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-sm text-neutral-500">{lead.sequence_type}</TableCell>
-                <TableCell className="text-sm text-neutral-500 text-center">{lead.total_sends || 0}</TableCell>
-                <TableCell className="text-sm text-neutral-500 text-center">{lead.opens || 0}</TableCell>
+                <TableCell className="text-sm text-neutral-500 dark:text-neutral-400">{lead.sequence_type}</TableCell>
+                <TableCell className="text-sm text-neutral-500 dark:text-neutral-400 text-center">{lead.total_sends || 0}</TableCell>
+                <TableCell className="text-sm text-neutral-500 dark:text-neutral-400 text-center">{lead.opens || 0}</TableCell>
                 <TableCell>
                   {lead.reply_sentiment && lead.reply_sentiment !== "" ? (
                     <Badge variant="outline" className={cn("text-[11px]", sentimentStyles[lead.reply_sentiment])}>
