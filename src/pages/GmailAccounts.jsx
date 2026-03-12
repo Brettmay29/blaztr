@@ -14,8 +14,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Mail, Plus, Settings, Trash2, Zap, Loader2, Code2 } from "lucide-react";
 import { toast } from "sonner";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
+
 
 export default function GmailAccounts() {
   const queryClient = useQueryClient();
