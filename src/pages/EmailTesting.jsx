@@ -106,7 +106,7 @@ export default function EmailTesting() {
             placeholder="Test subject line"
             value={form.subject}
             onChange={(e) => setForm({ ...form, subject: e.target.value })}
-            className="h-9 text-sm"
+            className="h-9 text-base"
           />
         </div>
 
