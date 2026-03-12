@@ -17,11 +17,19 @@ Deno.serve(async (req) => {
     let gmailAccountData = null;
 
     if (lead_id) {
-      leadData = await base44.asServiceRole.entities.Lead.get(lead_id);
+      try {
+        leadData = await base44.asServiceRole.entities.Lead.get(lead_id);
+      } catch {
+        // Lead not found, use defaults
+      }
     }
 
     if (gmail_account_id) {
-      gmailAccountData = await base44.asServiceRole.entities.GmailAccount.get(gmail_account_id);
+      try {
+        gmailAccountData = await base44.asServiceRole.entities.GmailAccount.get(gmail_account_id);
+      } catch {
+        // Account not found, use defaults
+      }
     }
 
     // Replace variables in subject and body
