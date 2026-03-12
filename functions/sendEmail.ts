@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
       signature: gmailAccountData.signature || '',
     };
 
-    // Decode HTML entities
+    // Decode HTML entities comprehensively
     const decodeHTMLEntities = (text) => {
       if (!text) return text;
       return text
@@ -64,7 +64,13 @@ Deno.serve(async (req) => {
         .replace(/&lcub;/g, '{')
         .replace(/&rcub;/g, '}')
         .replace(/&lbrace;/g, '{')
-        .replace(/&rbrace;/g, '}');
+        .replace(/&rbrace;/g, '}')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&nbsp;/g, ' ');
     };
 
     // Strip HTML tags
@@ -77,17 +83,16 @@ Deno.serve(async (req) => {
         .replace(/<\/div>/g, '\n')
         .replace(/<br\s*\/?>/g, '\n')
         .replace(/<[^>]*>/g, '')
-        .replace(/&nbsp;/g, ' ')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&amp;/g, '&')
         .trim();
     };
 
     // Replace variables (case-insensitive)
     const replaceVariables = (text) => {
       if (!text) return text;
+      
+      // CRITICAL: Decode HTML entities FIRST, then strip HTML tags, THEN replace variables
       let result = decodeHTMLEntities(text);
+      result = stripHTML(result);
 
       // Lead variables
       result = result.replace(/\{\{firstName\}\}/gi, sampleLead.first_name);
@@ -110,8 +115,7 @@ Deno.serve(async (req) => {
     };
 
     const processedSubject = replaceVariables(subject);
-    let processedBody = replaceVariables(body);
-    processedBody = stripHTML(processedBody);
+    const processedBody = replaceVariables(body);
     
     // Debug log - comprehensive
     console.log('=== EMAIL SEND DEBUG ===');
@@ -148,15 +152,16 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Failed to connect to Gmail. Please authorize the Gmail connector in settings.', details: err.message }, { status: 500 });
     }
 
-    // Build RFC 2822 email
+    // Build RFC 2822 email as text/html with basic p tags for formatting
     const emailLines = [
       `To: ${to}`,
       `Subject: ${processedSubject}`,
       `MIME-Version: 1.0`,
-      `Content-Type: text/plain; charset=UTF-8`,
+      `Content-Type: text/html; charset=UTF-8`,
     ];
     const headers = emailLines.join('\r\n');
-    const raw = headers + '\r\n\r\n' + processedBody;
+    const htmlBody = processedBody.split('\n').map(line => `<p>${line}</p>`).join('');
+    const raw = headers + '\r\n\r\n' + htmlBody;
     const encodedEmail = btoa(unescape(encodeURIComponent(raw)))
       .replace(/\+/g, '-')
       .replace(/\//g, '_')
