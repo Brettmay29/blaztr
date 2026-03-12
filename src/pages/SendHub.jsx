@@ -302,14 +302,14 @@ export default function SendHub() {
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="bg-neutral-50 hover:bg-neutral-50">
-                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Status</TableHead>
-                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Lead</TableHead>
-                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Email</TableHead>
-                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Subject</TableHead>
-                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Step</TableHead>
-                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Date</TableHead>
-              </TableRow>
+              <TableRow className="bg-neutral-50 dark:bg-neutral-800/50 hover:bg-neutral-50 dark:hover:bg-neutral-800/50">
+                  <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Status</TableHead>
+                  <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Lead</TableHead>
+                  <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Email</TableHead>
+                  <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Subject</TableHead>
+                  <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Step</TableHead>
+                  <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Date</TableHead>
+                </TableRow>
             </TableHeader>
             <TableBody>
               {filteredSendLogs.length === 0 && (
