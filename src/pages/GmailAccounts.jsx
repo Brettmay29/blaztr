@@ -87,8 +87,8 @@ export default function GmailAccounts() {
     <div className="space-y-6 max-w-2xl">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-neutral-900">Gmail Accounts</h2>
-          <p className="text-sm text-neutral-500 mt-0.5">Add up to 10 Gmail accounts for sending.</p>
+          <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">Gmail Accounts</h2>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">Add up to 10 Gmail accounts for sending.</p>
         </div>
         <div className="flex gap-2">
           <Button

@@ -244,8 +244,8 @@ export default function Campaigns() {
     <div className="space-y-5 max-w-3xl">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-neutral-900">Campaigns</h2>
-          <p className="text-sm text-neutral-500 mt-0.5">Create and manage email campaigns.</p>
+          <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">Campaigns</h2>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">Create and manage email campaigns.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button size="sm" className="bg-neutral-900 hover:bg-neutral-800 text-xs h-9" onClick={openNew}>
