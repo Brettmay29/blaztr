@@ -107,7 +107,9 @@ export default function EmailTesting() {
       result = result.replace(/\{\{market\}\}/gi, sampleLead.market);
       result = result.replace(/\{\{senderFirstName\}\}/gi, sampleSender.first_name);
       result = result.replace(/\{\{senderLastName\}\}/gi, sampleSender.last_name);
-      result = result.replace(/\{\{senderSignature\}\}/gi, '\n' + sampleSender.signature);
+      // Add newline before signature and strip any leading HTML from it
+      const cleanedSignature = sampleSender.signature.replace(/<br\s*\/?>/g, '\n');
+      result = result.replace(/\{\{senderSignature\}\}/gi, '\n' + cleanedSignature);
 
       return result;
    };
