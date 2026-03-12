@@ -74,15 +74,7 @@ Deno.serve(async (req) => {
     };
 
     const processedSubject = replaceVariables(subject);
-    // Body from ReactQuill is already HTML, just replace variables within it
-    let processedBody = body;
-    if (processedBody) {
-      // Extract text content to replace variables properly
-      const tempDiv = new DOMParser().parseFromString(processedBody, 'text/html');
-      let bodyText = tempDiv.body.innerHTML;
-      bodyText = replaceVariables(bodyText);
-      processedBody = bodyText;
-    }
+    const processedBody = replaceVariables(body);
 
     let accessToken;
     try {
