@@ -63,6 +63,8 @@ export default function EmailTesting() {
    const stripHTML = (text) => {
       if (!text) return text;
       return text
+        .replace(/<p>/g, '')
+        .replace(/<\/p>/g, '\n')
         .replace(/<div>/g, '')
         .replace(/<\/div>/g, '\n')
         .replace(/<br\s*\/?>/g, '\n')
