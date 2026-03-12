@@ -205,7 +205,7 @@ export default function GmailAccounts() {
                 />
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 mb-6">
               <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Signature</Label>
               <ReactQuill
                 value={form.signature}
