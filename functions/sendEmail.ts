@@ -16,14 +16,18 @@ Deno.serve(async (req) => {
     let gmailAccountData = null;
     let leadData = null;
 
-    if (gmail_account_id) {
-      try {
-        gmailAccountData = await base44.asServiceRole.entities.GmailAccount.get(gmail_account_id);
-      } catch (err) {
-        return Response.json({ error: `Failed to fetch Gmail account: ${err.message}` }, { status: 400 });
-      }
+    // Gmail account is required
+    if (!gmail_account_id) {
+      return Response.json({ error: 'gmail_account_id is required' }, { status: 400 });
     }
 
+    try {
+      gmailAccountData = await base44.asServiceRole.entities.GmailAccount.get(gmail_account_id);
+    } catch (err) {
+      return Response.json({ error: `Failed to fetch Gmail account (ID: ${gmail_account_id}): ${err.message}` }, { status: 400 });
+    }
+
+    // Lead data is optional
     if (lead_id) {
       try {
         leadData = await base44.asServiceRole.entities.Lead.get(lead_id);
@@ -32,7 +36,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Sample data for testing
+    // Build lead data (use actual lead if available, fallback to defaults)
     const sampleLead = {
       first_name: leadData?.first_name || 'John',
       last_name: leadData?.last_name || 'Doe',
@@ -44,10 +48,11 @@ Deno.serve(async (req) => {
       market: leadData?.market || 'Enterprise',
     };
 
+    // Build sender data from Gmail account (always use actual account data)
     const sampleSender = {
-      first_name: gmailAccountData?.first_name || 'Brett',
-      last_name: gmailAccountData?.last_name || 'Smith',
-      signature: gmailAccountData?.signature || '',
+      first_name: gmailAccountData.first_name || '',
+      last_name: gmailAccountData.last_name || '',
+      signature: gmailAccountData.signature || '',
     };
 
     // Strip HTML tags first, then replace variables
