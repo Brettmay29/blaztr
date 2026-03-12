@@ -202,7 +202,7 @@ export default function SendHub() {
              </Select>
            </div>
            <div className="space-y-1.5">
-             <Label className="text-xs">Campaign</Label>
+             <Label className="text-xs text-neutral-600 dark:text-neutral-400">Campaign</Label>
              <Select value={selectedCampaign} onValueChange={setSelectedCampaign}>
                <SelectTrigger className="h-9 text-sm">
                  <SelectValue placeholder="Select campaign" />
