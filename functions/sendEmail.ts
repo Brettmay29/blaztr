@@ -74,7 +74,19 @@ Deno.serve(async (req) => {
     };
 
     const processedSubject = replaceVariables(subject);
-    const processedBody = replaceVariables(body);
+    let processedBody = replaceVariables(body);
+    
+    // Strip HTML tags and convert to plain text
+    processedBody = processedBody
+      .replace(/<div>/g, '')
+      .replace(/<\/div>/g, '\n')
+      .replace(/<br\s*\/?>/g, '\n')
+      .replace(/<[^>]*>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&amp;/g, '&')
+      .trim();
 
     let accessToken;
     try {
@@ -89,7 +101,7 @@ Deno.serve(async (req) => {
       `To: ${to}`,
       `Subject: ${processedSubject}`,
       `MIME-Version: 1.0`,
-      `Content-Type: text/html; charset=UTF-8`,
+      `Content-Type: text/plain; charset=UTF-8`,
     ];
     const headers = emailLines.join('\r\n');
     const raw = headers + '\r\n\r\n' + processedBody;
