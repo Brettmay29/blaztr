@@ -265,11 +265,11 @@ export default function LeadsDatabase() {
   return (
     <div className="space-y-5">
       {/* Page-level tabs */}
-      <div className="flex gap-1 bg-neutral-100 rounded-lg p-1 w-fit">
+      <div className="flex gap-1 bg-neutral-100 dark:bg-neutral-800 rounded-lg p-1 w-fit">
         <button
           onClick={() => setPageTab("database")}
           className={`px-4 py-1.5 rounded-md text-xs font-medium transition-colors ${
-            pageTab === "database" ? "bg-white shadow-sm text-neutral-900" : "text-neutral-500 hover:text-neutral-700"
+            pageTab === "database" ? "bg-white dark:bg-neutral-700 shadow-sm text-neutral-900 dark:text-white" : "text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
           }`}
         >
           Leads Database
@@ -277,7 +277,7 @@ export default function LeadsDatabase() {
         <button
           onClick={() => setPageTab("analytics")}
           className={`px-4 py-1.5 rounded-md text-xs font-medium transition-colors ${
-            pageTab === "analytics" ? "bg-white shadow-sm text-neutral-900" : "text-neutral-500 hover:text-neutral-700"
+            pageTab === "analytics" ? "bg-white dark:bg-neutral-700 shadow-sm text-neutral-900 dark:text-white" : "text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
           }`}
         >
           Analytics

@@ -60,9 +60,9 @@ export default function LeadsAnalytics() {
   const replyRate = totalSent > 0 ? ((totalReplied / totalSent) * 100).toFixed(1) : "0.0";
 
   const StatCard = ({ label, value, sub }) => (
-    <div className="bg-white border border-neutral-200 rounded-xl p-5">
-      <p className="text-xs text-neutral-500 mb-1">{label}</p>
-      <p className="text-2xl font-semibold text-neutral-900">{value}</p>
+    <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-5">
+      <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-1">{label}</p>
+      <p className="text-2xl font-semibold text-neutral-900 dark:text-white">{value}</p>
       {sub && <p className="text-xs text-neutral-400 mt-0.5">{sub}</p>}
     </div>
   );
