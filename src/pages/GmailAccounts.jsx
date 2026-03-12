@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import RichTextEditor from "@/components/ui/rich-text-editor";
+import SimpleSignatureEditor from "@/components/ui/simple-signature-editor";
 import {
   Dialog,
   DialogContent,
@@ -206,7 +206,7 @@ export default function GmailAccounts() {
             </div>
             <div className="space-y-2">
                <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Signature</Label>
-               <RichTextEditor
+               <SimpleSignatureEditor
                  value={form.signature}
                  onChange={(signature) => setForm({ ...form, signature })}
                  placeholder="Add your email signature here..."
