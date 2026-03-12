@@ -586,6 +586,12 @@ export default function LeadsDatabase() {
         </div>
       )}
 
+      <EditLeadDialog
+        lead={editingLead}
+        onSave={handleEditSave}
+        onClose={() => setEditingLead(null)}
+      />
+
       {isLoading ? (
         <div className="flex items-center justify-center py-20 text-sm text-neutral-400">Loading leads...</div>
       ) : (
