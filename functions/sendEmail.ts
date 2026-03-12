@@ -76,6 +76,7 @@ Deno.serve(async (req) => {
     const emailLines = [
       `To: ${to}`,
       `Subject: ${processedSubject}`,
+      `MIME-Version: 1.0`,
       `Content-Type: text/html; charset=UTF-8`,
       ``,
       emailContent,
