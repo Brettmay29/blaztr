@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Send, Loader2, CheckCircle2, ChevronDown, Eye } from "lucide-react";
 
-const isBodyEmpty = (val) => !val || val.trim() === "";
+const isBodyEmpty = (val) => !val || val.replace(/<[^>]*>/g, "").trim() === "";
 
 const VARIABLES = [
   { name: "{{firstName}}", label: "First Name" },
@@ -56,7 +57,8 @@ export default function EmailTesting() {
     });
 
    const insertVariable = (varName) => {
-      setForm({ ...form, body: form.body + varName + " " });
+      const newBody = form.body + varName + " ";
+      setForm({ ...form, body: newBody });
       setShowVariables(false);
    };
 
@@ -241,11 +243,24 @@ export default function EmailTesting() {
             </div>
           </div>
 
-          <Textarea
+          <ReactQuill
             value={form.body}
-            onChange={(e) => setForm({ ...form, body: e.target.value })}
+            onChange={(body) => setForm({ ...form, body })}
             placeholder="Write your email body here..."
-            className="min-h-32 font-sans text-sm"
+            modules={{
+              toolbar: [
+                [{ header: [1, 2, 3, false] }],
+                [{ size: ["small", false, "large", "huge"] }],
+                [{ font: [] }],
+                ["bold", "italic", "underline", "strike"],
+                [{ color: [] }, { background: [] }],
+                [{ list: "ordered" }, { list: "bullet" }],
+                ["link"],
+                ["clean"],
+              ],
+            }}
+            theme="snow"
+            className="bg-white dark:bg-neutral-800 dark:text-white rounded-lg"
           />
           </div>
 
@@ -298,9 +313,7 @@ export default function EmailTesting() {
                 <span className="ml-2 text-neutral-900 dark:text-neutral-100">{replaceVariables(form.subject)}</span>
               </div>
             </div>
-            <div className="p-4 text-sm text-neutral-800 dark:text-neutral-200 whitespace-pre-wrap break-words">
-              {stripHTML(replaceVariables(form.body))}
-            </div>
+            <div className="p-4 text-sm text-neutral-800 dark:text-neutral-200" dangerouslySetInnerHTML={{ __html: replaceVariables(form.body) }} />
           </div>
         </DialogContent>
       </Dialog>
