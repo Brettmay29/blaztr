@@ -187,7 +187,7 @@ export default function SendHub() {
              </Select>
            </div>
            <div className="space-y-1.5">
-             <Label className="text-xs">Database List</Label>
+             <Label className="text-xs text-neutral-600 dark:text-neutral-400">Database List</Label>
              <Select value={selectedLeadGroup} onValueChange={setSelectedLeadGroup}>
                <SelectTrigger className="h-9 text-sm">
                  <SelectValue placeholder="Select database" />
