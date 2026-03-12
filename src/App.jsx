@@ -22,7 +22,11 @@ const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
   const [currentUser, setCurrentUser] = useState(undefined);
   useEffect(() => {
-    base44.auth.me().then(setCurrentUser).catch(() => setCurrentUser(null));
+    // Force a fresh fetch, bypassing any cache
+    base44.auth.me().then((u) => {
+      console.log('[Blaztr] user fetched:', JSON.stringify(u));
+      setCurrentUser(u);
+    }).catch(() => setCurrentUser(null));
   }, []);
 
   // Show loading spinner while checking auth or user
