@@ -230,7 +230,7 @@ export default function SendHub() {
            </div>
          </div>
         <div className="flex items-center justify-between mt-3">
-          <p className="text-[11px] text-neutral-400">
+          <p className="text-[11px] text-neutral-400 dark:text-neutral-500">
             Sends to all New/Pending leads via real Gmail API (up to daily limit).
           </p>
           <Button
