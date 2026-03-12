@@ -25,7 +25,7 @@ const VARIABLES = [
 ];
 
 export default function EmailTesting() {
-   const [form, setForm] = useState({ gmail_account_id: "", to: "", subject: "", body: "" });
+   const [form, setForm] = useState({ gmail_account_id: "", to: "", subject: "", body: "", lead_id: "" });
    const [sending, setSending] = useState(false);
    const [result, setResult] = useState(null);
    const [showVariables, setShowVariables] = useState(false);
@@ -36,28 +36,35 @@ export default function EmailTesting() {
      queryFn: () => base44.entities.GmailAccount.list(),
    });
 
+   const { data: leads = [] } = useQuery({
+     queryKey: ["leads"],
+     queryFn: () => base44.entities.Lead.list(),
+   });
+
    const insertVariable = (varName) => {
-     setForm({ ...form, body: form.body + varName + " " });
-     setShowVariables(false);
+      setForm({ ...form, body: form.body + varName + " " });
+      setShowVariables(false);
    };
 
-  const handleSend = async () => {
-    setSending(true);
-    setResult(null);
-    try {
-      const res = await base44.functions.invoke("sendEmail", {
-        gmail_account_id: form.gmail_account_id,
-        to: form.to,
-        subject: form.subject,
-        body: form.body,
-      });
-      setResult(res.data?.success ? "sent" : "error");
-    } catch {
-      setResult("error");
-    } finally {
-      setSending(false);
-    }
-  };
+   const handleSend = async () => {
+     setSending(true);
+     setResult(null);
+     try {
+       const res = await base44.functions.invoke("sendEmail", {
+         gmail_account_id: form.gmail_account_id,
+         to: form.to,
+         subject: form.subject,
+         body: form.body,
+         lead_id: form.lead_id || undefined,
+       });
+       setResult(res.data?.success ? "sent" : "error");
+     } catch (err) {
+       setResult("error");
+       console.error('Send error:', err);
+     } finally {
+       setSending(false);
+     }
+   };
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -77,6 +84,23 @@ export default function EmailTesting() {
               {gmailAccounts.map((acc) => (
                 <SelectItem key={acc.id} value={acc.id}>
                   {acc.nickname} ({acc.email})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label className="text-xs dark:text-neutral-400">Test Lead (Optional - for lead variables)</Label>
+          <Select value={form.lead_id} onValueChange={(v) => setForm({ ...form, lead_id: v })}>
+            <SelectTrigger className="h-9 text-sm">
+              <SelectValue placeholder="Select a lead (or leave empty)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={null}>None</SelectItem>
+              {leads.map((lead) => (
+                <SelectItem key={lead.id} value={lead.id}>
+                  {lead.first_name} {lead.last_name} ({lead.email})
                 </SelectItem>
               ))}
             </SelectContent>
