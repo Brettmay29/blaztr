@@ -21,8 +21,6 @@ export default function GmailAccounts() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ email: "", nickname: "", daily_limit: 30, first_name: "", last_name: "", signature: "" });
-  const [isMarkdownMode, setIsMarkdownMode] = useState(false);
-  const quillRef = useRef(null);
 
   const { data: accounts = [] } = useQuery({
     queryKey: ["gmail_accounts"],
