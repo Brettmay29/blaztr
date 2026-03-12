@@ -129,7 +129,7 @@ export default function Layout({ children, currentPageName }) {
           <div className="ml-auto flex items-center gap-3">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-neutral-100 transition-colors">
+                <button className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
                   <div className="w-7 h-7 rounded-full bg-neutral-900 flex items-center justify-center overflow-hidden">
                     {user?.profile_photo ? (
                       <img src={user.profile_photo} alt="Profile" className="w-full h-full object-cover" />
