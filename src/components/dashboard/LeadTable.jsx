@@ -30,28 +30,28 @@ export default function LeadTable({ leads, selectedIds, onToggle, onToggleAll })
   const allSelected = leads.length > 0 && selectedIds.length === leads.length;
 
   return (
-    <div className="border border-neutral-200 rounded-lg overflow-hidden bg-white">
+    <div className="border border-neutral-200 dark:border-neutral-800 rounded-lg overflow-hidden bg-white dark:bg-neutral-900">
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow className="bg-neutral-50 hover:bg-neutral-50">
+            <TableRow className="bg-neutral-50 dark:bg-neutral-800/50 hover:bg-neutral-50 dark:hover:bg-neutral-800/50">
               <TableHead className="w-10">
                 <Checkbox
                   checked={allSelected}
                   onCheckedChange={onToggleAll}
                 />
               </TableHead>
-              <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Name</TableHead>
-              <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Email</TableHead>
-              <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Company</TableHead>
-              <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">State</TableHead>
-              <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Industry</TableHead>
-              <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Market</TableHead>
-              <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Status</TableHead>
-              <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Seq</TableHead>
-              <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Sends</TableHead>
-              <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Opens</TableHead>
-              <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Reply</TableHead>
+              <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Name</TableHead>
+              <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Email</TableHead>
+              <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Company</TableHead>
+              <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">State</TableHead>
+              <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Industry</TableHead>
+              <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Market</TableHead>
+              <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Status</TableHead>
+              <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Seq</TableHead>
+              <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Sends</TableHead>
+              <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Opens</TableHead>
+              <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Reply</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
