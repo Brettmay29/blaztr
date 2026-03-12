@@ -5,23 +5,70 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Send, Loader2, CheckCircle2, Code2 } from "lucide-react";
+import { Send, Loader2, CheckCircle2, Code2, ChevronDown } from "lucide-react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 
 const isBodyEmpty = (val) => !val || val === "<p><br></p>" || val.replace(/<[^>]*>/g, "").trim() === "";
+
+const VARIABLES = [
+  { name: "{{firstName}}", label: "First Name" },
+  { name: "{{lastName}}", label: "Last Name" },
+  { name: "{{email}}", label: "Email" },
+  { name: "{{companyName}}", label: "Company Name" },
+  { name: "{{companyWebsite}}", label: "Company Website" },
+  { name: "{{industry}}", label: "Industry" },
+  { name: "{{state}}", label: "State" },
+  { name: "{{market}}", label: "Market" },
+  { name: "{{senderFirstName}}", label: "Sender First Name" },
+  { name: "{{senderLastName}}", label: "Sender Last Name" },
+  { name: "{{senderSignature}}", label: "Sender Signature" },
+];
 
 export default function EmailTesting() {
   const [form, setForm] = useState({ gmail_account_id: "", to: "", subject: "", body: "" });
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState(null);
   const [isMarkdownMode, setIsMarkdownMode] = useState(false);
+  const [showVariables, setShowVariables] = useState(false);
+  const [hoveredVar, setHoveredVar] = useState(null);
   const quillRef = useRef(null);
 
   const { data: gmailAccounts = [] } = useQuery({
     queryKey: ["gmail_accounts"],
     queryFn: () => base44.entities.GmailAccount.list(),
   });
+
+  const getTextareaElement = () => document.querySelector("textarea");
+
+  const insertVariable = (varName) => {
+    if (isMarkdownMode) {
+      const textarea = getTextareaElement();
+      if (!textarea) return;
+
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const before = form.body.substring(0, start);
+      const after = form.body.substring(end);
+      const newBody = before + varName + after;
+
+      setForm({ ...form, body: newBody });
+      setShowVariables(false);
+
+      setTimeout(() => {
+        textarea.selectionStart = textarea.selectionEnd = start + varName.length;
+        textarea.focus();
+      }, 0);
+    } else {
+      if (quillRef.current?.getEditor) {
+        const editor = quillRef.current.getEditor();
+        const currentLength = editor.getLength();
+        editor.insertText(currentLength - 1, varName + " ");
+        editor.setSelection(currentLength - 1 + varName.length + 1);
+        setShowVariables(false);
+      }
+    }
+  };
 
   const handleSend = async () => {
     setSending(true);
@@ -86,7 +133,39 @@ export default function EmailTesting() {
         </div>
 
         <div className="space-y-1.5">
-          <Label className="text-xs dark:text-neutral-400">Body</Label>
+          <div className="flex items-center justify-between mb-1.5">
+            <Label className="text-xs dark:text-neutral-400">Body</Label>
+            <div className="relative">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowVariables(!showVariables)}
+                className="text-xs h-7"
+              >
+                + Insert Variable
+                <ChevronDown className="w-3 h-3 ml-1" />
+              </Button>
+
+              {showVariables && (
+                <div className="absolute z-10 top-full right-0 mt-1 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg py-1 min-w-48">
+                  {VARIABLES.map((v) => (
+                    <button
+                      key={v.name}
+                      onClick={() => insertVariable(v.name)}
+                      onMouseEnter={() => setHoveredVar(v.name)}
+                      onMouseLeave={() => setHoveredVar(null)}
+                      className={`w-full text-left px-3 py-2 text-xs flex justify-between transition-colors ${
+                        hoveredVar === v.name ? "bg-neutral-200 dark:bg-neutral-700" : "hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                      }`}
+                    >
+                      <span className="font-mono text-neutral-600 dark:text-neutral-300">{v.name}</span>
+                      <span className="text-neutral-400 dark:text-neutral-500">{v.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
 
           {isMarkdownMode ? (
             <textarea
