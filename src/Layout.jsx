@@ -53,6 +53,13 @@ export default function Layout({ children, currentPageName }) {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
+  // Reload user when returning from Account page
+  useEffect(() => {
+    const handleFocus = () => base44.auth.me().then(setUser).catch(() => {});
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, []);
+
   return (
     <div className="min-h-screen bg-neutral-50 flex">
       {/* Mobile overlay */}
@@ -123,10 +130,14 @@ export default function Layout({ children, currentPageName }) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-neutral-100 transition-colors">
-                  <div className="w-7 h-7 rounded-full bg-neutral-900 flex items-center justify-center">
-                    <span className="text-[11px] font-semibold text-white">
-                      {user?.full_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "U"}
-                    </span>
+                  <div className="w-7 h-7 rounded-full bg-neutral-900 flex items-center justify-center overflow-hidden">
+                    {user?.profile_photo ? (
+                      <img src={user.profile_photo} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-[11px] font-semibold text-white">
+                        {user?.full_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "U"}
+                      </span>
+                    )}
                   </div>
                   <div className="hidden sm:flex flex-col items-start">
                     <span className="text-[12px] font-medium text-neutral-800 leading-none">
