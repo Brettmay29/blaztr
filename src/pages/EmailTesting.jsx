@@ -1,10 +1,10 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import RichTextEditor from "@/components/ui/rich-text-editor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Send, Loader2, CheckCircle2, ChevronDown } from "lucide-react";
 
@@ -138,11 +138,10 @@ export default function EmailTesting() {
             </div>
           </div>
 
-          <Textarea
-            placeholder="Write your email body here..."
+          <RichTextEditor
             value={form.body}
-            onChange={(e) => setForm({ ...form, body: e.target.value })}
-            className="h-48 text-sm font-sans resize-none"
+            onChange={(body) => setForm({ ...form, body })}
+            placeholder="Write your email body here..."
           />
           </div>
 
