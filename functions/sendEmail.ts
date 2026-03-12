@@ -55,6 +55,18 @@ Deno.serve(async (req) => {
       signature: gmailAccountData.signature || '',
     };
 
+    // Decode HTML entities
+    const decodeHTMLEntities = (text) => {
+      if (!text) return text;
+      return text
+        .replace(/&#123;/g, '{')
+        .replace(/&#125;/g, '}')
+        .replace(/&lcub;/g, '{')
+        .replace(/&rcub;/g, '}')
+        .replace(/&lbrace;/g, '{')
+        .replace(/&rbrace;/g, '}');
+    };
+
     // Strip HTML tags
     const stripHTML = (text) => {
       if (!text) return text;
@@ -75,7 +87,7 @@ Deno.serve(async (req) => {
     // Replace variables (case-insensitive)
     const replaceVariables = (text) => {
       if (!text) return text;
-      let result = text;
+      let result = decodeHTMLEntities(text);
 
       // Lead variables
       result = result.replace(/\{\{firstName\}\}/gi, sampleLead.first_name);
