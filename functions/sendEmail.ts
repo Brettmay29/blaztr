@@ -91,6 +91,15 @@ Deno.serve(async (req) => {
     const processedSubject = replaceVariables(subject);
     let processedBody = stripHTML(body);
     processedBody = replaceVariables(processedBody);
+    
+    // Debug log
+    console.log('=== EMAIL SEND DEBUG ===');
+    console.log('Gmail Account:', gmailAccountData?.nickname, gmailAccountData?.email);
+    console.log('Sender:', sampleSender.first_name, sampleSender.last_name);
+    console.log('Original body (first 100 chars):', body?.substring(0, 100));
+    console.log('After HTML strip (first 100 chars):', stripHTML(body)?.substring(0, 100));
+    console.log('After variable replace (first 100 chars):', processedBody?.substring(0, 100));
+    console.log('Subject after replace:', processedSubject);
 
     let accessToken;
     try {
