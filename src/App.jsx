@@ -39,9 +39,11 @@ const AuthenticatedApp = () => {
     }
   }
 
-  // Check URL param as fallback for brand-new signups
+  // Check URL param — persist in sessionStorage so it survives internal navigation
   const location = useLocation();
-  const isNewUser = new URLSearchParams(location.search).get('is_new_user') === 'true';
+  const urlIsNewUser = new URLSearchParams(location.search).get('is_new_user') === 'true';
+  if (urlIsNewUser) sessionStorage.setItem('is_new_user', 'true');
+  const isNewUser = urlIsNewUser || sessionStorage.getItem('is_new_user') === 'true';
   const needsOnboarding = isNewUser || (user && !user.onboarding_completed);
 
   // Render the main app
