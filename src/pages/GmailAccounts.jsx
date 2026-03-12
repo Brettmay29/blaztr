@@ -249,16 +249,7 @@ export default function GmailAccounts() {
                   size="sm"
                   variant={isMarkdownMode ? "default" : "outline"}
                   className="h-8 text-xs"
-                  onClick={() => {
-                    // When switching to markdown, ensure we're showing clean HTML
-                    if (!isMarkdownMode) {
-                      // Switch to markdown mode - content is already clean
-                      setIsMarkdownMode(true);
-                    } else {
-                      // Switch to rich text - wrap clean content for editor
-                      setIsMarkdownMode(false);
-                    }
-                  }}
+                  onClick={() => setIsMarkdownMode(!isMarkdownMode)}
                 >
                   <Code2 className="w-3.5 h-3.5 mr-1" />
                   {isMarkdownMode ? "Markdown" : "Rich Text"}
