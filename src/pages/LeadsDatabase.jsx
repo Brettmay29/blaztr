@@ -521,8 +521,18 @@ export default function LeadsDatabase() {
       {selectedIds.length > 0 && (
         <div className="bg-neutral-900 text-white text-xs rounded-lg px-4 py-2.5 flex items-center gap-3 flex-wrap">
           <span className="shrink-0">{selectedIds.length} lead{selectedIds.length > 1 ? "s" : ""} selected</span>
+          {/* Edit - only show when exactly 1 lead selected */}
+          {selectedIds.length === 1 && (
+            <Button
+              size="sm"
+              className="h-7 text-xs bg-neutral-700 hover:bg-neutral-600 shrink-0"
+              onClick={() => setEditingLead(leads.find((l) => l.id === selectedIds[0]))}
+            >
+              <Pencil className="w-3 h-3 mr-1" /> Edit
+            </Button>
+          )}
           {/* Move to */}
-          <span className="text-neutral-400 shrink-0">Move to:</span>
+          <span className="text-neutral-400 shrink-0 ml-auto sm:ml-0">Move to:</span>
           <div className="flex items-center gap-1.5">
             <Select value={moveToGroupId} onValueChange={setMoveToGroupId}>
               <SelectTrigger className="h-7 text-xs bg-neutral-800 border-neutral-700 text-white w-36">
