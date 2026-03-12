@@ -21,7 +21,7 @@ export default function LeadFilters({ filters, onFilterChange, leads }) {
           placeholder="Search leads..."
           value={filters.search || ""}
           onChange={(e) => handleChange("search", e.target.value)}
-          className="pl-9 h-9 text-sm bg-white"
+          className="pl-9 h-9 text-sm bg-white dark:bg-neutral-900"
         />
       </div>
 
