@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Send, Loader2, CheckCircle2, Code2, ChevronDown } from "lucide-react";
+import { Send, Loader2, CheckCircle2, ChevronDown } from "lucide-react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 
@@ -37,8 +37,6 @@ export default function EmailTesting() {
     queryKey: ["gmail_accounts"],
     queryFn: () => base44.entities.GmailAccount.list(),
   });
-
-  const getTextareaElement = () => document.querySelector("textarea");
 
   const insertVariable = (varName) => {
     if (quillRef.current?.getEditor) {
@@ -147,35 +145,26 @@ export default function EmailTesting() {
             </div>
           </div>
 
-          {isMarkdownMode ? (
-            <textarea
+          <div className="border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden [&_.ql-toolbar]:bg-neutral-100 [&_.ql-toolbar]:dark:bg-neutral-800 [&_.ql-toolbar]:border-neutral-200 [&_.ql-toolbar]:dark:border-neutral-700 [&_.ql-container]:bg-white [&_.ql-container]:dark:bg-neutral-900 [&_.ql-container]:border-neutral-200 [&_.ql-container]:dark:border-neutral-700 [&_.ql-editor]:text-neutral-900 [&_.ql-editor]:dark:text-neutral-100 [&_.ql-editor.ql-blank::before]:text-neutral-400 [&_.ql-editor.ql-blank::before]:dark:text-neutral-500 [&_.ql-stroke]:stroke-neutral-600 [&_.ql-stroke]:dark:stroke-neutral-300 [&_.ql-fill]:fill-neutral-600 [&_.ql-fill]:dark:fill-neutral-300 [&_.ql-picker-label]:text-neutral-600 [&_.ql-picker-label]:dark:text-neutral-300 [&_.ql-picker-options]:bg-white [&_.ql-picker-options]:dark:bg-neutral-800 [&_.ql-picker-options]:border-neutral-200 [&_.ql-picker-options]:dark:border-neutral-700 [&_.ql-picker-item]:dark:text-neutral-300 [&_.ql-toolbar_button:hover_.ql-stroke]:dark:stroke-white [&_.ql-toolbar_button:hover_.ql-fill]:dark:fill-white">
+            <ReactQuill
+              ref={quillRef}
               value={form.body}
-              onChange={(e) => setForm({ ...form, body: e.target.value })}
+              onChange={(value) => setForm({ ...form, body: value })}
+              theme="snow"
               placeholder="Write your email body here..."
-              className="w-full h-48 p-3 border border-neutral-200 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-800 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 resize-none"
+              modules={{
+                toolbar: [
+                  [{ font: ["arial", "courier", "georgia", "helvetica", "tahoma", "times-new-roman", "trebuchet", "verdana"] }],
+                  [{ size: ["small", false, "large", "huge"] }],
+                  ["bold", "italic", "underline"],
+                  ["link"],
+                  [{ list: "ordered" }, { list: "bullet" }],
+                ],
+              }}
+              formats={["font", "size", "bold", "italic", "underline", "link", "list"]}
+              style={{ height: "200px" }}
             />
-          ) : (
-            <div className="border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden [&_.ql-toolbar]:bg-neutral-100 [&_.ql-toolbar]:dark:bg-neutral-800 [&_.ql-toolbar]:border-neutral-200 [&_.ql-toolbar]:dark:border-neutral-700 [&_.ql-container]:bg-white [&_.ql-container]:dark:bg-neutral-900 [&_.ql-container]:border-neutral-200 [&_.ql-container]:dark:border-neutral-700 [&_.ql-editor]:text-neutral-900 [&_.ql-editor]:dark:text-neutral-100 [&_.ql-editor.ql-blank::before]:text-neutral-400 [&_.ql-editor.ql-blank::before]:dark:text-neutral-500 [&_.ql-stroke]:stroke-neutral-600 [&_.ql-stroke]:dark:stroke-neutral-300 [&_.ql-fill]:fill-neutral-600 [&_.ql-fill]:dark:fill-neutral-300 [&_.ql-picker-label]:text-neutral-600 [&_.ql-picker-label]:dark:text-neutral-300 [&_.ql-picker-options]:bg-white [&_.ql-picker-options]:dark:bg-neutral-800 [&_.ql-picker-options]:border-neutral-200 [&_.ql-picker-options]:dark:border-neutral-700 [&_.ql-picker-item]:dark:text-neutral-300 [&_.ql-toolbar_button:hover_.ql-stroke]:dark:stroke-white [&_.ql-toolbar_button:hover_.ql-fill]:dark:fill-white">
-              <ReactQuill
-                ref={quillRef}
-                value={form.body}
-                onChange={(value) => setForm({ ...form, body: value })}
-                theme="snow"
-                placeholder="Write your email body here..."
-                modules={{
-                  toolbar: [
-                    [{ font: ["arial", "courier", "georgia", "helvetica", "tahoma", "times-new-roman", "trebuchet", "verdana"] }],
-                    [{ size: ["small", false, "large", "huge"] }],
-                    ["bold", "italic", "underline"],
-                    ["link"],
-                    [{ list: "ordered" }, { list: "bullet" }],
-                  ],
-                }}
-                formats={["font", "size", "bold", "italic", "underline", "link", "list"]}
-                style={{ height: "200px" }}
-              />
-            </div>
-          )}
+          </div>
           </div>
 
         <div className="flex items-center gap-3 pt-1">
