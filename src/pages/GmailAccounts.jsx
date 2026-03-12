@@ -207,42 +207,13 @@ export default function GmailAccounts() {
             </div>
             <div className="space-y-2">
               <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Signature</Label>
-              {isMarkdownMode ? (
-                <textarea
-                  value={form.signature}
-                  onChange={(e) => setForm({ ...form, signature: e.target.value })}
-                  placeholder="Add your email signature here..."
-                  className="w-full h-40 p-4 border border-t-0 border-neutral-200 rounded-b-lg focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white dark:focus:ring-neutral-100"
-                  style={{ fontSize: "10pt", fontFamily: "system-ui, -apple-system, sans-serif" }}
-                />
-              ) : (
-                <div className="border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden">
-                  <ReactQuill
-                    ref={quillRef}
-                    value={form.signature}
-                    onChange={(value) => {
-                      // Remove wrapping <p> tags that ReactQuill adds
-                      let cleanedValue = value;
-                      if (cleanedValue.startsWith('<p>') && cleanedValue.endsWith('</p>')) {
-                        cleanedValue = cleanedValue.replace(/^<p>/, '').replace(/<\/p>$/, '');
-                      }
-                      setForm({ ...form, signature: cleanedValue });
-                    }}
-                    theme="snow"
-                    placeholder="Add your email signature here..."
-                    modules={{
-                      toolbar: [
-                        [{ font: ["arial", "courier", "georgia", "helvetica", "tahoma", "times-new-roman", "trebuchet", "verdana"] }],
-                        [{ size: ["small", false, "large", "huge"] }],
-                        ["bold", "italic", "underline"],
-                        ["link"],
-                      ],
-                    }}
-                    formats={["font", "size", "bold", "italic", "underline", "link"]}
-                    style={{ height: "180px" }}
-                  />
-                </div>
-              )}
+              <textarea
+                value={form.signature}
+                onChange={(e) => setForm({ ...form, signature: e.target.value })}
+                placeholder="Add your email signature here..."
+                className="w-full h-40 p-4 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white dark:focus:ring-neutral-100"
+                style={{ fontSize: "10pt", fontFamily: "system-ui, -apple-system, sans-serif" }}
+              />
               <div className="flex items-center gap-1.5 px-4 py-2 border border-t-0 border-neutral-200 dark:border-neutral-700 rounded-b-lg bg-neutral-50 dark:bg-neutral-800">
                 <Button
                   size="sm"
