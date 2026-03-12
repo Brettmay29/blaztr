@@ -80,8 +80,8 @@ export default function LeadsAnalytics() {
       {/* Charts row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Status */}
-        <div className="bg-white border border-neutral-200 rounded-xl p-5">
-          <p className="text-sm font-medium text-neutral-800 mb-4">Leads by Status</p>
+        <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-5">
+          <p className="text-sm font-medium text-neutral-800 dark:text-neutral-200 mb-4">Leads by Status</p>
           {statusData.length === 0 ? (
             <p className="text-xs text-neutral-400 text-center py-8">No data yet</p>
           ) : (
@@ -97,8 +97,8 @@ export default function LeadsAnalytics() {
         </div>
 
         {/* Sentiment */}
-        <div className="bg-white border border-neutral-200 rounded-xl p-5">
-          <p className="text-sm font-medium text-neutral-800 mb-4">Reply Sentiment</p>
+        <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-5">
+          <p className="text-sm font-medium text-neutral-800 dark:text-neutral-200 mb-4">Reply Sentiment</p>
           {sentimentData.length === 0 ? (
             <p className="text-xs text-neutral-400 text-center py-8">No data yet</p>
           ) : (
@@ -115,8 +115,8 @@ export default function LeadsAnalytics() {
 
         {/* Industry */}
         {industryData.length > 0 && (
-          <div className="bg-white border border-neutral-200 rounded-xl p-5">
-            <p className="text-sm font-medium text-neutral-800 mb-4">Top Industries</p>
+          <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-5">
+            <p className="text-sm font-medium text-neutral-800 dark:text-neutral-200 mb-4">Top Industries</p>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={industryData} layout="vertical" margin={{ left: 8, right: 16 }}>
                 <XAxis type="number" tick={{ fontSize: 11 }} />
@@ -130,8 +130,8 @@ export default function LeadsAnalytics() {
 
         {/* States */}
         {stateData.length > 0 && (
-          <div className="bg-white border border-neutral-200 rounded-xl p-5">
-            <p className="text-sm font-medium text-neutral-800 mb-4">Top States</p>
+          <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-5">
+            <p className="text-sm font-medium text-neutral-800 dark:text-neutral-200 mb-4">Top States</p>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={stateData} layout="vertical" margin={{ left: 8, right: 16 }}>
                 <XAxis type="number" tick={{ fontSize: 11 }} />

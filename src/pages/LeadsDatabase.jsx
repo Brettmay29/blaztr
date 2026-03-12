@@ -298,17 +298,17 @@ export default function LeadsDatabase() {
       )}
 
       {/* Import Panel */}
-      <div className="bg-white border border-neutral-200 rounded-xl p-5">
+      <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-5">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="flex-1 space-y-4">
-            <h2 className="text-sm font-semibold text-neutral-900">Import Leads</h2>
+            <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Import Leads</h2>
 
             {/* Tabs */}
-            <div className="flex gap-1 bg-neutral-100 rounded-lg p-1 w-fit">
+            <div className="flex gap-1 bg-neutral-100 dark:bg-neutral-800 rounded-lg p-1 w-fit">
               <button
                 onClick={() => setTab("csv")}
                 className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                  tab === "csv" ? "bg-white shadow-sm text-neutral-900" : "text-neutral-500 hover:text-neutral-700"
+                  tab === "csv" ? "bg-white dark:bg-neutral-700 shadow-sm text-neutral-900 dark:text-white" : "text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
                 }`}
               >
                 <FileSpreadsheet className="w-3.5 h-3.5" />
@@ -317,7 +317,7 @@ export default function LeadsDatabase() {
               <button
                 onClick={() => setTab("sheet")}
                 className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                  tab === "sheet" ? "bg-white shadow-sm text-neutral-900" : "text-neutral-500 hover:text-neutral-700"
+                  tab === "sheet" ? "bg-white dark:bg-neutral-700 shadow-sm text-neutral-900 dark:text-white" : "text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
                 }`}
               >
                 <Link className="w-3.5 h-3.5" />
@@ -384,7 +384,7 @@ export default function LeadsDatabase() {
           <div className="sm:w-56 shrink-0 space-y-3">
             {/* Uploaded Databases */}
             <div className={customGroupId !== "all" ? "opacity-40 pointer-events-none" : ""}>
-              <p className="text-xs font-medium text-neutral-500 mb-1.5">Uploaded Databases</p>
+              <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1.5">Uploaded Databases</p>
               <div className="flex items-center gap-1.5">
                 <Select value={selectedGroupId} onValueChange={setSelectedGroupId}>
                   <SelectTrigger className="h-9 text-sm flex-1">
@@ -426,7 +426,7 @@ export default function LeadsDatabase() {
 
             {/* Custom Database */}
             <div>
-              <p className="text-xs font-medium text-neutral-500 mb-1.5">Custom Database</p>
+              <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1.5">Custom Database</p>
               <div className="flex items-center gap-1.5">
                 {/* Custom toggle dropdown */}
                 <div className="relative flex-1" ref={customDropdownRef}>
@@ -434,20 +434,20 @@ export default function LeadsDatabase() {
                     onClick={() => setCustomDropdownOpen((o) => !o)}
                     className={`w-full h-9 flex items-center gap-2 px-3 text-sm rounded-md border transition-colors ${
                       customGroupId !== "all"
-                        ? "border-neutral-900 ring-1 ring-neutral-900 bg-white"
-                        : "border-neutral-200 bg-white hover:border-neutral-300"
+                        ? "border-neutral-900 ring-1 ring-neutral-900 bg-white dark:bg-neutral-800"
+                        : "border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-600"
                     }`}
                   >
                     <Database className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
-                    <span className="truncate flex-1 text-left text-neutral-700">
+                    <span className="truncate flex-1 text-left text-neutral-700 dark:text-neutral-300">
                       {customGroupId === "all" ? "Select folder..." : groups.find((g) => g.id === customGroupId)?.name || "Select folder..."}
                     </span>
                     <ChevronDown className={`w-3.5 h-3.5 text-neutral-400 shrink-0 transition-transform ${customDropdownOpen ? "rotate-180" : ""}`} />
                   </button>
                   {customDropdownOpen && (
-                    <div className="absolute z-50 mt-1 w-full bg-white border border-neutral-200 rounded-md shadow-lg py-1">
+                    <div className="absolute z-50 mt-1 w-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md shadow-lg py-1">
                       <button
-                        className="w-full text-left px-3 py-2 text-xs text-neutral-500 hover:bg-neutral-50"
+                        className="w-full text-left px-3 py-2 text-xs text-neutral-500 hover:bg-neutral-50 dark:hover:bg-neutral-700"
                         onClick={() => { setCustomGroupId("all"); setCustomDropdownOpen(false); }}
                       >
                         — None —
@@ -458,7 +458,7 @@ export default function LeadsDatabase() {
                       {customGroups.map((g) => (
                         <button
                           key={g.id}
-                          className="w-full text-left px-3 py-2 text-xs text-neutral-800 hover:bg-neutral-50 flex items-center justify-between"
+                          className="w-full text-left px-3 py-2 text-xs text-neutral-800 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-700 flex items-center justify-between"
                           onClick={() => {
                             if (g.id === customGroupId) {
                               setCustomGroupId("all");
