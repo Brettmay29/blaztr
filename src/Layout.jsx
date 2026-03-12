@@ -191,7 +191,7 @@ export default function Layout({ children, currentPageName }) {
             </DropdownMenu>
 
             <img
-              src="https://media.base44.com/images/public/69b02505f9b4d10dd348ac34/9538d7a2d_BlaztrlogoforDarkMode.png"
+              src="https://media.base44.com/images/public/69b02505f9b4d10dd348ac34/fbc183df0_BlaztrlogowhiteforDarkMode.png"
               alt="Blaztr"
               className="h-8 w-auto object-contain hidden dark:block"
             />
