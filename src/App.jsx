@@ -41,8 +41,12 @@ const AuthenticatedApp = () => {
     }
   }
 
-  const { user } = useAuth();
-  const needsOnboarding = user && !user.full_name;
+  const [currentUser, setCurrentUser] = useState(undefined);
+  useEffect(() => {
+    base44.auth.me().then(setCurrentUser).catch(() => setCurrentUser(null));
+  }, []);
+
+  const needsOnboarding = currentUser && !currentUser.full_name;
 
   // Render the main app
   return (
