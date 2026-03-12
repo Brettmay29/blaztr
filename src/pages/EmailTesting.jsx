@@ -96,7 +96,7 @@ export default function EmailTesting() {
               className="w-full h-48 p-3 border border-neutral-200 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-800 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 resize-none"
             />
           ) : (
-            <div className="border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden">
+            <div className="border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden [&_.ql-toolbar]:bg-neutral-100 [&_.ql-toolbar]:dark:bg-neutral-800 [&_.ql-toolbar]:border-neutral-200 [&_.ql-toolbar]:dark:border-neutral-700 [&_.ql-container]:bg-white [&_.ql-container]:dark:bg-neutral-900 [&_.ql-container]:border-neutral-200 [&_.ql-container]:dark:border-neutral-700 [&_.ql-editor]:text-neutral-900 [&_.ql-editor]:dark:text-neutral-100 [&_.ql-editor.ql-blank::before]:text-neutral-400 [&_.ql-editor.ql-blank::before]:dark:text-neutral-500 [&_.ql-stroke]:stroke-neutral-600 [&_.ql-stroke]:dark:stroke-neutral-300 [&_.ql-fill]:fill-neutral-600 [&_.ql-fill]:dark:fill-neutral-300 [&_.ql-picker-label]:text-neutral-600 [&_.ql-picker-label]:dark:text-neutral-300 [&_.ql-picker-options]:bg-white [&_.ql-picker-options]:dark:bg-neutral-800 [&_.ql-picker-options]:border-neutral-200 [&_.ql-picker-options]:dark:border-neutral-700 [&_.ql-picker-item]:dark:text-neutral-300 [&_.ql-toolbar_button:hover_.ql-stroke]:dark:stroke-white [&_.ql-toolbar_button:hover_.ql-fill]:dark:fill-white">
               <ReactQuill
                 ref={quillRef}
                 value={form.body}
@@ -135,7 +135,7 @@ export default function EmailTesting() {
           <Button
             className="bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 text-xs h-9"
             onClick={handleSend}
-            disabled={sending || !form.gmail_account_id || !form.to || !form.subject || !form.body}
+            disabled={sending || !form.gmail_account_id || !form.to || !form.subject || isBodyEmpty(form.body)}
           >
             {sending ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Send className="w-3.5 h-3.5 mr-1.5" />}
             Send Test
