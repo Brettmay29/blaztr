@@ -14,12 +14,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Mail, Plus, Settings, Trash2, Zap, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import ReactQuill from "react-quill";
 
 export default function GmailAccounts() {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState({ email: "", nickname: "", daily_limit: 30 });
+  const [form, setForm] = useState({ email: "", nickname: "", daily_limit: 30, first_name: "", last_name: "", signature: "" });
 
   const { data: accounts = [] } = useQuery({
     queryKey: ["gmail_accounts"],
@@ -37,7 +38,7 @@ export default function GmailAccounts() {
       if (alreadyExists) {
         toast.message(`${email} is already connected.`);
       } else {
-        setForm({ email, nickname: email.split("@")[0], daily_limit: 30 });
+        setForm({ email, nickname: email.split("@")[0], daily_limit: 30, first_name: "", last_name: "", signature: "" });
         setDialogOpen(true);
       }
     } else {
@@ -64,13 +65,20 @@ export default function GmailAccounts() {
 
   const openNew = () => {
     setEditing(null);
-    setForm({ email: "", nickname: "", daily_limit: 30 });
+    setForm({ email: "", nickname: "", daily_limit: 30, first_name: "", last_name: "", signature: "" });
     setDialogOpen(true);
   };
 
   const openEdit = (acc) => {
     setEditing(acc);
-    setForm({ email: acc.email, nickname: acc.nickname, daily_limit: acc.daily_limit || 30 });
+    setForm({ 
+      email: acc.email, 
+      nickname: acc.nickname, 
+      daily_limit: acc.daily_limit || 30,
+      first_name: acc.first_name || "",
+      last_name: acc.last_name || "",
+      signature: acc.signature || ""
+    });
     setDialogOpen(true);
   };
 
@@ -156,7 +164,7 @@ export default function GmailAccounts() {
               {editing ? "Edit Gmail Account" : "Connect Gmail Account"}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-2">
+          <div className="space-y-4 py-2 max-h-96 overflow-y-auto">
             <div className="space-y-1.5">
               <Label className="text-xs">Gmail Address</Label>
               <Input
@@ -173,6 +181,38 @@ export default function GmailAccounts() {
                 value={form.nickname}
                 onChange={(e) => setForm({ ...form, nickname: e.target.value })}
                 className="h-9 text-sm"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs">First Name</Label>
+                <Input
+                  placeholder="First Name"
+                  value={form.first_name}
+                  onChange={(e) => setForm({ ...form, first_name: e.target.value })}
+                  className="h-9 text-sm"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Last Name</Label>
+                <Input
+                  placeholder="Last Name"
+                  value={form.last_name}
+                  onChange={(e) => setForm({ ...form, last_name: e.target.value })}
+                  className="h-9 text-sm"
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Signature</Label>
+              <ReactQuill
+                value={form.signature}
+                onChange={(value) => setForm({ ...form, signature: value })}
+                theme="snow"
+                className="bg-white text-sm"
+                modules={{
+                  toolbar: [['bold', 'italic', 'underline'], ['link']]
+                }}
               />
             </div>
             <div className="space-y-1.5">
