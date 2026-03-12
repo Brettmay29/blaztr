@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -12,15 +12,18 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Plus, Settings, Trash2, Zap, Loader2 } from "lucide-react";
+import { Mail, Plus, Settings, Trash2, Zap, Loader2, Code2 } from "lucide-react";
 import { toast } from "sonner";
 import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 
 export default function GmailAccounts() {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ email: "", nickname: "", daily_limit: 30, first_name: "", last_name: "", signature: "" });
+  const [isMarkdownMode, setIsMarkdownMode] = useState(false);
+  const quillRef = useRef(null);
 
   const { data: accounts = [] } = useQuery({
     queryKey: ["gmail_accounts"],
@@ -158,12 +161,12 @@ export default function GmailAccounts() {
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-base">
-              {editing ? "Edit Gmail Account" : "Connect Gmail Account"}
-            </DialogTitle>
-          </DialogHeader>
+         <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+           <DialogHeader>
+             <DialogTitle className="text-base">
+               Email Account Settings
+             </DialogTitle>
+           </DialogHeader>
           <div className="space-y-4 py-2 max-h-96 overflow-y-auto">
             <div className="space-y-1.5">
               <Label className="text-xs">Gmail Address</Label>
@@ -227,8 +230,8 @@ export default function GmailAccounts() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={closeDialog}>Cancel</Button>
-            <Button className="bg-neutral-900 hover:bg-neutral-800" onClick={handleSave} disabled={!form.email || !form.nickname}>
-              {editing ? "Save" : "Connect"}
+            <Button className="bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100" onClick={handleSave} disabled={!form.email || !form.nickname}>
+              Save
             </Button>
           </DialogFooter>
         </DialogContent>
