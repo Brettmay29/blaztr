@@ -12,15 +12,57 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing required fields: to, subject, body' }, { status: 400 });
     }
 
+    // Fetch lead and gmail account data for variable replacement
+    let leadData = null;
+    let gmailAccountData = null;
+
+    if (lead_id) {
+      leadData = await base44.asServiceRole.entities.Lead.get(lead_id);
+    }
+
+    if (gmail_account_id) {
+      gmailAccountData = await base44.asServiceRole.entities.GmailAccount.get(gmail_account_id);
+    }
+
+    // Replace variables in subject and body
+    const replaceVariables = (text) => {
+      if (!text) return text;
+      let result = text;
+      
+      // Lead variables
+      if (leadData) {
+        result = result.replace(/\{\{firstName\}\}/g, leadData.first_name || '');
+        result = result.replace(/\{\{lastName\}\}/g, leadData.last_name || '');
+        result = result.replace(/\{\{email\}\}/g, leadData.email || '');
+        result = result.replace(/\{\{companyName\}\}/g, leadData.company_name || '');
+        result = result.replace(/\{\{companyWebsite\}\}/g, leadData.company_website || '');
+        result = result.replace(/\{\{industry\}\}/g, leadData.industry || '');
+        result = result.replace(/\{\{state\}\}/g, leadData.state || '');
+        result = result.replace(/\{\{market\}\}/g, leadData.market || '');
+      }
+
+      // Sender variables
+      if (gmailAccountData) {
+        result = result.replace(/\{\{senderFirstName\}\}/g, gmailAccountData.first_name || '');
+        result = result.replace(/\{\{senderLastName\}\}/g, gmailAccountData.last_name || '');
+        result = result.replace(/\{\{senderSignature\}\}/g, gmailAccountData.signature || '');
+      }
+
+      return result;
+    };
+
+    const processedSubject = replaceVariables(subject);
+    const processedBody = replaceVariables(body);
+
     const { accessToken } = await base44.asServiceRole.connectors.getConnection('gmail');
 
     // Build RFC 2822 email
     const emailLines = [
       `To: ${to}`,
-      `Subject: ${subject}`,
-      `Content-Type: text/plain; charset=UTF-8`,
+      `Subject: ${processedSubject}`,
+      `Content-Type: text/html; charset=UTF-8`,
       ``,
-      body,
+      processedBody,
     ];
     const raw = emailLines.join('\r\n');
     const encodedEmail = btoa(unescape(encodeURIComponent(raw)))
@@ -71,7 +113,7 @@ Deno.serve(async (req) => {
         sent_at: now,
         lead_email: to,
         lead_name: lead?.first_name || '',
-        subject,
+        subject: processedSubject,
         sequence_step: sequence_step || '1st',
       });
     }
