@@ -78,7 +78,7 @@ export default function Layout({ children, currentPageName }) {
         )}
       >
         <div className="h-14 flex items-center px-5 border-b border-neutral-100 dark:border-neutral-800">
-          <span className="text-sm font-semibold tracking-wide text-neutral-900">Blaztr</span>
+          <span className="text-sm font-semibold tracking-wide text-neutral-900 dark:text-white">Blaztr</span>
           <button
             className="ml-auto lg:hidden text-neutral-400 hover:text-neutral-600"
             onClick={() => setSidebarOpen(false)}
