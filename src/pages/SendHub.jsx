@@ -263,21 +263,21 @@ export default function SendHub() {
 
       {/* Progress Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-white border border-neutral-200 rounded-lg p-4 text-center">
-          <p className="text-2xl font-semibold text-neutral-900">{queuedCount}</p>
-          <p className="text-[11px] text-neutral-500">Queued</p>
+        <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-4 text-center">
+          <p className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">{queuedCount}</p>
+          <p className="text-[11px] text-neutral-500 dark:text-neutral-400">Queued</p>
         </div>
-        <div className="bg-white border border-neutral-200 rounded-lg p-4 text-center">
-          <p className="text-2xl font-semibold text-neutral-900">{sentCount}</p>
-          <p className="text-[11px] text-neutral-500">Sent</p>
+        <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-4 text-center">
+          <p className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">{sentCount}</p>
+          <p className="text-[11px] text-neutral-500 dark:text-neutral-400">Sent</p>
         </div>
-        <div className="bg-white border border-neutral-200 rounded-lg p-4 text-center">
-          <p className="text-2xl font-semibold text-neutral-900">{openCount}</p>
-          <p className="text-[11px] text-neutral-500">Opens</p>
+        <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-4 text-center">
+          <p className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">{openCount}</p>
+          <p className="text-[11px] text-neutral-500 dark:text-neutral-400">Opens</p>
         </div>
-        <div className="bg-white border border-neutral-200 rounded-lg p-4 text-center">
-          <p className="text-2xl font-semibold text-neutral-900">{replyCount}</p>
-          <p className="text-[11px] text-neutral-500">Replies</p>
+        <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-4 text-center">
+          <p className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">{replyCount}</p>
+          <p className="text-[11px] text-neutral-500 dark:text-neutral-400">Replies</p>
         </div>
       </div>
 
