@@ -47,6 +47,14 @@ const navItems = [
 
 export default function Layout({ children, currentPageName }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [, forceUpdate] = useState(0);
+
+  // Re-render layout when dark mode changes
+  useEffect(() => {
+    const observer = new MutationObserver(() => forceUpdate(n => n + 1));
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
   const [user, setUser] = useState(null);
 
   useEffect(() => {
