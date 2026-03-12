@@ -73,7 +73,7 @@ export default function Layout({ children, currentPageName }) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed lg:sticky top-0 left-0 z-50 h-screen w-60 bg-white border-r border-neutral-200 flex flex-col transition-transform duration-200 ease-out",
+          "fixed lg:sticky top-0 left-0 z-50 h-screen w-60 bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 flex flex-col transition-transform duration-200 ease-out",
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
