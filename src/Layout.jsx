@@ -42,6 +42,7 @@ const navItems = [
   { name: "Templates", page: "Templates", icon: FileText },
   { name: "Email Accounts", page: "GmailAccounts", icon: Users },
 
+
   { name: "Integrations", page: "Integrations", icon: Plug },
 ];
 
