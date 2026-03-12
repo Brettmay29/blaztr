@@ -9,6 +9,8 @@ import { Send, Loader2, CheckCircle2, Code2 } from "lucide-react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 
+const isBodyEmpty = (val) => !val || val === "<p><br></p>" || val.replace(/<[^>]*>/g, "").trim() === "";
+
 export default function EmailTesting() {
   const [form, setForm] = useState({ gmail_account_id: "", to: "", subject: "", body: "" });
   const [sending, setSending] = useState(false);
