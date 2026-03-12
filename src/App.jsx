@@ -19,18 +19,10 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   : <>{children}</>;
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
-  const [currentUser, setCurrentUser] = useState(undefined);
-  useEffect(() => {
-    // Force a fresh fetch, bypassing any cache
-    base44.auth.me().then((u) => {
-      console.log('[Blaztr] user fetched:', JSON.stringify(u));
-      setCurrentUser(u);
-    }).catch(() => setCurrentUser(null));
-  }, []);
+  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user } = useAuth();
 
-  // Show loading spinner while checking auth or user
-  if (isLoadingPublicSettings || isLoadingAuth || currentUser === undefined) {
+  // Show loading spinner while checking auth
+  if (isLoadingPublicSettings || isLoadingAuth) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
@@ -48,7 +40,9 @@ const AuthenticatedApp = () => {
     }
   }
 
-  const needsOnboarding = currentUser && !currentUser.onboarding_completed;
+  // Check URL param as fallback for brand-new signups
+  const isNewUser = new URLSearchParams(window.location.search).get('is_new_user') === 'true';
+  const needsOnboarding = isNewUser || (user && !user.onboarding_completed);
 
   // Render the main app
   return (
