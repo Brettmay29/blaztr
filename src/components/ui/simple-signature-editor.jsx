@@ -1,6 +1,6 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import { Type } from "lucide-react";
+import { Bold, Italic, Link2 } from "lucide-react";
 
 const fontSizes = [
   { label: "12px", value: "12px" },
@@ -20,8 +20,10 @@ const fontFamilies = [
 
 export default function SimpleSignatureEditor({ value = "", onChange, placeholder = "" }) {
   const editorRef = useRef(null);
-  const [fontSize, setFontSize] = React.useState("14px");
-  const [fontFamily, setFontFamily] = React.useState("Arial, sans-serif");
+  const [fontSize, setFontSize] = useState("14px");
+  const [fontFamily, setFontFamily] = useState("Arial, sans-serif");
+  const [linkUrl, setLinkUrl] = useState("");
+  const [showLinkInput, setShowLinkInput] = useState(false);
 
   useEffect(() => {
     if (editorRef.current && editorRef.current.innerHTML !== value) {
@@ -53,31 +55,103 @@ export default function SimpleSignatureEditor({ value = "", onChange, placeholde
     document.execCommand("fontName", false, family);
   };
 
+  const applyBold = () => {
+    document.execCommand("bold", false, null);
+    editorRef.current?.focus();
+  };
+
+  const applyItalic = () => {
+    document.execCommand("italic", false, null);
+    editorRef.current?.focus();
+  };
+
+  const applyLink = () => {
+    if (linkUrl) {
+      document.execCommand("createLink", false, linkUrl);
+      setLinkUrl("");
+      setShowLinkInput(false);
+      editorRef.current?.focus();
+    }
+  };
+
   return (
     <div className="space-y-2">
-      <div className="flex gap-2 p-2 bg-neutral-100 dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700">
-        <select
-          value={fontSize}
-          onChange={(e) => applyFontSize(e.target.value)}
-          className="text-xs px-2 py-1 rounded bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-600"
-        >
-          {fontSizes.map((size) => (
-            <option key={size.value} value={size.value}>
-              {size.label}
-            </option>
-          ))}
-        </select>
-        <select
-          value={fontFamily}
-          onChange={(e) => applyFontFamily(e.target.value)}
-          className="text-xs px-2 py-1 rounded bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-600"
-        >
-          {fontFamilies.map((font) => (
-            <option key={font.value} value={font.value}>
-              {font.label}
-            </option>
-          ))}
-        </select>
+      <div className="space-y-2">
+        <div className="flex gap-2 p-2 bg-neutral-100 dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700">
+          <select
+            value={fontSize}
+            onChange={(e) => applyFontSize(e.target.value)}
+            className="text-xs px-2 py-1 rounded bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-600"
+          >
+            {fontSizes.map((size) => (
+              <option key={size.value} value={size.value}>
+                {size.label}
+              </option>
+            ))}
+          </select>
+          <select
+            value={fontFamily}
+            onChange={(e) => applyFontFamily(e.target.value)}
+            className="text-xs px-2 py-1 rounded bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-600"
+          >
+            {fontFamilies.map((font) => (
+              <option key={font.value} value={font.value}>
+                {font.label}
+              </option>
+            ))}
+          </select>
+          <div className="flex gap-1 ml-auto">
+            <button
+              onClick={applyBold}
+              className="p-1.5 rounded bg-white dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-600"
+              title="Bold"
+            >
+              <Bold className="w-4 h-4" />
+            </button>
+            <button
+              onClick={applyItalic}
+              className="p-1.5 rounded bg-white dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-600"
+              title="Italic"
+            >
+              <Italic className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setShowLinkInput(!showLinkInput)}
+              className="p-1.5 rounded bg-white dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-600"
+              title="Add Link"
+            >
+              <Link2 className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+        {showLinkInput && (
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="https://example.com"
+              value={linkUrl}
+              onChange={(e) => setLinkUrl(e.target.value)}
+              onKeyPress={(e) => e.key === "Enter" && applyLink()}
+              className="flex-1 text-xs px-2 py-1.5 rounded bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-neutral-100"
+              autoFocus
+            />
+            <button
+              onClick={applyLink}
+              className="text-xs px-3 py-1.5 rounded bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 hover:bg-neutral-800 dark:hover:bg-neutral-200"
+            >
+              Apply
+            </button>
+            <button
+              onClick={() => {
+                setShowLinkInput(false);
+                setLinkUrl("");
+              }}
+              className="text-xs px-3 py-1.5 rounded bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-600"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
       </div>
 
       <div
