@@ -74,3 +74,55 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #a3a3a3;
 }
+
+/* Quill editor dark mode styling */
+.dark .ql-toolbar {
+  background-color: hsl(var(--input));
+  border-color: hsl(var(--border));
+}
+
+.dark .ql-toolbar.ql-snow {
+  padding: 8px 4px;
+}
+
+.dark .ql-toolbar.ql-snow .ql-formats {
+  margin-right: 12px;
+}
+
+.dark .ql-toolbar.ql-snow .ql-stroke {
+  stroke: hsl(var(--foreground));
+}
+
+.dark .ql-toolbar.ql-snow .ql-fill,
+.dark .ql-toolbar.ql-snow .ql-stroke.ql-fill {
+  fill: hsl(var(--foreground));
+}
+
+.dark .ql-toolbar.ql-snow button:hover .ql-stroke,
+.dark .ql-toolbar.ql-snow button:focus .ql-stroke,
+.dark .ql-toolbar.ql-snow button.ql-active .ql-stroke {
+  stroke: hsl(var(--foreground));
+}
+
+.dark .ql-toolbar.ql-snow button:hover .ql-fill,
+.dark .ql-toolbar.ql-snow button:focus .ql-fill,
+.dark .ql-toolbar.ql-snow button.ql-active .ql-fill,
+.dark .ql-toolbar.ql-snow .ql-picker-label {
+  fill: hsl(var(--foreground));
+}
+
+.dark .ql-toolbar.ql-snow .ql-picker-label {
+  color: hsl(var(--foreground));
+}
+
+.dark .ql-toolbar.ql-snow button {
+  color: hsl(var(--foreground));
+}
+
+.dark .ql-container.ql-snow {
+  border-color: hsl(var(--border));
+}
+
+.dark .ql-editor.ql-blank::before {
+  color: hsl(var(--muted-foreground));
+}
