@@ -157,7 +157,7 @@ Deno.serve(async (req) => {
       `Content-Type: text/html; charset=UTF-8`,
     ];
     const headers = emailLines.join('\r\n');
-    const htmlBody = processedBody.split('\n').map(line => `<p>${line}</p>`).join('');
+    const htmlBody = processedBody;
     const raw = headers + '\r\n\r\n' + htmlBody;
     const encodedEmail = btoa(unescape(encodeURIComponent(raw)))
       .replace(/\+/g, '-')
