@@ -50,10 +50,14 @@ Deno.serve(async (req) => {
       signature: gmailAccountData.signature || '',
     };
 
-    // Step 1: Decode any HTML entities (in case editor encoded curly braces)
-    const decodeHTMLEntities = (text) => {
-      if (!text) return text;
+    // Strip HTML tags, preserving line breaks
+    const stripHTML = (text) => {
+      if (!text) return '';
       return text
+        .replace(/<\/p>/gi, '\n')
+        .replace(/<\/div>/gi, '\n')
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<[^>]*>/g, '')
         .replace(/&#123;/g, '{')
         .replace(/&#125;/g, '}')
         .replace(/&lcub;/g, '{')
@@ -65,27 +69,14 @@ Deno.serve(async (req) => {
         .replace(/&amp;/g, '&')
         .replace(/&quot;/g, '"')
         .replace(/&#39;/g, "'")
-        .replace(/&nbsp;/g, ' ');
-    };
-
-    // Step 2: Strip all HTML tags
-    const stripHTML = (text) => {
-      if (!text) return text;
-      return text
-        .replace(/<p>/g, '')
-        .replace(/<\/p>/g, '\n')
-        .replace(/<div>/g, '')
-        .replace(/<\/div>/g, '\n')
-        .replace(/<br\s*\/?>/g, '\n')
-        .replace(/<[^>]*>/g, '')
+        .replace(/&nbsp;/g, ' ')
         .trim();
     };
 
-    // Step 3: Replace variables
+    // Replace variables in text
     const replaceVariables = (text) => {
-      if (!text) return text;
-      let result = decodeHTMLEntities(text);
-      result = stripHTML(result);
+      if (!text) return '';
+      let result = stripHTML(text);
 
       result = result.replace(/\{\{firstName\}\}/gi, sampleLead.first_name);
       result = result.replace(/\{\{lastName\}\}/gi, sampleLead.last_name);
