@@ -203,14 +203,17 @@ export default function GmailAccounts() {
                 />
               </div>
             </div>
-            <div className="space-y-2">
-               <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Signature</Label>
-               <SimpleSignatureEditor
-                 value={form.signature}
-                 onChange={(signature) => setForm({ ...form, signature })}
-                 placeholder="Add your email signature here..."
-               />
-             </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Signature</Label>
+              <textarea
+                value={form.signature}
+                onChange={(e) => setForm({ ...form, signature: e.target.value })}
+                placeholder="Add your email signature here..."
+                rows={4}
+                style={{ fontFamily: 'sans-serif', fontSize: '12px' }}
+                className="w-full resize-y rounded-md border border-input bg-background px-3 py-2 ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100"
+              />
+            </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Daily Limit</Label>
               <Input
