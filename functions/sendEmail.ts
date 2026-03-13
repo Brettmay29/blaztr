@@ -50,45 +50,60 @@ Deno.serve(async (req) => {
       signature: gmailAccountData.signature || '',
     };
 
-    // Strip HTML tags, preserving line breaks
-    const stripHTML = (text) => {
+    // STEP 1: Raw String Sanitization - strip ALL HTML tags and decode ALL HTML entities
+    const rawSanitize = (text) => {
       if (!text) return '';
       return text
-        .replace(/<\/p>/gi, '\n')
-        .replace(/<\/div>/gi, '\n')
-        .replace(/<br\s*\/?>/gi, '\n')
+        // Remove all HTML tags (including hidden <span> ghost tags injected by RichTextEditor)
         .replace(/<[^>]*>/g, '')
-        .replace(/&#123;/g, '{')
-        .replace(/&#125;/g, '}')
-        .replace(/&lcub;/g, '{')
-        .replace(/&rcub;/g, '}')
-        .replace(/&lbrace;/g, '{')
-        .replace(/&rbrace;/g, '}')
+        // Decode ALL common HTML entities
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&#160;/g, ' ')
+        .replace(/&amp;/g, '&')
         .replace(/&lt;/g, '<')
         .replace(/&gt;/g, '>')
-        .replace(/&amp;/g, '&')
         .replace(/&quot;/g, '"')
         .replace(/&#39;/g, "'")
-        .replace(/&nbsp;/g, ' ')
+        // Decode encoded curly braces (fuzzy variable support)
+        .replace(/&lcub;/g, '{')
+        .replace(/&rcub;/g, '}')
+        .replace(/&#123;/g, '{')
+        .replace(/&#125;/g, '}')
+        .replace(/&lbrace;/g, '{')
+        .replace(/&rbrace;/g, '}')
+        // Collapse multiple spaces/whitespace into single space
+        .replace(/[ \t]+/g, ' ')
         .trim();
     };
 
-    // Replace variables in text
+    // STEP 2: Variable map
+    const variableMap = {
+      firstname: sampleLead.first_name,
+      lastname: sampleLead.last_name,
+      email: sampleLead.email,
+      companyname: sampleLead.company_name,
+      companywebsite: sampleLead.company_website,
+      industry: sampleLead.industry,
+      state: sampleLead.state,
+      market: sampleLead.market,
+      senderfirstname: sampleSender.first_name,
+      senderlastname: sampleSender.last_name,
+      sendersignature: rawSanitize(sampleSender.signature),
+    };
+
+    // STEP 3: Fuzzy Variable regex - matches {{varName}} or &lcub;&lcub;varName&rcub;&rcub; variants
+    // After raw sanitization, braces should already be {{ }}, so this regex handles the clean form
     const replaceVariables = (text) => {
       if (!text) return '';
-      let result = stripHTML(text);
+      // First sanitize the raw string (removes ghost tags & decodes entities)
+      let result = rawSanitize(text);
 
-      result = result.replace(/\{\{firstName\}\}/gi, sampleLead.first_name);
-      result = result.replace(/\{\{lastName\}\}/gi, sampleLead.last_name);
-      result = result.replace(/\{\{email\}\}/gi, sampleLead.email);
-      result = result.replace(/\{\{companyName\}\}/gi, sampleLead.company_name);
-      result = result.replace(/\{\{companyWebsite\}\}/gi, sampleLead.company_website);
-      result = result.replace(/\{\{industry\}\}/gi, sampleLead.industry);
-      result = result.replace(/\{\{state\}\}/gi, sampleLead.state);
-      result = result.replace(/\{\{market\}\}/gi, sampleLead.market);
-      result = result.replace(/\{\{senderFirstName\}\}/gi, sampleSender.first_name);
-      result = result.replace(/\{\{senderLastName\}\}/gi, sampleSender.last_name);
-      result = result.replace(/\{\{senderSignature\}\}/gi, stripHTML(sampleSender.signature));
+      // Now replace variables using a case-insensitive fuzzy match on {{varName}}
+      result = result.replace(/\{\{([^}]+)\}\}/gi, (match, varName) => {
+        // Normalize: lowercase and strip any remaining whitespace
+        const key = varName.toLowerCase().replace(/\s+/g, '').trim();
+        return variableMap[key] !== undefined ? variableMap[key] : match;
+      });
 
       return result;
     };
@@ -96,7 +111,13 @@ Deno.serve(async (req) => {
     const processedSubject = replaceVariables(subject);
     const processedBody = replaceVariables(body);
 
-    // Step 4: Wrap plain text lines in <p> tags and send as text/html
+    // STEP 4: console.log the FINAL processed strings before sending to Gmail
+    console.log('=== FINAL PROCESSED EMAIL (pre-Gmail send) ===');
+    console.log('SUBJECT:', processedSubject);
+    console.log('BODY:', processedBody);
+    console.log('==============================================');
+
+    // Wrap plain text lines in <p> tags and send as text/html
     const htmlBody = processedBody
       .split('\n')
       .map(line => `<p>${line || '<br>'}</p>`)
