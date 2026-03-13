@@ -1,16 +1,12 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Send, Loader2, CheckCircle2, ChevronDown, Eye } from "lucide-react";
-
-const isBodyEmpty = (val) => !val || val.replace(/<[^>]*>/g, "").trim() === "";
 
 const VARIABLES = [
   { name: "{{firstName}}", label: "First Name" },
@@ -27,125 +23,94 @@ const VARIABLES = [
 ];
 
 export default function EmailTesting() {
-   const [form, setForm] = useState({ gmail_account_id: "", to: "", subject: "", body: "", lead_id: "" });
-   const [sending, setSending] = useState(false);
-   const [result, setResult] = useState(null);
-   const [showVariables, setShowVariables] = useState(false);
-   const [hoveredVar, setHoveredVar] = useState(null);
-   const [showPreview, setShowPreview] = useState(false);
+  const [form, setForm] = useState({ gmail_account_id: "", to: "", subject: "", body: "", lead_id: "" });
+  const [sending, setSending] = useState(false);
+  const [result, setResult] = useState(null);
+  const [showVariables, setShowVariables] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
-   const { data: gmailAccounts = [] } = useQuery({
-     queryKey: ["gmail_accounts"],
-     queryFn: () => base44.entities.GmailAccount.list(),
-   });
+  const { data: gmailAccounts = [] } = useQuery({
+    queryKey: ["gmail_accounts"],
+    queryFn: () => base44.entities.GmailAccount.list(),
+  });
 
-   const { data: leads = [] } = useQuery({
-      queryKey: ["leads"],
-      queryFn: () => base44.entities.Lead.list(),
-    });
+  const { data: leads = [] } = useQuery({
+    queryKey: ["leads"],
+    queryFn: () => base44.entities.Lead.list(),
+  });
 
-   const { data: gmailAccountData } = useQuery({
-      queryKey: ["gmail_account", form.gmail_account_id],
-      queryFn: () => form.gmail_account_id ? base44.entities.GmailAccount.get(form.gmail_account_id) : null,
-      enabled: !!form.gmail_account_id,
-    });
+  const { data: gmailAccountData } = useQuery({
+    queryKey: ["gmail_account", form.gmail_account_id],
+    queryFn: () => form.gmail_account_id ? base44.entities.GmailAccount.get(form.gmail_account_id) : null,
+    enabled: !!form.gmail_account_id,
+  });
 
-   const { data: leadData } = useQuery({
-      queryKey: ["lead", form.lead_id],
-      queryFn: () => form.lead_id ? base44.entities.Lead.get(form.lead_id) : null,
-      enabled: !!form.lead_id,
-    });
+  const { data: leadData } = useQuery({
+    queryKey: ["lead", form.lead_id],
+    queryFn: () => form.lead_id ? base44.entities.Lead.get(form.lead_id) : null,
+    enabled: !!form.lead_id,
+  });
 
-   const insertVariable = (varName) => {
-      const newBody = form.body + varName + " ";
-      setForm({ ...form, body: newBody });
-      setShowVariables(false);
-   };
+  const insertVariable = (varName) => {
+    setForm({ ...form, body: form.body + varName + " " });
+    setShowVariables(false);
+  };
 
-   const stripHTML = (text) => {
-      if (!text) return text;
-      return text
-        .replace(/<p>/g, '')
-        .replace(/<\/p>/g, '\n')
-        .replace(/<div>/g, '')
-        .replace(/<\/div>/g, '\n')
-        .replace(/<br\s*\/?>/g, '\n')
-        .replace(/<[^>]*>/g, '')
-        .replace(/&nbsp;/g, ' ')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&amp;/g, '&')
-        .trim();
-   };
+  const replaceVariables = (text) => {
+    if (!text) return text;
+    let result = text;
 
-   const decodeHTMLEntities = (text) => {
-      if (!text) return text;
-      return text
-        .replace(/&#123;/g, '{')
-        .replace(/&#125;/g, '}')
-        .replace(/&lcub;/g, '{')
-        .replace(/&rcub;/g, '}')
-        .replace(/&lbrace;/g, '{')
-        .replace(/&rbrace;/g, '}');
-   };
+    const sampleLead = {
+      first_name: leadData?.first_name || 'John',
+      last_name: leadData?.last_name || 'Doe',
+      email: leadData?.email || 'john@example.com',
+      company_name: leadData?.company_name || 'Acme Corp',
+      company_website: leadData?.company_website || 'acme.com',
+      industry: leadData?.industry || 'Technology',
+      state: leadData?.state || 'NY',
+      market: leadData?.market || 'Enterprise',
+    };
 
-   const replaceVariables = (text) => {
-      if (!text) return text;
-      let result = decodeHTMLEntities(text);
+    const sampleSender = {
+      first_name: gmailAccountData?.first_name || '',
+      last_name: gmailAccountData?.last_name || '',
+      signature: gmailAccountData?.signature || '',
+    };
 
-      const sampleLead = {
-        first_name: leadData?.first_name || 'John',
-        last_name: leadData?.last_name || 'Doe',
-        email: leadData?.email || 'john@example.com',
-        company_name: leadData?.company_name || 'Acme Corp',
-        company_website: leadData?.company_website || 'acme.com',
-        industry: leadData?.industry || 'Technology',
-        state: leadData?.state || 'NY',
-        market: leadData?.market || 'Enterprise',
-      };
+    result = result.replace(/\{\{firstName\}\}/gi, sampleLead.first_name);
+    result = result.replace(/\{\{lastName\}\}/gi, sampleLead.last_name);
+    result = result.replace(/\{\{email\}\}/gi, sampleLead.email);
+    result = result.replace(/\{\{companyName\}\}/gi, sampleLead.company_name);
+    result = result.replace(/\{\{companyWebsite\}\}/gi, sampleLead.company_website);
+    result = result.replace(/\{\{industry\}\}/gi, sampleLead.industry);
+    result = result.replace(/\{\{state\}\}/gi, sampleLead.state);
+    result = result.replace(/\{\{market\}\}/gi, sampleLead.market);
+    result = result.replace(/\{\{senderFirstName\}\}/gi, sampleSender.first_name);
+    result = result.replace(/\{\{senderLastName\}\}/gi, sampleSender.last_name);
+    result = result.replace(/\{\{senderSignature\}\}/gi, sampleSender.signature);
 
-      const sampleSender = {
-        first_name: gmailAccountData?.first_name || '',
-        last_name: gmailAccountData?.last_name || '',
-        signature: gmailAccountData?.signature || '',
-      };
+    return result;
+  };
 
-      result = result.replace(/\{\{firstName\}\}/gi, sampleLead.first_name);
-      result = result.replace(/\{\{lastName\}\}/gi, sampleLead.last_name);
-      result = result.replace(/\{\{email\}\}/gi, sampleLead.email);
-      result = result.replace(/\{\{companyName\}\}/gi, sampleLead.company_name);
-      result = result.replace(/\{\{companyWebsite\}\}/gi, sampleLead.company_website);
-      result = result.replace(/\{\{industry\}\}/gi, sampleLead.industry);
-      result = result.replace(/\{\{state\}\}/gi, sampleLead.state);
-      result = result.replace(/\{\{market\}\}/gi, sampleLead.market);
-      result = result.replace(/\{\{senderFirstName\}\}/gi, sampleSender.first_name);
-      result = result.replace(/\{\{senderLastName\}\}/gi, sampleSender.last_name);
-      // Clean signature HTML before injecting
-      const cleanedSignature = stripHTML(sampleSender.signature);
-      result = result.replace(/\{\{senderSignature\}\}/gi, '\n' + cleanedSignature);
-
-      return result;
-   };
-
-   const handleSend = async () => {
-     setSending(true);
-     setResult(null);
-     try {
-       const res = await base44.functions.invoke("sendEmail", {
-         gmail_account_id: form.gmail_account_id,
-         to: form.to,
-         subject: form.subject,
-         body: form.body,
-         lead_id: form.lead_id || undefined,
-       });
-       setResult(res.data?.success ? "sent" : "error");
-     } catch (err) {
-       setResult("error");
-       console.error('Send error:', err);
-     } finally {
-       setSending(false);
-     }
-   };
+  const handleSend = async () => {
+    setSending(true);
+    setResult(null);
+    try {
+      const res = await base44.functions.invoke("sendEmail", {
+        gmail_account_id: form.gmail_account_id,
+        to: form.to,
+        subject: form.subject,
+        body: form.body,
+        lead_id: form.lead_id || undefined,
+      });
+      setResult(res.data?.success ? "sent" : "error");
+    } catch (err) {
+      setResult("error");
+      console.error('Send error:', err);
+    } finally {
+      setSending(false);
+    }
+  };
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -204,7 +169,7 @@ export default function EmailTesting() {
             placeholder="Test subject line"
             value={form.subject}
             onChange={(e) => setForm({ ...form, subject: e.target.value })}
-            className="h-auto py-2 text-sm font-sans"
+            className="h-auto py-2 text-sm"
           />
         </div>
 
@@ -221,18 +186,13 @@ export default function EmailTesting() {
                 + Insert Variable
                 <ChevronDown className="w-3 h-3 ml-1" />
               </Button>
-
               {showVariables && (
                 <div className="absolute z-10 top-full right-0 mt-1 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg py-1 min-w-48">
                   {VARIABLES.map((v) => (
                     <button
                       key={v.name}
                       onClick={() => insertVariable(v.name)}
-                      onMouseEnter={() => setHoveredVar(v.name)}
-                      onMouseLeave={() => setHoveredVar(null)}
-                      className={`w-full text-left px-3 py-2 text-xs flex justify-between transition-colors ${
-                        hoveredVar === v.name ? "bg-neutral-200 dark:bg-neutral-700" : "hover:bg-neutral-100 dark:hover:bg-neutral-700"
-                      }`}
+                      className="w-full text-left px-3 py-2 text-xs flex justify-between hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
                     >
                       <span className="font-mono text-neutral-600 dark:text-neutral-300">{v.name}</span>
                       <span className="text-neutral-400 dark:text-neutral-500">{v.label}</span>
@@ -243,76 +203,22 @@ export default function EmailTesting() {
             </div>
           </div>
 
-          <style>{`
-            .email-editor .ql-toolbar {
-              background-color: hsl(var(--input));
-              border: none;
-              border-radius: 0.375rem 0.375rem 0 0;
-              padding: 8px 12px;
-            }
-            .email-editor .ql-toolbar.ql-snow .ql-formats button,
-            .email-editor .ql-toolbar.ql-snow .ql-formats select {
-              color: hsl(var(--foreground));
-            }
-            .email-editor .ql-toolbar.ql-snow .ql-stroke {
-              stroke: hsl(var(--foreground));
-            }
-            .email-editor .ql-toolbar.ql-snow .ql-fill {
-              fill: hsl(var(--foreground));
-            }
-            .email-editor .ql-toolbar.ql-snow button:hover .ql-stroke,
-            .email-editor .ql-toolbar.ql-snow button:active .ql-stroke,
-            .email-editor .ql-toolbar.ql-snow button.ql-active .ql-stroke {
-              stroke: hsl(var(--foreground));
-            }
-            .email-editor .ql-toolbar.ql-snow button:hover .ql-fill,
-            .email-editor .ql-toolbar.ql-snow button:active .ql-fill,
-            .email-editor .ql-toolbar.ql-snow button.ql-active .ql-fill {
-              fill: hsl(var(--foreground));
-            }
-            .email-editor .ql-toolbar.ql-snow .ql-picker-label {
-              color: hsl(var(--foreground));
-            }
-            .email-editor .ql-container {
-              background-color: hsl(var(--input));
-              border: none;
-              border-radius: 0 0 0.375rem 0.375rem;
-            }
-            .email-editor .ql-editor {
-              color: hsl(var(--foreground));
-              min-height: 300px;
-            }
-            .email-editor .ql-editor.ql-blank::before {
-              color: hsl(var(--muted-foreground));
-            }
-          `}</style>
-          <ReactQuill
+          <textarea
             value={form.body}
-            onChange={(body) => setForm({ ...form, body })}
+            onChange={(e) => setForm({ ...form, body: e.target.value })}
             placeholder="Write your email body here..."
-            modules={{
-              toolbar: [
-                [{ header: [1, 2, 3, false] }],
-                [{ size: ["small", false, "large", "huge"] }],
-                [{ font: [] }],
-                ["bold", "italic", "underline", "strike"],
-                [{ color: [] }, { background: [] }],
-                [{ list: "ordered" }, { list: "bullet" }],
-                ["link"],
-                ["clean"],
-              ],
-            }}
-            theme="snow"
-            className="email-editor"
+            rows={12}
+            style={{ fontFamily: 'sans-serif', fontSize: '12px' }}
+            className="w-full resize-y rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100"
           />
-          </div>
+        </div>
 
         <div className="flex items-center gap-3 pt-1">
           <Button
             variant="outline"
             className="text-xs h-9"
             onClick={() => setShowPreview(true)}
-            disabled={!form.gmail_account_id || !form.subject || isBodyEmpty(form.body)}
+            disabled={!form.gmail_account_id || !form.subject || !form.body.trim()}
           >
             <Eye className="w-3.5 h-3.5 mr-1.5" />
             Preview
@@ -320,7 +226,7 @@ export default function EmailTesting() {
           <Button
             className="bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 text-xs h-9"
             onClick={handleSend}
-            disabled={sending || !form.gmail_account_id || !form.to || !form.subject || isBodyEmpty(form.body)}
+            disabled={sending || !form.gmail_account_id || !form.to || !form.subject || !form.body.trim()}
           >
             {sending ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Send className="w-3.5 h-3.5 mr-1.5" />}
             Send Test
@@ -356,10 +262,15 @@ export default function EmailTesting() {
                 <span className="ml-2 text-neutral-900 dark:text-neutral-100">{replaceVariables(form.subject)}</span>
               </div>
             </div>
-            <div className="p-4 text-sm text-neutral-800 dark:text-neutral-200" dangerouslySetInnerHTML={{ __html: replaceVariables(form.body) }} />
+            <div
+              className="p-4 text-sm text-neutral-800 dark:text-neutral-200 whitespace-pre-wrap"
+              style={{ fontFamily: 'sans-serif', fontSize: '12px' }}
+            >
+              {replaceVariables(form.body)}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
-      </div>
-      );
-      }
+    </div>
+  );
+}

@@ -12,22 +12,19 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing required fields: to, subject, body' }, { status: 400 });
     }
 
-    // Fetch gmail account data for variable replacement (required for sender info)
-    let gmailAccountData = null;
-    let leadData = null;
-
-    // Gmail account is required
     if (!gmail_account_id) {
       return Response.json({ error: 'gmail_account_id is required' }, { status: 400 });
     }
 
+    let gmailAccountData = null;
+    let leadData = null;
+
     try {
       gmailAccountData = await base44.asServiceRole.entities.GmailAccount.get(gmail_account_id);
     } catch (err) {
-      return Response.json({ error: `Failed to fetch Gmail account (ID: ${gmail_account_id}): ${err.message}` }, { status: 400 });
+      return Response.json({ error: `Failed to fetch Gmail account: ${err.message}` }, { status: 400 });
     }
 
-    // Lead data is optional
     if (lead_id) {
       try {
         leadData = await base44.asServiceRole.entities.Lead.get(lead_id);
@@ -36,7 +33,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Build lead data (use actual lead if available, fallback to defaults)
     const sampleLead = {
       first_name: leadData?.first_name || 'John',
       last_name: leadData?.last_name || 'Doe',
@@ -48,14 +44,13 @@ Deno.serve(async (req) => {
       market: leadData?.market || 'Enterprise',
     };
 
-    // Build sender data from Gmail account (always use actual account data)
     const sampleSender = {
       first_name: gmailAccountData.first_name || '',
       last_name: gmailAccountData.last_name || '',
       signature: gmailAccountData.signature || '',
     };
 
-    // Decode HTML entities comprehensively
+    // Step 1: Decode any HTML entities (in case editor encoded curly braces)
     const decodeHTMLEntities = (text) => {
       if (!text) return text;
       return text
@@ -73,7 +68,7 @@ Deno.serve(async (req) => {
         .replace(/&nbsp;/g, ' ');
     };
 
-    // Strip HTML tags
+    // Step 2: Strip all HTML tags
     const stripHTML = (text) => {
       if (!text) return text;
       return text
@@ -86,14 +81,12 @@ Deno.serve(async (req) => {
         .trim();
     };
 
-    // Replace variables (case-insensitive)
+    // Step 3: Replace variables
     const replaceVariables = (text) => {
       if (!text) return text;
-      
-      // Decode HTML entities FIRST, then replace variables — preserve HTML for rich text
       let result = decodeHTMLEntities(text);
+      result = stripHTML(result);
 
-      // Lead variables
       result = result.replace(/\{\{firstName\}\}/gi, sampleLead.first_name);
       result = result.replace(/\{\{lastName\}\}/gi, sampleLead.last_name);
       result = result.replace(/\{\{email\}\}/gi, sampleLead.email);
@@ -102,44 +95,21 @@ Deno.serve(async (req) => {
       result = result.replace(/\{\{industry\}\}/gi, sampleLead.industry);
       result = result.replace(/\{\{state\}\}/gi, sampleLead.state);
       result = result.replace(/\{\{market\}\}/gi, sampleLead.market);
-
-      // Sender variables — inject signature HTML directly to preserve rich text formatting
       result = result.replace(/\{\{senderFirstName\}\}/gi, sampleSender.first_name);
       result = result.replace(/\{\{senderLastName\}\}/gi, sampleSender.last_name);
-      result = result.replace(/\{\{senderSignature\}\}/gi, sampleSender.signature);
+      result = result.replace(/\{\{senderSignature\}\}/gi, stripHTML(sampleSender.signature));
 
       return result;
     };
 
     const processedSubject = replaceVariables(subject);
     const processedBody = replaceVariables(body);
-    
-    // Debug log - comprehensive
-    console.log('=== EMAIL SEND DEBUG ===');
-    console.log('STEP 1 - Raw body received:');
-    console.log(body?.substring(0, 300));
-    console.log('---');
-    
-    const afterDecode = decodeHTMLEntities(body);
-    console.log('STEP 2 - After decodeHTMLEntities:');
-    console.log(afterDecode?.substring(0, 300));
-    console.log('---');
-    
-    const afterReplace = replaceVariables(body);
-    console.log('STEP 3 - After replaceVariables:');
-    console.log(afterReplace?.substring(0, 300));
-    console.log('---');
-    
-    console.log('STEP 4 - After stripHTML (final):');
-    console.log(processedBody?.substring(0, 300));
-    console.log('---');
-    
-    console.log('Variable substitution check:');
-    console.log('- firstName to replace:', `{{firstName}}`);
-    console.log('- sampleLead.first_name:', sampleLead.first_name);
-    console.log('- Test regex match:', /\{\{firstName\}\}/gi.test(body));
-    console.log('- Body contains {{firstName}}:', body?.includes('{{firstName}}'));
-    console.log('=== END DEBUG ===');
+
+    // Step 4: Wrap plain text lines in <p> tags and send as text/html
+    const htmlBody = processedBody
+      .split('\n')
+      .map(line => `<p>${line || '<br>'}</p>`)
+      .join('');
 
     let accessToken;
     try {
@@ -149,16 +119,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Failed to connect to Gmail. Please authorize the Gmail connector in settings.', details: err.message }, { status: 500 });
     }
 
-    // Build RFC 2822 email as text/html with basic p tags for formatting
     const emailLines = [
       `To: ${to}`,
       `Subject: ${processedSubject}`,
       `MIME-Version: 1.0`,
       `Content-Type: text/html; charset=UTF-8`,
     ];
-    const headers = emailLines.join('\r\n');
-    const htmlBody = processedBody;
-    const raw = headers + '\r\n\r\n' + htmlBody;
+    const raw = emailLines.join('\r\n') + '\r\n\r\n' + htmlBody;
     const encodedEmail = btoa(unescape(encodeURIComponent(raw)))
       .replace(/\+/g, '-')
       .replace(/\//g, '_')
@@ -183,7 +150,6 @@ Deno.serve(async (req) => {
     const nowDate = now.split('T')[0];
     const threeDaysLater = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-    // Update lead record
     if (lead_id) {
       const lead = await base44.asServiceRole.entities.Lead.get(lead_id);
       await base44.asServiceRole.entities.Lead.update(lead_id, {
@@ -196,7 +162,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Create send log
     if (lead_id && campaign_id) {
       const lead = await base44.asServiceRole.entities.Lead.get(lead_id);
       await base44.asServiceRole.entities.SendLog.create({
