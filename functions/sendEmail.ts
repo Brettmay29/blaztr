@@ -117,11 +117,11 @@ Deno.serve(async (req) => {
     console.log('BODY:', processedBody);
     console.log('==============================================');
 
-    // Wrap plain text lines in <p> tags and send as text/html
-    const htmlBody = processedBody
-      .split('\n')
-      .map(line => `<p>${line || '<br>'}</p>`)
-      .join('');
+    // Convert plain text to HTML: double newlines = paragraph break, single = line break
+    const htmlBody = '<p>' + processedBody
+      .replace(/\n\n+/g, '</p><p>')
+      .replace(/\n/g, '<br>')
+      + '</p>';
 
     let accessToken;
     try {
