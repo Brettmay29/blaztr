@@ -2,40 +2,13 @@ import React, { useState, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, Eye, X } from "lucide-react";
-import { cn } from "@/lib/utils";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
-
-const SAMPLE = {
-  firstName: "John",
-  lastName: "Doe",
-  email: "john@example.com",
-  companyName: "Acme Corp",
-  companyWebsite: "acme.com",
-  industry: "Technology",
-  state: "NY",
-  market: "Enterprise",
-};
-
-function resolveVariables(text) {
-  if (!text) return "";
-  return text
-    .replace(/\{\{firstName\}\}/g, SAMPLE.firstName)
-    .replace(/\{\{lastName\}\}/g, SAMPLE.lastName)
-    .replace(/\{\{email\}\}/g, SAMPLE.email)
-    .replace(/\{\{companyName\}\}/g, SAMPLE.companyName)
-    .replace(/\{\{companyWebsite\}\}/g, SAMPLE.companyWebsite)
-    .replace(/\{\{industry\}\}/g, SAMPLE.industry)
-    .replace(/\{\{state\}\}/g, SAMPLE.state)
-    .replace(/\{\{market\}\}/g, SAMPLE.market);
-}
+import { fuzzyReplaceVariables, formatBodyToHtml, DEFAULT_VARIABLE_MAP } from "@/components/emailPreviewUtils";
 
 function EmailPreviewModal({ step, onClose }) {
-  const resolvedSubject = resolveVariables(step.subject);
-  const resolvedBody = resolveVariables(step.body);
-
-  // Strip HTML tags for plain text display, or render as HTML
-  const isHtml = /<[a-z][\s\S]*>/i.test(resolvedBody);
+  const resolvedSubject = fuzzyReplaceVariables(step.subject, DEFAULT_VARIABLE_MAP);
+  const previewBodyHtml = formatBodyToHtml(fuzzyReplaceVariables(step.body, DEFAULT_VARIABLE_MAP));
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
@@ -43,7 +16,6 @@ function EmailPreviewModal({ step, onClose }) {
         className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Modal Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-200">
           <h2 className="text-sm font-semibold text-neutral-900">Email Preview</h2>
           <button onClick={onClose} className="text-neutral-400 hover:text-neutral-700 transition-colors">
@@ -51,9 +23,7 @@ function EmailPreviewModal({ step, onClose }) {
           </button>
         </div>
 
-        {/* Email Client-like UI */}
         <div className="flex-1 overflow-auto p-5 space-y-4">
-          {/* Meta */}
           <div className="space-y-2 text-sm border-b border-neutral-100 pb-4">
             <div className="flex gap-2">
               <span className="text-neutral-400 w-16 shrink-0">From:</span>
@@ -61,7 +31,7 @@ function EmailPreviewModal({ step, onClose }) {
             </div>
             <div className="flex gap-2">
               <span className="text-neutral-400 w-16 shrink-0">To:</span>
-              <span className="text-neutral-700">{SAMPLE.firstName} {SAMPLE.lastName} &lt;{SAMPLE.email}&gt;</span>
+              <span className="text-neutral-700">John Doe &lt;john@example.com&gt;</span>
             </div>
             <div className="flex gap-2">
               <span className="text-neutral-400 w-16 shrink-0">Subject:</span>
@@ -69,17 +39,13 @@ function EmailPreviewModal({ step, onClose }) {
             </div>
           </div>
 
-          {/* Body */}
-          <div className="text-sm text-neutral-800 leading-relaxed">
-            {isHtml ? (
-              <div dangerouslySetInnerHTML={{ __html: resolvedBody }} />
-            ) : (
-              <div className="whitespace-pre-wrap">{resolvedBody}</div>
-            )}
-          </div>
+          <div
+            className="text-sm text-neutral-800 leading-relaxed"
+            style={{ fontFamily: 'sans-serif' }}
+            dangerouslySetInnerHTML={{ __html: previewBodyHtml }}
+          />
         </div>
 
-        {/* Footer note */}
         <div className="px-5 py-3 border-t border-neutral-100 bg-neutral-50 text-xs text-neutral-400">
           Variables replaced with sample data for preview.
         </div>
@@ -99,10 +65,7 @@ export default function SequenceStepEditor({
   const [showPreview, setShowPreview] = useState(false);
   const quillRef = useRef(null);
 
-  const getTextareaElement = () => document.querySelector("textarea");
-
   const insertVariable = (varName) => {
-    // Insert into Quill editor
     if (quillRef.current?.getEditor) {
       const editor = quillRef.current.getEditor();
       const currentLength = editor.getLength();
@@ -111,8 +74,6 @@ export default function SequenceStepEditor({
       setShowVariables(false);
     }
   };
-
-
 
   return (
     <div className="p-6 space-y-6 max-w-3xl">
@@ -198,24 +159,24 @@ export default function SequenceStepEditor({
 
         <div className="border border-neutral-200 rounded-lg overflow-hidden">
           <ReactQuill
-              ref={quillRef}
-              value={step.body}
-              onChange={(value) => onChange({ body: value })}
-              theme="snow"
-              placeholder="Write your email body. Use variables like {{firstName}} for dynamic content."
-              modules={{
-                toolbar: [
-                  [{ font: ["arial", "courier", "georgia", "helvetica", "tahoma", "times-new-roman", "trebuchet", "verdana"] }],
-                  [{ size: ["small", false, "large", "huge"] }],
-                  ["bold", "italic", "underline"],
-                  ["link"],
-                  [{ list: "ordered" }, { list: "bullet" }],
-                ],
-              }}
-              formats={["font", "size", "bold", "italic", "underline", "link", "list"]}
-              readOnly={preview}
-              style={{ height: "320px" }}
-            />
+            ref={quillRef}
+            value={step.body}
+            onChange={(value) => onChange({ body: value })}
+            theme="snow"
+            placeholder="Write your email body. Use variables like {{firstName}} for dynamic content."
+            modules={{
+              toolbar: [
+                [{ font: ["arial", "courier", "georgia", "helvetica", "tahoma", "times-new-roman", "trebuchet", "verdana"] }],
+                [{ size: ["small", false, "large", "huge"] }],
+                ["bold", "italic", "underline"],
+                ["link"],
+                [{ list: "ordered" }, { list: "bullet" }],
+              ],
+            }}
+            formats={["font", "size", "bold", "italic", "underline", "link", "list"]}
+            readOnly={preview}
+            style={{ height: "320px" }}
+          />
         </div>
 
         {/* Preview Button */}
@@ -241,26 +202,20 @@ export default function SequenceStepEditor({
         <EmailPreviewModal step={step} onClose={() => setShowPreview(false)} />
       )}
 
-      {/* Preview */}
+      {/* Inline Preview (read-only mode) */}
       {preview && (
         <div className="bg-neutral-50 p-4 rounded-lg space-y-2 border border-neutral-200">
           <h4 className="text-sm font-medium text-neutral-700">Preview (with sample data)</h4>
           <div className="space-y-2 text-sm">
             <div>
               <span className="font-medium text-neutral-700">Subject: </span>
-              <span className="text-neutral-600">{step.subject}</span>
+              <span className="text-neutral-600">{fuzzyReplaceVariables(step.subject, DEFAULT_VARIABLE_MAP)}</span>
             </div>
-            <div className="bg-white p-3 rounded border border-neutral-200 whitespace-pre-wrap text-neutral-700 font-mono text-xs">
-              {step.body
-                .replace(/{{firstName}}/g, "John")
-                .replace(/{{lastName}}/g, "Doe")
-                .replace(/{{email}}/g, "john@example.com")
-                .replace(/{{companyName}}/g, "Acme Corp")
-                .replace(/{{companyWebsite}}/g, "acme.com")
-                .replace(/{{industry}}/g, "Technology")
-                .replace(/{{state}}/g, "NY")
-                .replace(/{{market}}/g, "Enterprise")}
-            </div>
+            <div
+              className="bg-white p-3 rounded border border-neutral-200 text-neutral-700 text-xs leading-relaxed"
+              style={{ fontFamily: 'sans-serif' }}
+              dangerouslySetInnerHTML={{ __html: formatBodyToHtml(fuzzyReplaceVariables(step.body, DEFAULT_VARIABLE_MAP)) }}
+            />
           </div>
         </div>
       )}

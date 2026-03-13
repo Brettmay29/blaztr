@@ -47,6 +47,7 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
+import Account from './pages/Account';
 import Analytics from './pages/Analytics';
 import Campaigns from './pages/Campaigns';
 import Dashboard from './pages/Dashboard';
@@ -55,6 +56,7 @@ import GmailAccounts from './pages/GmailAccounts';
 import Inbox from './pages/Inbox';
 import Integrations from './pages/Integrations';
 import LeadsDatabase from './pages/LeadsDatabase';
+import Onboarding from './pages/Onboarding';
 import SendHub from './pages/SendHub';
 import Sequences from './pages/Sequences';
 import Templates from './pages/Templates';
@@ -62,6 +64,7 @@ import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "Account": Account,
     "Analytics": Analytics,
     "Campaigns": Campaigns,
     "Dashboard": Dashboard,
@@ -70,6 +73,7 @@ export const PAGES = {
     "Inbox": Inbox,
     "Integrations": Integrations,
     "LeadsDatabase": LeadsDatabase,
+    "Onboarding": Onboarding,
     "SendHub": SendHub,
     "Sequences": Sequences,
     "Templates": Templates,

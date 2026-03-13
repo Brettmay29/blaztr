@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Send, Loader2, CheckCircle2, ChevronDown, Eye } from "lucide-react";
+import { fuzzyReplaceVariables, formatBodyToHtml } from "@/components/emailPreviewUtils";
 
 const VARIABLES = [
   { name: "{{firstName}}", label: "First Name" },
@@ -56,41 +57,19 @@ export default function EmailTesting() {
     setShowVariables(false);
   };
 
-  const replaceVariables = (text) => {
-    if (!text) return text;
-    let result = text;
-
-    const sampleLead = {
-      first_name: leadData?.first_name || 'John',
-      last_name: leadData?.last_name || 'Doe',
-      email: leadData?.email || 'john@example.com',
-      company_name: leadData?.company_name || 'Acme Corp',
-      company_website: leadData?.company_website || 'acme.com',
-      industry: leadData?.industry || 'Technology',
-      state: leadData?.state || 'NY',
-      market: leadData?.market || 'Enterprise',
-    };
-
-    const sampleSender = {
-      first_name: gmailAccountData?.first_name || '',
-      last_name: gmailAccountData?.last_name || '',
-      signature: gmailAccountData?.signature || '',
-    };
-
-    result = result.replace(/\{\{firstName\}\}/gi, sampleLead.first_name);
-    result = result.replace(/\{\{lastName\}\}/gi, sampleLead.last_name);
-    result = result.replace(/\{\{email\}\}/gi, sampleLead.email);
-    result = result.replace(/\{\{companyName\}\}/gi, sampleLead.company_name);
-    result = result.replace(/\{\{companyWebsite\}\}/gi, sampleLead.company_website);
-    result = result.replace(/\{\{industry\}\}/gi, sampleLead.industry);
-    result = result.replace(/\{\{state\}\}/gi, sampleLead.state);
-    result = result.replace(/\{\{market\}\}/gi, sampleLead.market);
-    result = result.replace(/\{\{senderFirstName\}\}/gi, sampleSender.first_name);
-    result = result.replace(/\{\{senderLastName\}\}/gi, sampleSender.last_name);
-    result = result.replace(/\{\{senderSignature\}\}/gi, sampleSender.signature);
-
-    return result;
-  };
+  const buildVariableMap = () => ({
+    firstname: leadData?.first_name || 'John',
+    lastname: leadData?.last_name || 'Doe',
+    email: leadData?.email || 'john@example.com',
+    companyname: leadData?.company_name || 'Acme Corp',
+    companywebsite: leadData?.company_website || 'acme.com',
+    industry: leadData?.industry || 'Technology',
+    state: leadData?.state || 'NY',
+    market: leadData?.market || 'Enterprise',
+    senderfirstname: gmailAccountData?.first_name || '',
+    senderlastname: gmailAccountData?.last_name || '',
+    sendersignature: gmailAccountData?.signature || '',
+  });
 
   const handleSend = async () => {
     setSending(true);
@@ -111,6 +90,10 @@ export default function EmailTesting() {
       setSending(false);
     }
   };
+
+  const variableMap = buildVariableMap();
+  const previewSubject = fuzzyReplaceVariables(form.subject, variableMap);
+  const previewBodyHtml = formatBodyToHtml(fuzzyReplaceVariables(form.body, variableMap));
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -259,15 +242,14 @@ export default function EmailTesting() {
               </div>
               <div className="text-sm">
                 <span className="font-semibold text-neutral-700 dark:text-neutral-300">Subject:</span>
-                <span className="ml-2 text-neutral-900 dark:text-neutral-100">{replaceVariables(form.subject)}</span>
+                <span className="ml-2 text-neutral-900 dark:text-neutral-100">{previewSubject}</span>
               </div>
             </div>
             <div
-              className="p-4 text-sm text-neutral-800 dark:text-neutral-200 whitespace-pre-wrap"
+              className="p-4 text-sm text-neutral-800 dark:text-neutral-200"
               style={{ fontFamily: 'sans-serif', fontSize: '12px' }}
-            >
-              {replaceVariables(form.body)}
-            </div>
+              dangerouslySetInnerHTML={{ __html: previewBodyHtml }}
+            />
           </div>
         </DialogContent>
       </Dialog>
