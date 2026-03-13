@@ -90,9 +90,8 @@ Deno.serve(async (req) => {
     const replaceVariables = (text) => {
       if (!text) return text;
       
-      // CRITICAL: Decode HTML entities FIRST, then strip HTML tags, THEN replace variables
+      // Decode HTML entities FIRST, then replace variables — preserve HTML for rich text
       let result = decodeHTMLEntities(text);
-      result = stripHTML(result);
 
       // Lead variables
       result = result.replace(/\{\{firstName\}\}/gi, sampleLead.first_name);
@@ -104,12 +103,10 @@ Deno.serve(async (req) => {
       result = result.replace(/\{\{state\}\}/gi, sampleLead.state);
       result = result.replace(/\{\{market\}\}/gi, sampleLead.market);
 
-      // Sender variables
+      // Sender variables — inject signature HTML directly to preserve rich text formatting
       result = result.replace(/\{\{senderFirstName\}\}/gi, sampleSender.first_name);
       result = result.replace(/\{\{senderLastName\}\}/gi, sampleSender.last_name);
-      // Clean signature HTML before injecting
-      const cleanedSignature = stripHTML(sampleSender.signature);
-      result = result.replace(/\{\{senderSignature\}\}/gi, cleanedSignature);
+      result = result.replace(/\{\{senderSignature\}\}/gi, sampleSender.signature);
 
       return result;
     };
