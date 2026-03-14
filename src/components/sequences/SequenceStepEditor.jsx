@@ -270,7 +270,16 @@ export default function SequenceStepEditor({
         {/* Preview Button */}
         {!preview && (
           <div className="flex items-center gap-1.5 px-4 py-2 border border-t-0 border-neutral-200 dark:border-neutral-700 rounded-b-lg bg-neutral-50 dark:bg-neutral-800">
-            <div className="ml-auto">
+            <div className="ml-auto flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 text-xs"
+                onClick={() => setShowSendTest(true)}
+              >
+                <Send className="w-3.5 h-3.5 mr-1" />
+                Send Test
+              </Button>
               <Button
                 size="sm"
                 variant="outline"
