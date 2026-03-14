@@ -11,9 +11,22 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { fuzzyReplaceVariables, formatBodyToHtml, DEFAULT_VARIABLE_MAP } from "@/components/emailPreviewUtils";
 
-function EmailPreviewModal({ step, onClose }) {
-  const resolvedSubject = fuzzyReplaceVariables(step.subject, DEFAULT_VARIABLE_MAP);
-  const previewBodyHtml = formatBodyToHtml(fuzzyReplaceVariables(step.body, DEFAULT_VARIABLE_MAP));
+function EmailPreviewModal({ step, leadData, onClose }) {
+  const variableMap = {
+    ...DEFAULT_VARIABLE_MAP,
+    ...(leadData ? {
+      firstname: leadData.first_name || DEFAULT_VARIABLE_MAP.firstname,
+      lastname: leadData.last_name || DEFAULT_VARIABLE_MAP.lastname,
+      email: leadData.email || DEFAULT_VARIABLE_MAP.email,
+      companyname: leadData.company_name || DEFAULT_VARIABLE_MAP.companyname,
+      companywebsite: leadData.company_website || DEFAULT_VARIABLE_MAP.companywebsite,
+      industry: leadData.industry || DEFAULT_VARIABLE_MAP.industry,
+      state: leadData.state || DEFAULT_VARIABLE_MAP.state,
+      market: leadData.market || DEFAULT_VARIABLE_MAP.market,
+    } : {}),
+  };
+  const resolvedSubject = fuzzyReplaceVariables(step.subject, variableMap);
+  const previewBodyHtml = formatBodyToHtml(fuzzyReplaceVariables(step.body, variableMap));
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
