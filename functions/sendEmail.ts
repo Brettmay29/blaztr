@@ -64,46 +64,47 @@ Deno.serve(async (req) => {
       sendersignature: sampleSender.signature || '',
     };
 
-    // Sanitize HTML to plain text, preserving paragraph/line-break spacing.
+    // STEP 1: Raw String Sanitization — strip ALL HTML tags and decode ALL entities first.
     const rawSanitize = (text) => {
       if (!text) return '';
-      return text
-        .replace(/<br\s*\/?>/gi, '\n')           // <br> → newline
-        .replace(/<\/p>(\s*<p>)?/gi, '\n\n')     // </p><p> or </p> → double newline
-        .replace(/<p>/gi, '')                     // remove opening <p>
-        .replace(/<\/div>(\s*<div>)?/gi, '\n')   // div breaks → newline
-        .replace(/<div>/gi, '')                   // remove opening <div>
-        .replace(/<[^>]*>/g, '')                  // strip remaining HTML tags
-        .replace(/&nbsp;/g, ' ')
-        .replace(/&#160;/g, ' ')
-        .replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'")
-        .replace(/&lcub;/g, '{')
-        .replace(/&rcub;/g, '}')
-        .replace(/&#123;/g, '{')
-        .replace(/&#125;/g, '}')
-        .replace(/&lbrace;/g, '{')
-        .replace(/&rbrace;/g, '}')
-        .replace(/[ \t]+/g, ' ')                  // collapse horizontal whitespace
-        .replace(/\n /g, '\n')                    // remove leading spaces after newlines
-        .replace(/\n{3,}/g, '\n\n')               // max 2 consecutive newlines
-        .trim();
+      let s = String(text);
+      // Decode encoded braces so variables survive sanitization
+      s = s.replace(/&lcub;/g, '{').replace(/&rcub;/g, '}')
+           .replace(/&#123;/g, '{').replace(/&#125;/g, '}')
+           .replace(/&lbrace;/g, '{').replace(/&rbrace;/g, '}');
+      // Convert block-level tags to newlines BEFORE stripping
+      s = s.replace(/<br\s*\/?>/gi, '\n');
+      s = s.replace(/<\/p>/gi, '\n\n');
+      s = s.replace(/<\/div>/gi, '\n');
+      // Strip ALL remaining HTML tags (global)
+      s = s.replace(/<[^>]*>/g, '');
+      // Decode remaining HTML entities
+      s = s.replace(/&nbsp;/g, ' ')
+           .replace(/&#160;/g, ' ')
+           .replace(/&amp;/g, '&')
+           .replace(/&lt;/g, '<')
+           .replace(/&gt;/g, '>')
+           .replace(/&quot;/g, '"')
+           .replace(/&#39;/g, "'");
+      // Normalize whitespace
+      s = s.replace(/[ \t]+/g, ' ')
+           .replace(/\n[ \t]+/g, '\n')
+           .replace(/\n{3,}/g, '\n\n')
+           .trim();
+      return s;
     };
 
-    // Replace {{variable}} tokens with values from variableMap.
-    // After rawSanitize the string is clean plain text, so a simple regex works.
+    // STEP 2: Fuzzy Variable replacement — accounts for encoded or spaced braces.
     const replaceVars = (text) => {
       if (!text) return '';
-      return text.replace(/\{\{([^}]+)\}\}/gi, (match, varName) => {
+      // Fuzzy pattern matches {{ varName }} with optional spaces/encoding
+      return text.replace(/(\{\{|&lcub;&lcub;|&#123;&#123;)\s*([^}\s]+)\s*(\}\}|&rcub;&rcub;|&#125;&#125;)/gi, (match, _open, varName, _close) => {
         const key = varName.toLowerCase().replace(/\s+/g, '').trim();
         return variableMap[key] !== undefined ? variableMap[key] : match;
       });
     };
 
-    // Sanitize first, THEN replace variables
+    // Sanitize FIRST, THEN replace variables
     const processedSubject = replaceVars(rawSanitize(subject));
     const processedBody    = replaceVars(rawSanitize(body));
 
