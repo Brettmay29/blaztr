@@ -59,6 +59,88 @@ function EmailPreviewModal({ step, onClose }) {
   );
 }
 
+function SendTestModal({ step, onClose }) {
+  const [toEmail, setToEmail] = useState('');
+  const [gmailAccountId, setGmailAccountId] = useState('');
+  const [sending, setSending] = useState(false);
+  const [result, setResult] = useState(null);
+
+  const { data: gmailAccounts = [] } = useQuery({
+    queryKey: ["gmail_accounts"],
+    queryFn: () => base44.entities.GmailAccount.list(),
+  });
+
+  const handleSend = async () => {
+    setSending(true);
+    setResult(null);
+    try {
+      const res = await base44.functions.invoke("sendEmail", {
+        gmail_account_id: gmailAccountId,
+        to: toEmail,
+        subject: step.subject,
+        body: step.body,
+      });
+      setResult(res.data?.success ? "sent" : "error");
+    } catch {
+      setResult("error");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Send Test Email</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-2">
+          <div className="space-y-1.5">
+            <Label className="text-xs">From (Gmail Account)</Label>
+            <Select value={gmailAccountId} onValueChange={setGmailAccountId}>
+              <SelectTrigger className="h-9 text-sm">
+                <SelectValue placeholder="Select account" />
+              </SelectTrigger>
+              <SelectContent>
+                {gmailAccounts.map((acc) => (
+                  <SelectItem key={acc.id} value={acc.id}>
+                    {acc.nickname} ({acc.email})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">To (email address)</Label>
+            <Input
+              placeholder="recipient@example.com"
+              value={toEmail}
+              onChange={(e) => setToEmail(e.target.value)}
+              className="h-9 text-sm"
+            />
+          </div>
+          <Button
+            className="w-full bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 text-xs h-9"
+            onClick={handleSend}
+            disabled={sending || !gmailAccountId || !toEmail}
+          >
+            {sending ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Send className="w-3.5 h-3.5 mr-1.5" />}
+            Send Test
+          </Button>
+          {result === "sent" && (
+            <div className="flex items-center gap-1.5 text-xs text-green-600">
+              <CheckCircle2 className="w-3.5 h-3.5" /> Test email sent successfully!
+            </div>
+          )}
+          {result === "error" && (
+            <p className="text-xs text-red-500">Failed to send. Check your Gmail connection.</p>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function SequenceStepEditor({
   step,
   onChange,
