@@ -50,27 +50,6 @@ Deno.serve(async (req) => {
       signature: gmailAccountData.signature || '',
     };
 
-    // Decode encoded curly braces so variables can be matched in HTML-encoded content
-    const decodeBraces = (text) => {
-      if (!text) return '';
-      return text
-        .replace(/&lcub;/g, '{').replace(/&rcub;/g, '}')
-        .replace(/&#123;/g, '{').replace(/&#125;/g, '}')
-        .replace(/&lbrace;/g, '{').replace(/&rbrace;/g, '}');
-    };
-
-    // For plain text fields (subject): strip tags and decode entities
-    const sanitizePlainText = (text) => {
-      if (!text) return '';
-      return text
-        .replace(/<[^>]*>/g, '')
-        .replace(/&nbsp;/g, ' ').replace(/&#160;/g, ' ')
-        .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-        .replace(/&quot;/g, '"').replace(/&#39;/g, "'")
-        .replace(/[ \t]+/g, ' ')
-        .trim();
-    };
-
     const variableMap = {
       firstname: sampleLead.first_name,
       lastname: sampleLead.last_name,
@@ -85,43 +64,47 @@ Deno.serve(async (req) => {
       sendersignature: sampleSender.signature || '',
     };
 
-    // Cleans a captured variable name: strips HTML tags, decodes entities, removes whitespace
-    const cleanVarName = (varName) => {
-      if (!varName) return '';
-      return varName
-        .replace(/<[^>]*>/g, '')
-        .replace(/&nbsp;/gi, ' ').replace(/&#160;/g, ' ')
-        .replace(/&amp;/gi, '&').replace(/&lt;/gi, '<').replace(/&gt;/gi, '>')
-        .replace(/&quot;/gi, '"').replace(/&#39;/g, "'")
-        .toLowerCase()
-        .replace(/\s+/g, '')
+    // Comprehensive sanitize: strips all HTML tags and decodes all HTML entities.
+    // Applied FIRST to the entire template string before variable replacement.
+    const rawSanitize = (text) => {
+      if (!text) return '';
+      return text
+        .replace(/<[^>]*>/g, '')          // strip all HTML tags
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&#160;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&lcub;/g, '{')
+        .replace(/&rcub;/g, '}')
+        .replace(/&#123;/g, '{')
+        .replace(/&#125;/g, '}')
+        .replace(/&lbrace;/g, '{')
+        .replace(/&rbrace;/g, '}')
+        .replace(/[ \t]+/g, ' ')          // collapse extra whitespace
         .trim();
     };
 
-    // Fuzzy replace: matches {{ or encoded {{ variants, cleans inner variable name
+    // Replace {{variable}} tokens with values from variableMap.
+    // After rawSanitize the string is clean plain text, so a simple regex works.
     const replaceVars = (text) => {
       if (!text) return '';
-      return text.replace(/(?:\{\{|&lcub;&lcub;|&#123;&#123;)(.*?)(?:\}\}|&rcub;&rcub;|&#125;&#125;)/gi, (match, varName) => {
-        const key = cleanVarName(varName);
+      return text.replace(/\{\{([^}]+)\}\}/gi, (match, varName) => {
+        const key = varName.toLowerCase().replace(/\s+/g, '').trim();
         return variableMap[key] !== undefined ? variableMap[key] : match;
       });
     };
 
-    // Subject: plain text processing
-    const processedSubject = replaceVars(sanitizePlainText(subject));
-
-    // Body: preserve HTML, only decode brace entities then replace variables
-    // Also normalize <p> tag margins so email clients don't double-space paragraphs
-    const processedBodyHtml = replaceVars(decodeBraces(body))
-      .replace(/<p>/gi, '<p style="margin:0 0 1em 0;">')
-      .replace(/<p /gi, '<p style="margin:0 0 1em 0;" ');
+    // Sanitize first, THEN replace variables
+    const processedSubject = replaceVars(rawSanitize(subject));
+    const processedBody    = replaceVars(rawSanitize(body));
 
     console.log('=== FINAL PROCESSED EMAIL (pre-Gmail send) ===');
     console.log('SUBJECT:', processedSubject);
-    console.log('BODY HTML:', processedBodyHtml);
+    console.log('BODY:', processedBody);
     console.log('==============================================');
-
-    const htmlBody = processedBodyHtml;
 
     let accessToken;
     try {
@@ -135,9 +118,9 @@ Deno.serve(async (req) => {
       `To: ${to}`,
       `Subject: ${processedSubject}`,
       `MIME-Version: 1.0`,
-      `Content-Type: text/html; charset=UTF-8`,
+      `Content-Type: text/plain; charset=UTF-8`,
     ];
-    const raw = emailLines.join('\r\n') + '\r\n\r\n' + htmlBody;
+    const raw = emailLines.join('\r\n') + '\r\n\r\n' + processedBody;
     const encodedEmail = btoa(unescape(encodeURIComponent(raw)))
       .replace(/\+/g, '-')
       .replace(/\//g, '_')
