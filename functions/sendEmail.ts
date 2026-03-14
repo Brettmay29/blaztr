@@ -50,33 +50,27 @@ Deno.serve(async (req) => {
       signature: gmailAccountData.signature || '',
     };
 
-    // STEP 1: Raw String Sanitization - strip ALL HTML tags and decode ALL HTML entities
-    const rawSanitize = (text) => {
+    // Decode encoded curly braces so variables can be matched in HTML-encoded content
+    const decodeBraces = (text) => {
       if (!text) return '';
       return text
-        // Remove all HTML tags (including hidden <span> ghost tags injected by RichTextEditor)
+        .replace(/&lcub;/g, '{').replace(/&rcub;/g, '}')
+        .replace(/&#123;/g, '{').replace(/&#125;/g, '}')
+        .replace(/&lbrace;/g, '{').replace(/&rbrace;/g, '}');
+    };
+
+    // For plain text fields (subject): strip tags and decode entities
+    const sanitizePlainText = (text) => {
+      if (!text) return '';
+      return text
         .replace(/<[^>]*>/g, '')
-        // Decode ALL common HTML entities
-        .replace(/&nbsp;/g, ' ')
-        .replace(/&#160;/g, ' ')
-        .replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'")
-        // Decode encoded curly braces (fuzzy variable support)
-        .replace(/&lcub;/g, '{')
-        .replace(/&rcub;/g, '}')
-        .replace(/&#123;/g, '{')
-        .replace(/&#125;/g, '}')
-        .replace(/&lbrace;/g, '{')
-        .replace(/&rbrace;/g, '}')
-        // Collapse multiple spaces/whitespace into single space
+        .replace(/&nbsp;/g, ' ').replace(/&#160;/g, ' ')
+        .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"').replace(/&#39;/g, "'")
         .replace(/[ \t]+/g, ' ')
         .trim();
     };
 
-    // STEP 2: Variable map
     const variableMap = {
       firstname: sampleLead.first_name,
       lastname: sampleLead.last_name,
@@ -88,40 +82,29 @@ Deno.serve(async (req) => {
       market: sampleLead.market,
       senderfirstname: sampleSender.first_name,
       senderlastname: sampleSender.last_name,
-      sendersignature: rawSanitize(sampleSender.signature),
+      sendersignature: sampleSender.signature || '',
     };
 
-    // STEP 3: Fuzzy Variable regex - matches {{varName}} or &lcub;&lcub;varName&rcub;&rcub; variants
-    // After raw sanitization, braces should already be {{ }}, so this regex handles the clean form
-    const replaceVariables = (text) => {
+    const replaceVars = (text) => {
       if (!text) return '';
-      // First sanitize the raw string (removes ghost tags & decodes entities)
-      let result = rawSanitize(text);
-
-      // Now replace variables using a case-insensitive fuzzy match on {{varName}}
-      result = result.replace(/\{\{([^}]+)\}\}/gi, (match, varName) => {
-        // Normalize: lowercase and strip any remaining whitespace
+      return text.replace(/\{\{([^}]+)\}\}/gi, (match, varName) => {
         const key = varName.toLowerCase().replace(/\s+/g, '').trim();
         return variableMap[key] !== undefined ? variableMap[key] : match;
       });
-
-      return result;
     };
 
-    const processedSubject = replaceVariables(subject);
-    const processedBody = replaceVariables(body);
+    // Subject: plain text processing
+    const processedSubject = replaceVars(sanitizePlainText(subject));
 
-    // STEP 4: console.log the FINAL processed strings before sending to Gmail
+    // Body: preserve HTML, only decode brace entities then replace variables
+    const processedBodyHtml = replaceVars(decodeBraces(body));
+
     console.log('=== FINAL PROCESSED EMAIL (pre-Gmail send) ===');
     console.log('SUBJECT:', processedSubject);
-    console.log('BODY:', processedBody);
+    console.log('BODY HTML:', processedBodyHtml);
     console.log('==============================================');
 
-    // Convert plain text to HTML: double newlines = paragraph break, single = line break
-    const htmlBody = '<p>' + processedBody
-      .replace(/\n\n+/g, '</p><p>')
-      .replace(/\n/g, '<br>')
-      + '</p>';
+    const htmlBody = processedBodyHtml;
 
     let accessToken;
     try {
