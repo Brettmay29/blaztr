@@ -96,7 +96,7 @@ export default function SequenceEditor({ sequence, onBack }) {
   if (!selectedStep) return null;
 
   return (
-    <div className="flex flex-col h-screen bg-neutral-50">
+    <div className="flex flex-col h-screen bg-neutral-50 dark:bg-neutral-950">
       {/* Saved Toast */}
       {savedToast && (
         <div className="fixed bottom-6 right-6 z-50 bg-neutral-900 text-white text-sm px-4 py-2.5 rounded-lg shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2">
@@ -105,7 +105,7 @@ export default function SequenceEditor({ sequence, onBack }) {
         </div>
       )}
       {/* Header */}
-      <div className="bg-white border-b border-neutral-200 px-6 py-4 flex items-center justify-between sticky top-0 z-20">
+      <div className="bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 px-6 py-4 flex items-center justify-between sticky top-0 z-20">
         <div className="flex items-center gap-3">
           <button onClick={onBack} className="text-neutral-500 hover:text-neutral-700">
             <ArrowLeft className="w-5 h-5" />
@@ -126,7 +126,7 @@ export default function SequenceEditor({ sequence, onBack }) {
             />
           ) : (
             <div className="flex items-center gap-2">
-              <span className="text-lg font-semibold text-neutral-900">{localSeq.name}</span>
+              <span className="text-lg font-semibold text-neutral-900 dark:text-white">{localSeq.name}</span>
               <button
                 onClick={() => setEditingName(true)}
                 className="text-[11px] text-neutral-400 border border-neutral-300 rounded-full px-2 py-0.5 hover:bg-neutral-100 hover:text-neutral-600 transition-colors"
@@ -159,7 +159,7 @@ export default function SequenceEditor({ sequence, onBack }) {
         />
 
         {/* Right Panel - Editor */}
-        <div className="flex-1 overflow-auto bg-white">
+        <div className="flex-1 overflow-auto bg-white dark:bg-neutral-900">
           {showPreview ? (
             <SequenceStepEditor
               key={selectedStepId + "-preview"}

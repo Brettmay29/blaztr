@@ -126,3 +126,27 @@
 .dark .ql-editor.ql-blank::before {
   color: hsl(var(--muted-foreground));
 }
+
+.dark .ql-container.ql-snow {
+  background-color: hsl(var(--card));
+}
+
+.dark .ql-editor {
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--card));
+}
+
+.dark .ql-toolbar.ql-snow .ql-picker-options {
+  background-color: hsl(var(--popover));
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.dark .ql-toolbar.ql-snow .ql-picker-item {
+  color: hsl(var(--foreground));
+}
+
+.dark .ql-toolbar.ql-snow .ql-picker-item:hover {
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--accent));
+}
