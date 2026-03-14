@@ -151,7 +151,19 @@ export default function SequenceStepEditor({
   const [hoveredVar, setHoveredVar] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
   const [showSendTest, setShowSendTest] = useState(false);
+  const [selectedLeadId, setSelectedLeadId] = useState('');
   const quillRef = useRef(null);
+
+  const { data: leads = [] } = useQuery({
+    queryKey: ["leads_for_seq_test"],
+    queryFn: () => base44.entities.Lead.list(),
+  });
+
+  const { data: leadData } = useQuery({
+    queryKey: ["lead_for_seq_test", selectedLeadId],
+    queryFn: () => selectedLeadId ? base44.entities.Lead.get(selectedLeadId) : null,
+    enabled: !!selectedLeadId,
+  });
 
   const insertVariable = (varName) => {
     if (quillRef.current?.getEditor) {
