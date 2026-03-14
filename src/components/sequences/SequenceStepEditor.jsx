@@ -76,10 +76,10 @@ export default function SequenceStepEditor({
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-3xl">
+    <div className="p-6 space-y-6 max-w-3xl dark:text-neutral-100">
       {/* Subject */}
       <div className="space-y-2">
-        <label className="text-sm font-medium text-neutral-700">Subject</label>
+        <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Subject</label>
         <Input
           value={step.subject}
           onChange={(e) => onChange({ subject: e.target.value })}
@@ -91,7 +91,7 @@ export default function SequenceStepEditor({
 
       {/* Delay */}
       <div className="space-y-2">
-        <label className="text-sm font-medium text-neutral-700">Send timing</label>
+        <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Send timing</label>
         <div className="flex items-center gap-3">
           <div className="flex-1 space-y-1">
             <label className="text-xs text-neutral-500">Days</label>
@@ -123,7 +123,7 @@ export default function SequenceStepEditor({
       {/* Body */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-neutral-700">Email Body</label>
+          <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Email Body</label>
           <div className="relative">
             <Button
               size="sm"
@@ -157,7 +157,7 @@ export default function SequenceStepEditor({
           </div>
         </div>
 
-        <div className="border border-neutral-200 rounded-lg overflow-hidden">
+        <div className="border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden">
           <ReactQuill
             ref={quillRef}
             value={step.body}
@@ -181,7 +181,7 @@ export default function SequenceStepEditor({
 
         {/* Preview Button */}
         {!preview && (
-          <div className="flex items-center gap-1.5 px-4 py-2 border border-t-0 border-neutral-200 rounded-b-lg bg-neutral-50">
+          <div className="flex items-center gap-1.5 px-4 py-2 border border-t-0 border-neutral-200 dark:border-neutral-700 rounded-b-lg bg-neutral-50 dark:bg-neutral-800">
             <div className="ml-auto">
               <Button
                 size="sm"

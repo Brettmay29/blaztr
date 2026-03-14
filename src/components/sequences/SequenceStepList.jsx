@@ -29,7 +29,7 @@ export default function SequenceStepList({
   };
 
   return (
-    <div className="w-56 bg-neutral-50 border-r border-neutral-200 flex flex-col">
+    <div className="w-56 bg-neutral-50 dark:bg-neutral-950 border-r border-neutral-200 dark:border-neutral-800 flex flex-col">
       {/* Steps */}
       <div className="flex-1 overflow-auto p-4 space-y-3">
         {steps.map((step, idx) => (
@@ -53,8 +53,8 @@ export default function SequenceStepList({
                 className={cn(
                   "w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                   selectedStepId === step.id
-                    ? "bg-white text-neutral-900 border border-neutral-200"
-                    : "text-neutral-700 hover:bg-white/60"
+                    ? "bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-700"
+                    : "text-neutral-700 dark:text-neutral-300 hover:bg-white/60 dark:hover:bg-neutral-800/60"
                 )}
                 title="Double-click to rename"
               >
@@ -88,7 +88,7 @@ export default function SequenceStepList({
       </div>
 
       {/* Add Step Button */}
-      <div className="p-4 border-t border-neutral-200">
+      <div className="p-4 border-t border-neutral-200 dark:border-neutral-800">
         <Button
           onClick={onAddStep}
           variant="outline"
