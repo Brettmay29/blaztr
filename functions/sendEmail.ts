@@ -85,10 +85,24 @@ Deno.serve(async (req) => {
       sendersignature: sampleSender.signature || '',
     };
 
+    // Cleans a captured variable name: strips HTML tags, decodes entities, removes whitespace
+    const cleanVarName = (varName) => {
+      if (!varName) return '';
+      return varName
+        .replace(/<[^>]*>/g, '')
+        .replace(/&nbsp;/gi, ' ').replace(/&#160;/g, ' ')
+        .replace(/&amp;/gi, '&').replace(/&lt;/gi, '<').replace(/&gt;/gi, '>')
+        .replace(/&quot;/gi, '"').replace(/&#39;/g, "'")
+        .toLowerCase()
+        .replace(/\s+/g, '')
+        .trim();
+    };
+
+    // Fuzzy replace: matches {{ or encoded {{ variants, cleans inner variable name
     const replaceVars = (text) => {
       if (!text) return '';
-      return text.replace(/\{\{([^}]+)\}\}/gi, (match, varName) => {
-        const key = varName.toLowerCase().replace(/\s+/g, '').trim();
+      return text.replace(/(?:\{\{|&lcub;&lcub;|&#123;&#123;)(.*?)(?:\}\}|&rcub;&rcub;|&#125;&#125;)/gi, (match, varName) => {
+        const key = cleanVarName(varName);
         return variableMap[key] !== undefined ? variableMap[key] : match;
       });
     };
