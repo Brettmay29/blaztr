@@ -64,12 +64,16 @@ Deno.serve(async (req) => {
       sendersignature: sampleSender.signature || '',
     };
 
-    // Comprehensive sanitize: strips all HTML tags and decodes all HTML entities.
-    // Applied FIRST to the entire template string before variable replacement.
+    // Sanitize HTML to plain text, preserving paragraph/line-break spacing.
     const rawSanitize = (text) => {
       if (!text) return '';
       return text
-        .replace(/<[^>]*>/g, '')          // strip all HTML tags
+        .replace(/<br\s*\/?>/gi, '\n')           // <br> → newline
+        .replace(/<\/p>(\s*<p>)?/gi, '\n\n')     // </p><p> or </p> → double newline
+        .replace(/<p>/gi, '')                     // remove opening <p>
+        .replace(/<\/div>(\s*<div>)?/gi, '\n')   // div breaks → newline
+        .replace(/<div>/gi, '')                   // remove opening <div>
+        .replace(/<[^>]*>/g, '')                  // strip remaining HTML tags
         .replace(/&nbsp;/g, ' ')
         .replace(/&#160;/g, ' ')
         .replace(/&amp;/g, '&')
@@ -83,7 +87,9 @@ Deno.serve(async (req) => {
         .replace(/&#125;/g, '}')
         .replace(/&lbrace;/g, '{')
         .replace(/&rbrace;/g, '}')
-        .replace(/[ \t]+/g, ' ')          // collapse extra whitespace
+        .replace(/[ \t]+/g, ' ')                  // collapse horizontal whitespace
+        .replace(/\n /g, '\n')                    // remove leading spaces after newlines
+        .replace(/\n{3,}/g, '\n\n')               // max 2 consecutive newlines
         .trim();
     };
 
