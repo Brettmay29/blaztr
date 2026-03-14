@@ -92,6 +92,7 @@ function SendTestModal({ step, leadData, selectedLeadId, onClose }) {
         to: toEmail,
         subject: step.subject,
         body: step.body,
+        lead_id: selectedLeadId || undefined,
       });
       setResult(res.data?.success ? "sent" : "error");
     } catch {
