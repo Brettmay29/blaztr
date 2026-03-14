@@ -97,7 +97,10 @@ Deno.serve(async (req) => {
     const processedSubject = replaceVars(sanitizePlainText(subject));
 
     // Body: preserve HTML, only decode brace entities then replace variables
-    const processedBodyHtml = replaceVars(decodeBraces(body));
+    // Also normalize <p> tag margins so email clients don't double-space paragraphs
+    const processedBodyHtml = replaceVars(decodeBraces(body))
+      .replace(/<p>/gi, '<p style="margin:0 0 1em 0;">')
+      .replace(/<p /gi, '<p style="margin:0 0 1em 0;" ');
 
     console.log('=== FINAL PROCESSED EMAIL (pre-Gmail send) ===');
     console.log('SUBJECT:', processedSubject);
