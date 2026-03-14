@@ -150,6 +150,7 @@ export default function SequenceStepEditor({
   const [showVariables, setShowVariables] = useState(false);
   const [hoveredVar, setHoveredVar] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [showSendTest, setShowSendTest] = useState(false);
   const quillRef = useRef(null);
 
   const insertVariable = (varName) => {
