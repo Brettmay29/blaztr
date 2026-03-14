@@ -72,7 +72,7 @@ function EmailPreviewModal({ step, leadData, onClose }) {
   );
 }
 
-function SendTestModal({ step, onClose }) {
+function SendTestModal({ step, leadData, selectedLeadId, onClose }) {
   const [toEmail, setToEmail] = useState('');
   const [gmailAccountId, setGmailAccountId] = useState('');
   const [sending, setSending] = useState(false);
