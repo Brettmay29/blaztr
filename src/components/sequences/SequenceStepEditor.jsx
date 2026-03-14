@@ -281,8 +281,23 @@ export default function SequenceStepEditor({
 
         {/* Preview Button */}
         {!preview && (
-          <div className="flex items-center gap-1.5 px-4 py-2 border border-t-0 border-neutral-200 dark:border-neutral-700 rounded-b-lg bg-neutral-50 dark:bg-neutral-800">
-            <div className="ml-auto flex items-center gap-2">
+          <div className="flex items-center gap-2 px-4 py-2 border border-t-0 border-neutral-200 dark:border-neutral-700 rounded-b-lg bg-neutral-50 dark:bg-neutral-800">
+            <div className="flex-1 min-w-0">
+              <Select value={selectedLeadId} onValueChange={setSelectedLeadId}>
+                <SelectTrigger className="h-8 text-xs max-w-xs">
+                  <SelectValue placeholder="Test Lead (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>None</SelectItem>
+                  {leads.map((lead) => (
+                    <SelectItem key={lead.id} value={lead.id}>
+                      {lead.first_name} {lead.last_name} ({lead.email})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
               <Button
                 size="sm"
                 variant="outline"
