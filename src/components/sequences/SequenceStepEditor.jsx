@@ -298,6 +298,9 @@ export default function SequenceStepEditor({
       {showPreview && (
         <EmailPreviewModal step={step} onClose={() => setShowPreview(false)} />
       )}
+      {showSendTest && (
+        <SendTestModal step={step} onClose={() => setShowSendTest(false)} />
+      )}
 
       {/* Inline Preview (read-only mode) */}
       {preview && (
