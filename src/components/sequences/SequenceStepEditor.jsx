@@ -187,6 +187,7 @@ export default function SequenceStepEditor({
   const [showPreview, setShowPreview] = useState(false);
   const [showSendTest, setShowSendTest] = useState(false);
   const [selectedLeadId, setSelectedLeadId] = useState('');
+  const [selectedGmailId, setSelectedGmailId] = useState('');
   const quillRef = useRef(null);
 
   const { data: leads = [] } = useQuery({
@@ -194,10 +195,21 @@ export default function SequenceStepEditor({
     queryFn: () => base44.entities.Lead.list(),
   });
 
+  const { data: gmailAccounts = [] } = useQuery({
+    queryKey: ["gmail_accounts_seq_test"],
+    queryFn: () => base44.entities.GmailAccount.list(),
+  });
+
   const { data: leadData } = useQuery({
     queryKey: ["lead_for_seq_test", selectedLeadId],
     queryFn: () => selectedLeadId ? base44.entities.Lead.get(selectedLeadId) : null,
     enabled: !!selectedLeadId,
+  });
+
+  const { data: gmailAccountData } = useQuery({
+    queryKey: ["gmail_account_seq_test", selectedGmailId],
+    queryFn: () => selectedGmailId ? base44.entities.GmailAccount.get(selectedGmailId) : null,
+    enabled: !!selectedGmailId,
   });
 
   const insertVariable = (varName) => {
