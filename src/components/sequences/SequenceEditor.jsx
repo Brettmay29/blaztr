@@ -141,7 +141,7 @@ export default function SequenceEditor({ sequence, onBack }) {
             <Eye className="w-4 h-4 mr-1" />
             {showPreview ? "Hide" : "Preview"}
           </Button>
-          <Button size="sm" onClick={handleSave} className="bg-neutral-900 hover:bg-neutral-800">
+          <Button size="sm" onClick={handleSave} className="bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200">
             Save Sequence
           </Button>
         </div>
