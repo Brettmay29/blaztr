@@ -344,7 +344,7 @@ export default function SequenceStepEditor({
                 </SelectContent>
               </Select>
               <Select value={selectedGmailId} onValueChange={setSelectedGmailId}>
-                <SelectTrigger className="h-8 text-xs max-w-xs">
+                <SelectTrigger className="h-8 text-xs w-44">
                   <SelectValue placeholder="From account (optional)" />
                 </SelectTrigger>
                 <SelectContent>
