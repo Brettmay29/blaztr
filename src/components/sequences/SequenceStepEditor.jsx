@@ -328,8 +328,8 @@ export default function SequenceStepEditor({
 
         {/* Preview Button */}
         {!preview && (
-          <div className="flex items-center gap-2 px-4 py-2 border border-t-0 border-neutral-200 dark:border-neutral-700 rounded-b-lg bg-neutral-50 dark:bg-neutral-800">
-            <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 px-4 py-2 border border-t-0 border-neutral-200 dark:border-neutral-700 rounded-b-lg bg-neutral-50 dark:bg-neutral-800 flex-wrap">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
               <Select value={selectedLeadId} onValueChange={setSelectedLeadId}>
                 <SelectTrigger className="h-8 text-xs max-w-xs">
                   <SelectValue placeholder="Test Lead (optional)" />
@@ -339,6 +339,19 @@ export default function SequenceStepEditor({
                   {leads.map((lead) => (
                     <SelectItem key={lead.id} value={lead.id}>
                       {lead.first_name} {lead.last_name} ({lead.email})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={selectedGmailId} onValueChange={setSelectedGmailId}>
+                <SelectTrigger className="h-8 text-xs max-w-xs">
+                  <SelectValue placeholder="From account (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>None</SelectItem>
+                  {gmailAccounts.map((acc) => (
+                    <SelectItem key={acc.id} value={acc.id}>
+                      {acc.nickname} ({acc.email})
                     </SelectItem>
                   ))}
                 </SelectContent>
