@@ -11,7 +11,7 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { fuzzyReplaceVariables, formatBodyToHtml, DEFAULT_VARIABLE_MAP } from "@/components/emailPreviewUtils";
 
-function EmailPreviewModal({ step, leadData, onClose }) {
+function EmailPreviewModal({ step, leadData, gmailAccountData, onClose }) {
   const variableMap = {
     ...DEFAULT_VARIABLE_MAP,
     ...(leadData ? {
@@ -24,48 +24,69 @@ function EmailPreviewModal({ step, leadData, onClose }) {
       state: leadData.state || DEFAULT_VARIABLE_MAP.state,
       market: leadData.market || DEFAULT_VARIABLE_MAP.market,
     } : {}),
+    senderfirstname: gmailAccountData?.first_name || DEFAULT_VARIABLE_MAP.senderfirstname,
+    senderlastname: gmailAccountData?.last_name || DEFAULT_VARIABLE_MAP.senderlastname,
+    sendersignature: gmailAccountData?.signature || DEFAULT_VARIABLE_MAP.sendersignature,
   };
+
+  // Replace variables in the raw Quill HTML (preserves <p> tags / spacing)
+  const replaceVarsInHtml = (html) => {
+    if (!html) return '';
+    return html.replace(/\{\{([^}]+)\}\}/gi, (match, varName) => {
+      const key = varName.toLowerCase().replace(/\s+/g, '').trim();
+      return variableMap[key] !== undefined ? variableMap[key] : match;
+    });
+  };
+
   const resolvedSubject = fuzzyReplaceVariables(step.subject, variableMap);
-  const previewBodyHtml = formatBodyToHtml(fuzzyReplaceVariables(step.body, variableMap));
+  const resolvedBodyHtml = replaceVarsInHtml(step.body);
+
+  const toDisplay = leadData
+    ? `${leadData.first_name || ''} ${leadData.last_name || ''} <${leadData.email}>`.trim()
+    : 'John Doe <john@example.com>';
+
+  const fromDisplay = gmailAccountData
+    ? `${gmailAccountData.first_name || ''} ${gmailAccountData.last_name || ''} <${gmailAccountData.email}>`.trim()
+    : 'you@youremail.com';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
       <div
-        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden"
+        className="bg-white dark:bg-neutral-900 rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-200">
-          <h2 className="text-sm font-semibold text-neutral-900">Email Preview</h2>
-          <button onClick={onClose} className="text-neutral-400 hover:text-neutral-700 transition-colors">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-200 dark:border-neutral-700">
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Email Preview</h2>
+          <button onClick={onClose} className="text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
 
         <div className="flex-1 overflow-auto p-5 space-y-4">
-          <div className="space-y-2 text-sm border-b border-neutral-100 pb-4">
+          <div className="space-y-2 text-sm border-b border-neutral-100 dark:border-neutral-700 pb-4">
             <div className="flex gap-2">
               <span className="text-neutral-400 w-16 shrink-0">From:</span>
-              <span className="text-neutral-700">you@youremail.com</span>
+              <span className="text-neutral-700 dark:text-neutral-300">{fromDisplay}</span>
             </div>
             <div className="flex gap-2">
               <span className="text-neutral-400 w-16 shrink-0">To:</span>
-              <span className="text-neutral-700">John Doe &lt;john@example.com&gt;</span>
+              <span className="text-neutral-700 dark:text-neutral-300">{toDisplay}</span>
             </div>
             <div className="flex gap-2">
               <span className="text-neutral-400 w-16 shrink-0">Subject:</span>
-              <span className="text-neutral-800 font-medium">{resolvedSubject || <em className="text-neutral-400">(no subject)</em>}</span>
+              <span className="text-neutral-800 dark:text-neutral-100 font-medium">{resolvedSubject || <em className="text-neutral-400">(no subject)</em>}</span>
             </div>
           </div>
 
           <div
-            className="text-sm text-neutral-800 leading-relaxed"
-            style={{ fontFamily: 'sans-serif' }}
-            dangerouslySetInnerHTML={{ __html: previewBodyHtml }}
+            className="text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed ql-editor"
+            style={{ fontFamily: 'sans-serif', padding: 0 }}
+            dangerouslySetInnerHTML={{ __html: resolvedBodyHtml }}
           />
         </div>
 
-        <div className="px-5 py-3 border-t border-neutral-100 bg-neutral-50 text-xs text-neutral-400">
-          Variables replaced with sample data for preview.
+        <div className="px-5 py-3 border-t border-neutral-100 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-800 text-xs text-neutral-400">
+          {leadData ? `Showing variables for: ${leadData.first_name} ${leadData.last_name}` : 'Variables replaced with sample data for preview.'}
         </div>
       </div>
     </div>
