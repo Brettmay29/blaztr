@@ -383,10 +383,10 @@ export default function SequenceStepEditor({
 
       {/* Preview Modal */}
       {showPreview && (
-        <EmailPreviewModal step={step} leadData={leadData} onClose={() => setShowPreview(false)} />
+        <EmailPreviewModal step={step} leadData={leadData} gmailAccountData={gmailAccountData} onClose={() => setShowPreview(false)} />
       )}
       {showSendTest && (
-        <SendTestModal step={step} leadData={leadData} selectedLeadId={selectedLeadId} onClose={() => setShowSendTest(false)} />
+        <SendTestModal step={step} leadData={leadData} selectedLeadId={selectedLeadId} gmailAccountId={selectedGmailId} onClose={() => setShowSendTest(false)} />
       )}
 
       {/* Inline Preview (read-only mode) */}
