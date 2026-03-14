@@ -93,9 +93,9 @@ function EmailPreviewModal({ step, leadData, gmailAccountData, onClose }) {
   );
 }
 
-function SendTestModal({ step, leadData, selectedLeadId, onClose }) {
-  const [toEmail, setToEmail] = useState('');
-  const [gmailAccountId, setGmailAccountId] = useState('');
+function SendTestModal({ step, leadData, selectedLeadId, gmailAccountId: initialGmailId, onClose }) {
+  const [toEmail, setToEmail] = useState(leadData?.email || '');
+  const [gmailAccountId, setGmailAccountId] = useState(initialGmailId || '');
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState(null);
 
