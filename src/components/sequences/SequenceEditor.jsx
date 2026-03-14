@@ -16,6 +16,9 @@ const VARIABLES = [
   { name: "{{industry}}", label: "Industry" },
   { name: "{{state}}", label: "State" },
   { name: "{{market}}", label: "Market" },
+  { name: "{{senderFirstName}}", label: "Sender First Name" },
+  { name: "{{senderLastName}}", label: "Sender Last Name" },
+  { name: "{{senderSignature}}", label: "Sender Signature" },
 ];
 
 export default function SequenceEditor({ sequence, onBack }) {
