@@ -64,8 +64,6 @@ Deno.serve(async (req) => {
       sendersignature: sampleSender.signature || '',
     };
 
-    // NEW: Only decode entities that affect variables ({{ }} and &nbsp;). 
-    // Leaves real HTML tags intact so Quill formatting survives.
     const decodeForVars = (input) => {
       if (!input) return '';
       let s = String(input);
@@ -77,7 +75,6 @@ Deno.serve(async (req) => {
       return s;
     };
 
-    // Fuzzy Variable replacement (same as before — works on HTML)
     const replaceVars = (text) => {
       if (!text) return '';
       return text.replace(/\{\{([^}]+)\}\}/gi, (match, varName) => {
@@ -86,13 +83,12 @@ Deno.serve(async (req) => {
       });
     };
 
-    // Process
     const decodedSubject = decodeForVars(subject);
     const decodedBody    = decodeForVars(body);
     const processedSubject = replaceVars(decodedSubject);
     const processedBody    = replaceVars(decodedBody);
 
-    // Full HTML wrapper + email-friendly styles for proper Gmail spacing
+    // Full HTML wrapper with email-friendly styles for proper Gmail rendering
     const htmlContent = `<html><head><meta charset="UTF-8"><title></title></head><body style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #333; margin: 0; padding: 20px;">${processedBody}</body></html>`;
 
     console.log('=== FINAL PROCESSED HTML EMAIL (pre-Gmail send) ===');
