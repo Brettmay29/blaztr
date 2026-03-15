@@ -64,49 +64,50 @@ Deno.serve(async (req) => {
       sendersignature: sampleSender.signature || '',
     };
 
-    // STEP 1: Raw String Sanitization — strip ALL HTML tags and decode ALL entities first.
-    const rawSanitize = (text) => {
-      if (!text) return '';
-      let s = String(text);
-      // Decode encoded braces so variables survive sanitization
+    // Strip HTML and decode entities to plain text
+    const htmlToPlainText = (html) => {
+      if (!html) return '';
+      let s = String(html);
+      // Decode brace entities first so {{variables}} survive
       s = s.replace(/&lcub;/g, '{').replace(/&rcub;/g, '}')
            .replace(/&#123;/g, '{').replace(/&#125;/g, '}')
            .replace(/&lbrace;/g, '{').replace(/&rbrace;/g, '}');
-      // Convert block-level tags to newlines BEFORE stripping
-      s = s.replace(/<br\s*\/?>/gi, '\n');
-      s = s.replace(/<\/p>/gi, '\n\n');
-      s = s.replace(/<\/div>/gi, '\n');
-      // Strip ALL remaining HTML tags (global)
-      s = s.replace(/<[^>]*>/g, '');
-      // Decode remaining HTML entities
+      // Block tags → newlines
+      s = s.replace(/<br\s*\/?>/gi, '\n')
+           .replace(/<\/p\s*>/gi, '\n')
+           .replace(/<\/div\s*>/gi, '\n')
+           .replace(/<\/li\s*>/gi, '\n');
+      // Strip ALL remaining tags
+      s = s.replace(/<[^>]+>/g, '');
+      // Decode common HTML entities
       s = s.replace(/&nbsp;/g, ' ')
            .replace(/&#160;/g, ' ')
            .replace(/&amp;/g, '&')
            .replace(/&lt;/g, '<')
            .replace(/&gt;/g, '>')
            .replace(/&quot;/g, '"')
-           .replace(/&#39;/g, "'");
-      // Normalize whitespace
+           .replace(/&#39;/g, "'")
+           .replace(/&apos;/g, "'");
+      // Clean up whitespace
       s = s.replace(/[ \t]+/g, ' ')
-           .replace(/\n[ \t]+/g, '\n')
+           .replace(/\n /g, '\n')
+           .replace(/ \n/g, '\n')
            .replace(/\n{3,}/g, '\n\n')
            .trim();
       return s;
     };
 
-    // STEP 2: Fuzzy Variable replacement — accounts for encoded or spaced braces.
+    // Replace {{variable}} tokens
     const replaceVars = (text) => {
       if (!text) return '';
-      // Fuzzy pattern matches {{ varName }} with optional spaces/encoding
-      return text.replace(/(\{\{|&lcub;&lcub;|&#123;&#123;)\s*([^}\s]+)\s*(\}\}|&rcub;&rcub;|&#125;&#125;)/gi, (match, _open, varName, _close) => {
+      return text.replace(/\{\{([^}]+)\}\}/gi, (match, varName) => {
         const key = varName.toLowerCase().replace(/\s+/g, '').trim();
         return variableMap[key] !== undefined ? variableMap[key] : match;
       });
     };
 
-    // Sanitize FIRST, THEN replace variables
-    const processedSubject = replaceVars(rawSanitize(subject));
-    const processedBody    = replaceVars(rawSanitize(body));
+    const processedSubject = replaceVars(htmlToPlainText(subject));
+    const processedBody    = replaceVars(htmlToPlainText(body));
 
     console.log('=== FINAL PROCESSED EMAIL (pre-Gmail send) ===');
     console.log('SUBJECT:', processedSubject);
