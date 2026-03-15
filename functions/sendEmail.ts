@@ -87,8 +87,8 @@ Deno.serve(async (req) => {
         .replace(/<p[^>]*><br\s*\/?><\/p>/gi, '<p style="margin:0;padding:0;line-height:1.4;font-family:Arial,sans-serif;font-size:14px;color:#333;">&nbsp;</p>')
         // Normal <p> tags → tight spacing matching preview
         .replace(/<p(?:\s+style="[^"]*")?>/gi, '<p style="margin:0;padding:0;line-height:1.4;font-family:Arial,sans-serif;font-size:14px;color:#333;">')
-        // Preserve <br> line breaks inside paragraphs (signature lines etc.)
-        .replace(/<br\s*\/?>/gi, '<br>');
+        // Force hard line breaks Gmail respects
+        .replace(/<br\s*\/?>/gi, '<br style="display:block;content:\'\';margin-top:0;">');
     };
 
     const decodedSubject = decodeForVars(subject);
