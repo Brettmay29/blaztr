@@ -64,22 +64,29 @@ Deno.serve(async (req) => {
       sendersignature: sampleSender.signature || '',
     };
 
-    // Strip HTML and decode entities to plain text
-    const htmlToPlainText = (html) => {
-      if (!html) return '';
-      let s = String(html);
-      // Decode brace entities first so {{variables}} survive
+    // SANITIZE-FIRST: Convert to raw string and strip ALL HTML tags and entities
+    // before any variable replacement logic touches the template.
+    const sanitizeRaw = (input) => {
+      if (!input) return '';
+      let s = String(input);
+
+      // Step 1: Decode encoded braces so {{variables}} survive (handles Quill encoding)
       s = s.replace(/&lcub;/g, '{').replace(/&rcub;/g, '}')
            .replace(/&#123;/g, '{').replace(/&#125;/g, '}')
-           .replace(/&lbrace;/g, '{').replace(/&rbrace;/g, '}');
-      // Block tags → newlines
+           .replace(/&lbrace;/g, '{').replace(/&rbrace;/g, '}')
+           .replace(/&amp;lcub;/g, '{').replace(/&amp;rcub;/g, '}');
+
+      // Step 2: Block-level tags → newlines BEFORE stripping
       s = s.replace(/<br\s*\/?>/gi, '\n')
-           .replace(/<\/p\s*>/gi, '\n')
-           .replace(/<\/div\s*>/gi, '\n')
-           .replace(/<\/li\s*>/gi, '\n');
-      // Strip ALL remaining tags
-      s = s.replace(/<[^>]+>/g, '');
-      // Decode common HTML entities
+           .replace(/<\/p>/gi, '\n')
+           .replace(/<\/div>/gi, '\n')
+           .replace(/<\/li>/gi, '\n')
+           .replace(/<\/h[1-6]>/gi, '\n');
+
+      // Step 3: Global regex strips ALL remaining HTML tags
+      s = s.replace(/<[^>]*>/g, '');
+
+      // Step 4: Decode ALL &nbsp; and common HTML entities
       s = s.replace(/&nbsp;/g, ' ')
            .replace(/&#160;/g, ' ')
            .replace(/&amp;/g, '&')
@@ -88,27 +95,33 @@ Deno.serve(async (req) => {
            .replace(/&quot;/g, '"')
            .replace(/&#39;/g, "'")
            .replace(/&apos;/g, "'");
-      // Clean up whitespace
+
+      // Step 5: Normalise whitespace
       s = s.replace(/[ \t]+/g, ' ')
            .replace(/\n /g, '\n')
            .replace(/ \n/g, '\n')
            .replace(/\n{3,}/g, '\n\n')
            .trim();
+
       return s;
     };
 
-    // Replace {{variable}} tokens
+    // Fuzzy Variable replacement: matches both {{var}} and encoded variants like &lcub;&lcub;var&rcub;&rcub;
     const replaceVars = (text) => {
       if (!text) return '';
-      return text.replace(/\{\{([^}]+)\}\}/gi, (match, varName) => {
+      // Primary match: standard {{variable}}
+      let result = text.replace(/\{\{([^}]+)\}\}/gi, (match, varName) => {
         const key = varName.toLowerCase().replace(/\s+/g, '').trim();
         return variableMap[key] !== undefined ? variableMap[key] : match;
       });
+      return result;
     };
 
-    const processedSubject = replaceVars(htmlToPlainText(subject));
-    const processedBody    = replaceVars(htmlToPlainText(body));
+    // SANITIZE FIRST, then replace variables
+    const processedSubject = replaceVars(sanitizeRaw(subject));
+    const processedBody    = replaceVars(sanitizeRaw(body));
 
+    // Log the FINAL processed string immediately before Gmail send
     console.log('=== FINAL PROCESSED EMAIL (pre-Gmail send) ===');
     console.log('SUBJECT:', processedSubject);
     console.log('BODY:', processedBody);
