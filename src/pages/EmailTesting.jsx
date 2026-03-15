@@ -151,7 +151,7 @@ export default function EmailTesting() {
           <Input
             placeholder="Test subject line"
             value={form.subject}
-            onChange={(e) => setForm({ ...form, subject: htmlToPlainText(e.target.value) })}
+            onChange={(e) => setForm({ ...form, subject: e.target.value })}
             className="h-auto py-2 text-sm"
           />
         </div>
