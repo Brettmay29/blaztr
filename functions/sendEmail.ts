@@ -80,11 +80,15 @@ Deno.serve(async (req) => {
       });
     };
 
-    // KEY FIX: Inject inline styles on <p> tags so Gmail can't strip them
+    // Inject inline styles matching the preview exactly — tight casual spacing
     const inlineStyles = (html) => {
       return html
-        .replace(/<p>/gi, '<p style="margin:0 0 16px 0;padding:0;font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#333;">')
-        .replace(/<p style=""/gi, '<p style="margin:0 0 16px 0;padding:0;font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#333;">');
+        // Empty <p><br></p> lines (blank spacer rows from Quill) → small gap
+        .replace(/<p[^>]*><br\s*\/?><\/p>/gi, '<p style="margin:0;padding:0;line-height:1.4;font-family:Arial,sans-serif;font-size:14px;color:#333;">&nbsp;</p>')
+        // Normal <p> tags → tight spacing matching preview
+        .replace(/<p(?:\s+style="[^"]*")?>/gi, '<p style="margin:0;padding:0;line-height:1.4;font-family:Arial,sans-serif;font-size:14px;color:#333;">')
+        // Preserve <br> line breaks inside paragraphs (signature lines etc.)
+        .replace(/<br\s*\/?>/gi, '<br>');
     };
 
     const decodedSubject = decodeForVars(subject);
@@ -95,7 +99,7 @@ Deno.serve(async (req) => {
     const htmlContent = `<!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"></head>
-<body style="font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#333;margin:0;padding:20px;">
+<body style="font-family:Arial,sans-serif;font-size:14px;line-height:1.4;color:#333;margin:0;padding:20px;">
 ${processedBody}
 </body>
 </html>`;
@@ -162,18 +166,4 @@ ${processedBody}
       await base44.asServiceRole.entities.SendLog.create({
         lead_id,
         campaign_id,
-        gmail_account_id: gmail_account_id || '',
-        status: 'Sent',
-        sent_at: now,
-        lead_email: to,
-        lead_name: lead?.first_name || '',
-        subject: processedSubject,
-        sequence_step: sequence_step || '1st',
-      });
-    }
-
-    return Response.json({ success: true, message_id: gmailData.id });
-  } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
-  }
-});
+        gmail_account_id: gmail_account_id ||
