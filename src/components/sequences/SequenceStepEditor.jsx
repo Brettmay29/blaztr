@@ -125,7 +125,7 @@ function SendTestModal({ step, leadData, selectedLeadId, gmailAccountId: initial
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-lg w-full">
         <DialogHeader>
           <DialogTitle>Send Test Email</DialogTitle>
         </DialogHeader>
