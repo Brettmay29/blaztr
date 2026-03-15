@@ -88,8 +88,21 @@ Deno.serve(async (req) => {
     const processedSubject = replaceVars(decodedSubject);
     const processedBody    = replaceVars(decodedBody);
 
-    // Full HTML wrapper with email-friendly styles for proper Gmail rendering
-    const htmlContent = `<html><head><meta charset="UTF-8"><title></title></head><body style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #333; margin: 0; padding: 20px;">${processedBody}</body></html>`;
+    // FINAL 1:1 PREVIEW → GMAIL MATCH (added <style> for p margins + doctype)
+    const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title></title>
+<style>
+body { font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #333; margin: 0; padding: 20px; }
+p { margin: 0 0 1em 0; }
+</style>
+</head>
+<body>
+${processedBody}
+</body>
+</html>`;
 
     console.log('=== FINAL PROCESSED HTML EMAIL (pre-Gmail send) ===');
     console.log('SUBJECT:', processedSubject);
