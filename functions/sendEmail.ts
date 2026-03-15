@@ -70,31 +70,32 @@ Deno.serve(async (req) => {
       if (!input) return '';
       let s = String(input);
 
-      // Step 1: Decode encoded braces so {{variables}} survive (handles Quill encoding)
+      // Step 1: Decode ALL HTML entities first (including &lt; &gt; &amp; etc.)
+      // This ensures tags encoded as entities (e.g. &lt;p&gt;) become raw tags
+      // before the stripping step, so nothing slips through.
+      s = s.replace(/&amp;/g, '&')
+           .replace(/&lt;/g, '<')
+           .replace(/&gt;/g, '>')
+           .replace(/&quot;/g, '"')
+           .replace(/&#39;/g, "'")
+           .replace(/&apos;/g, "'")
+           .replace(/&nbsp;/g, ' ')
+           .replace(/&#160;/g, ' ');
+
+      // Step 2: Decode encoded braces so {{variables}} survive (handles Quill encoding)
       s = s.replace(/&lcub;/g, '{').replace(/&rcub;/g, '}')
            .replace(/&#123;/g, '{').replace(/&#125;/g, '}')
-           .replace(/&lbrace;/g, '{').replace(/&rbrace;/g, '}')
-           .replace(/&amp;lcub;/g, '{').replace(/&amp;rcub;/g, '}');
+           .replace(/&lbrace;/g, '{').replace(/&rbrace;/g, '}');
 
-      // Step 2: Block-level tags → newlines BEFORE stripping
+      // Step 3: Block-level tags → newlines BEFORE stripping
       s = s.replace(/<br\s*\/?>/gi, '\n')
            .replace(/<\/p>/gi, '\n')
            .replace(/<\/div>/gi, '\n')
            .replace(/<\/li>/gi, '\n')
            .replace(/<\/h[1-6]>/gi, '\n');
 
-      // Step 3: Global regex strips ALL remaining HTML tags
+      // Step 4: Strip ALL remaining HTML tags
       s = s.replace(/<[^>]*>/g, '');
-
-      // Step 4: Decode ALL &nbsp; and common HTML entities
-      s = s.replace(/&nbsp;/g, ' ')
-           .replace(/&#160;/g, ' ')
-           .replace(/&amp;/g, '&')
-           .replace(/&lt;/g, '<')
-           .replace(/&gt;/g, '>')
-           .replace(/&quot;/g, '"')
-           .replace(/&#39;/g, "'")
-           .replace(/&apos;/g, "'");
 
       // Step 5: Normalise whitespace
       s = s.replace(/[ \t]+/g, ' ')
