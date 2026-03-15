@@ -188,7 +188,7 @@ export default function EmailTesting() {
 
           <textarea
             value={form.body}
-            onChange={(e) => setForm({ ...form, body: e.target.value })}
+            onChange={(e) => setForm({ ...form, body: htmlToPlainText(e.target.value) })}
             placeholder="Write your email body here..."
             rows={12}
             style={{ fontFamily: 'sans-serif', fontSize: '12px' }}
