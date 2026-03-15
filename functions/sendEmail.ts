@@ -166,4 +166,18 @@ ${processedBody}
       await base44.asServiceRole.entities.SendLog.create({
         lead_id,
         campaign_id,
-        gmail_account_id: gmail_account_id ||
+        gmail_account_id: gmail_account_id || '',
+        status: 'Sent',
+        sent_at: now,
+        lead_email: to,
+        lead_name: lead?.first_name || '',
+        subject: processedSubject,
+        sequence_step: sequence_step || '1st',
+      });
+    }
+
+    return Response.json({ success: true, message_id: gmailData.id });
+  } catch (error) {
+    return Response.json({ error: error.message }, { status: 500 });
+  }
+});
