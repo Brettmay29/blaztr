@@ -11,7 +11,6 @@ Deno.serve(async (req) => {
     if (!to || !subject || !body) {
       return Response.json({ error: 'Missing required fields: to, subject, body' }, { status: 400 });
     }
-
     if (!gmail_account_id) {
       return Response.json({ error: 'gmail_account_id is required' }, { status: 400 });
     }
@@ -28,9 +27,7 @@ Deno.serve(async (req) => {
     if (lead_id) {
       try {
         leadData = await base44.asServiceRole.entities.Lead.get(lead_id);
-      } catch {
-        // Lead not found, continue with defaults
-      }
+      } catch { /* Lead not found, continue with defaults */ }
     }
 
     const sampleLead = {
@@ -83,23 +80,22 @@ Deno.serve(async (req) => {
       });
     };
 
+    // KEY FIX: Inject inline styles on <p> tags so Gmail can't strip them
+    const inlineStyles = (html) => {
+      return html
+        .replace(/<p>/gi, '<p style="margin:0 0 16px 0;padding:0;font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#333;">')
+        .replace(/<p style=""/gi, '<p style="margin:0 0 16px 0;padding:0;font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#333;">');
+    };
+
     const decodedSubject = decodeForVars(subject);
     const decodedBody    = decodeForVars(body);
     const processedSubject = replaceVars(decodedSubject);
-    const processedBody    = replaceVars(decodedBody);
+    const processedBody    = inlineStyles(replaceVars(decodedBody));
 
-    // FINAL pixel-perfect Preview → Gmail spacing
     const htmlContent = `<!DOCTYPE html>
 <html>
-<head>
-<meta charset="UTF-8">
-<title></title>
-<style>
-body { font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #333; margin: 0; padding: 20px; }
-p { margin: 0 0 16px 0 !important; padding: 0; }
-</style>
-</head>
-<body>
+<head><meta charset="UTF-8"></head>
+<body style="font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#333;margin:0;padding:20px;">
 ${processedBody}
 </body>
 </html>`;
@@ -114,7 +110,7 @@ ${processedBody}
       const conn = await base44.asServiceRole.connectors.getConnection('gmail');
       accessToken = conn.accessToken;
     } catch (err) {
-      return Response.json({ error: 'Failed to connect to Gmail. Please authorize the Gmail connector in settings.', details: err.message }, { status: 500 });
+      return Response.json({ error: 'Failed to connect to Gmail.', details: err.message }, { status: 500 });
     }
 
     const emailLines = [
