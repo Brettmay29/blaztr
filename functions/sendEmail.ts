@@ -92,10 +92,12 @@ Deno.serve(async (req) => {
     const processedSubject = replaceVars(decodedSubject);
     const processedBody    = replaceVars(decodedBody);
 
-    // Log what Gmail will actually receive
+    // Full HTML wrapper + email-friendly styles for proper Gmail spacing
+    const htmlContent = `<html><head><meta charset="UTF-8"><title></title></head><body style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #333; margin: 0; padding: 20px;">${processedBody}</body></html>`;
+
     console.log('=== FINAL PROCESSED HTML EMAIL (pre-Gmail send) ===');
     console.log('SUBJECT:', processedSubject);
-    console.log('BODY (HTML):', processedBody);
+    console.log('BODY (HTML):', htmlContent);
     console.log('==============================================');
 
     let accessToken;
@@ -112,7 +114,7 @@ Deno.serve(async (req) => {
       `MIME-Version: 1.0`,
       `Content-Type: text/html; charset=UTF-8`,
     ];
-    const raw = emailLines.join('\r\n') + '\r\n\r\n' + processedBody;
+    const raw = emailLines.join('\r\n') + '\r\n\r\n' + htmlContent;
 
     const encodedEmail = btoa(unescape(encodeURIComponent(raw)))
       .replace(/\+/g, '-')
