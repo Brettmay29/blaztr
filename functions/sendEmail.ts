@@ -88,7 +88,7 @@ Deno.serve(async (req) => {
     const processedSubject = replaceVars(decodedSubject);
     const processedBody    = replaceVars(decodedBody);
 
-    // FINAL 1:1 PREVIEW → GMAIL MATCH (added <style> for p margins + doctype)
+    // FINAL 1:1 PREVIEW → GMAIL MATCH
     const htmlContent = `<!DOCTYPE html>
 <html>
 <head>
@@ -96,7 +96,7 @@ Deno.serve(async (req) => {
 <title></title>
 <style>
 body { font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #333; margin: 0; padding: 20px; }
-p { margin: 0 0 1em 0; }
+p { margin: 0 0 1em 0 !important; }
 </style>
 </head>
 <body>
