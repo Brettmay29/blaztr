@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Send, Loader2, CheckCircle2, ChevronDown, Eye } from "lucide-react";
-import { fuzzyReplaceVariables, formatBodyToHtml } from "@/components/emailPreviewUtils";
+import { fuzzyReplaceVariables, formatBodyToHtml, htmlToPlainText } from "@/components/emailPreviewUtils";
 
 const VARIABLES = [
   { name: "{{firstName}}", label: "First Name" },
