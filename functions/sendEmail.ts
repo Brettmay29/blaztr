@@ -64,68 +64,38 @@ Deno.serve(async (req) => {
       sendersignature: sampleSender.signature || '',
     };
 
-    // SANITIZE-FIRST: Convert to raw string and strip ALL HTML tags and entities
-    // before any variable replacement logic touches the template.
-    const sanitizeRaw = (input) => {
+    // NEW: Only decode entities that affect variables ({{ }} and &nbsp;). 
+    // Leaves real HTML tags intact so Quill formatting survives.
+    const decodeForVars = (input) => {
       if (!input) return '';
       let s = String(input);
-
-      // Step 1: Decode ALL HTML entities first (including &lt; &gt; &amp; etc.)
-      // This ensures tags encoded as entities (e.g. &lt;p&gt;) become raw tags
-      // before the stripping step, so nothing slips through.
-      s = s.replace(/&amp;/g, '&')
-           .replace(/&lt;/g, '<')
-           .replace(/&gt;/g, '>')
-           .replace(/&quot;/g, '"')
-           .replace(/&#39;/g, "'")
-           .replace(/&apos;/g, "'")
-           .replace(/&nbsp;/g, ' ')
-           .replace(/&#160;/g, ' ');
-
-      // Step 2: Decode encoded braces so {{variables}} survive (handles Quill encoding)
-      s = s.replace(/&lcub;/g, '{').replace(/&rcub;/g, '}')
+      s = s.replace(/&nbsp;/g, ' ')
+           .replace(/&#160;/g, ' ')
+           .replace(/&lcub;/g, '{').replace(/&rcub;/g, '}')
            .replace(/&#123;/g, '{').replace(/&#125;/g, '}')
            .replace(/&lbrace;/g, '{').replace(/&rbrace;/g, '}');
-
-      // Step 3: Block-level tags → newlines BEFORE stripping
-      s = s.replace(/<br\s*\/?>/gi, '\n')
-           .replace(/<\/p>/gi, '\n')
-           .replace(/<\/div>/gi, '\n')
-           .replace(/<\/li>/gi, '\n')
-           .replace(/<\/h[1-6]>/gi, '\n');
-
-      // Step 4: Strip ALL remaining HTML tags
-      s = s.replace(/<[^>]*>/g, '');
-
-      // Step 5: Normalise whitespace
-      s = s.replace(/[ \t]+/g, ' ')
-           .replace(/\n /g, '\n')
-           .replace(/ \n/g, '\n')
-           .replace(/\n{3,}/g, '\n\n')
-           .trim();
-
       return s;
     };
 
-    // Fuzzy Variable replacement: matches both {{var}} and encoded variants like &lcub;&lcub;var&rcub;&rcub;
+    // Fuzzy Variable replacement (same as before — works on HTML)
     const replaceVars = (text) => {
       if (!text) return '';
-      // Primary match: standard {{variable}}
-      let result = text.replace(/\{\{([^}]+)\}\}/gi, (match, varName) => {
+      return text.replace(/\{\{([^}]+)\}\}/gi, (match, varName) => {
         const key = varName.toLowerCase().replace(/\s+/g, '').trim();
         return variableMap[key] !== undefined ? variableMap[key] : match;
       });
-      return result;
     };
 
-    // SANITIZE FIRST, then replace variables
-    const processedSubject = replaceVars(sanitizeRaw(subject));
-    const processedBody    = replaceVars(sanitizeRaw(body));
+    // Process
+    const decodedSubject = decodeForVars(subject);
+    const decodedBody    = decodeForVars(body);
+    const processedSubject = replaceVars(decodedSubject);
+    const processedBody    = replaceVars(decodedBody);
 
-    // Log the FINAL processed string immediately before Gmail send
-    console.log('=== FINAL PROCESSED EMAIL (pre-Gmail send) ===');
+    // Log what Gmail will actually receive
+    console.log('=== FINAL PROCESSED HTML EMAIL (pre-Gmail send) ===');
     console.log('SUBJECT:', processedSubject);
-    console.log('BODY:', processedBody);
+    console.log('BODY (HTML):', processedBody);
     console.log('==============================================');
 
     let accessToken;
@@ -140,9 +110,10 @@ Deno.serve(async (req) => {
       `To: ${to}`,
       `Subject: ${processedSubject}`,
       `MIME-Version: 1.0`,
-      `Content-Type: text/plain; charset=UTF-8`,
+      `Content-Type: text/html; charset=UTF-8`,
     ];
     const raw = emailLines.join('\r\n') + '\r\n\r\n' + processedBody;
+
     const encodedEmail = btoa(unescape(encodeURIComponent(raw)))
       .replace(/\+/g, '-')
       .replace(/\//g, '_')
