@@ -80,14 +80,10 @@ Deno.serve(async (req) => {
       });
     };
 
-    // Inject inline styles matching the preview exactly — tight casual spacing
     const inlineStyles = (html) => {
       return html
-        // Empty <p><br></p> lines (blank spacer rows from Quill) → small gap
         .replace(/<p[^>]*><br\s*\/?><\/p>/gi, '<p style="margin:0;padding:0;line-height:1.4;font-family:Arial,sans-serif;font-size:14px;color:#333;">&nbsp;</p>')
-        // Normal <p> tags → tight spacing matching preview
         .replace(/<p(?:\s+style="[^"]*")?>/gi, '<p style="margin:0;padding:0;line-height:1.4;font-family:Arial,sans-serif;font-size:14px;color:#333;">')
-        // Force hard line breaks Gmail respects
         .replace(/<br\s*\/?>/gi, '<br style="display:block;content:\'\';margin-top:0;">');
     };
 
@@ -109,16 +105,30 @@ ${processedBody}
     console.log('BODY (HTML):', htmlContent);
     console.log('==============================================');
 
+    // KEY FIX: Use the access_token stored on the GmailAccount entity
+    // instead of the Base44 connector (which always returns brett@conversioncontractor.com)
     let accessToken;
-    try {
-      const conn = await base44.asServiceRole.connectors.getConnection('gmail');
-      accessToken = conn.accessToken;
-    } catch (err) {
-      return Response.json({ error: 'Failed to connect to Gmail.', details: err.message }, { status: 500 });
+    if (gmailAccountData.access_token) {
+      // OAuth account — use stored token directly
+      accessToken = gmailAccountData.access_token;
+    } else {
+      // Fallback to Base44 connector for the original auto-detected account
+      try {
+        const conn = await base44.asServiceRole.connectors.getConnection('gmail');
+        accessToken = conn.accessToken;
+      } catch (err) {
+        return Response.json({ error: 'Failed to connect to Gmail.', details: err.message }, { status: 500 });
+      }
     }
+
+    const senderName = `${gmailAccountData.first_name || ''} ${gmailAccountData.last_name || ''}`.trim();
+    const fromHeader = senderName
+      ? `${senderName} <${gmailAccountData.email}>`
+      : gmailAccountData.email;
 
     const emailLines = [
       `To: ${to}`,
+      `From: ${fromHeader}`,
       `Subject: ${processedSubject}`,
       `MIME-Version: 1.0`,
       `Content-Type: text/html; charset=UTF-8`,
