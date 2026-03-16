@@ -216,7 +216,7 @@ export default function SendHub() {
            </div>
            <div className="flex items-end">
              <Button
-               className="bg-neutral-900 hover:bg-neutral-800 w-full h-9 text-xs"
+               className="bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 w-full h-9 text-xs"
                disabled={!selectedCampaign || !selectedGmail || !selectedLeadGroup || selectedLeads.length === 0 || sending}
                onClick={handleStartCampaign}
              >
