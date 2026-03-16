@@ -29,7 +29,6 @@ function EmailPreviewModal({ step, leadData, gmailAccountData, onClose }) {
     sendersignature: gmailAccountData?.signature || DEFAULT_VARIABLE_MAP.sendersignature,
   };
 
-  // Replace variables in the raw Quill HTML (preserves <p> tags / spacing)
   const replaceVarsInHtml = (html) => {
     if (!html) return '';
     return html.replace(/\{\{([^}]+)\}\}/gi, (match, varName) => {
@@ -155,7 +154,7 @@ function SendTestModal({ step, leadData, selectedLeadId, gmailAccountId: initial
             />
           </div>
           <Button
-            className="w-full bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 text-xs h-9"
+            className="w-full bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 text-xs h-9"
             onClick={handleSend}
             disabled={sending || !gmailAccountId || !toEmail}
           >
@@ -260,6 +259,18 @@ export default function SequenceStepEditor({
               max="23"
               value={step.delay_hours}
               onChange={(e) => onChange({ delay_hours: parseInt(e.target.value) || 0 })}
+              className="text-sm"
+              disabled={preview}
+            />
+          </div>
+          <div className="flex-1 space-y-1">
+            <label className="text-xs text-neutral-500">Minutes</label>
+            <Input
+              type="number"
+              min="0"
+              max="59"
+              value={step.delay_minutes || 0}
+              onChange={(e) => onChange({ delay_minutes: parseInt(e.target.value) || 0 })}
               className="text-sm"
               disabled={preview}
             />
