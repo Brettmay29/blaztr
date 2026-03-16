@@ -11,8 +11,7 @@ jobs:
     steps:
       - name: Trigger processSequenceSteps
         run: |
-          curl -X POST \
+          curl -X POST "https://blaztr.base44.app/api/functions/processSequenceSteps" \
             -H "Content-Type: application/json" \
-            -H "Authorization: Bearer ${{ secrets.BLAZTR_API_KEY }}" \
-            -d '{}' \
-            https://blaztr.base44.app/api/functions/processSequenceSteps
+            -H "api_key: ${{ secrets.BLAZTR_API_KEY }}" \
+            -d '{}'
