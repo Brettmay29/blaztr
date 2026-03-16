@@ -12,22 +12,21 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Plus, Settings, Trash2, Zap, Loader2 } from "lucide-react";
+import { Mail, Plus, Settings, Trash2, Zap, Loader2, KeyRound } from "lucide-react";
 import { toast } from "sonner";
-
 
 export default function GmailAccounts() {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ email: "", nickname: "", daily_limit: 30, first_name: "", last_name: "", signature: "" });
+  const [detecting, setDetecting] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState(false);
 
   const { data: accounts = [] } = useQuery({
     queryKey: ["gmail_accounts"],
     queryFn: () => base44.entities.GmailAccount.list(),
   });
-
-  const [detecting, setDetecting] = useState(false);
 
   const handleDetectGmail = async () => {
     setDetecting(true);
@@ -45,6 +44,22 @@ export default function GmailAccounts() {
       toast.error("Could not detect Gmail. Try again.");
     }
     setDetecting(false);
+  };
+
+  const handleOAuthConnect = async () => {
+    setOauthLoading(true);
+    try {
+      const res = await base44.functions.invoke("initiateGmailOAuth", {});
+      if (res.data?.url) {
+        window.location.href = res.data.url;
+      } else {
+        toast.error("Could not start OAuth flow. Try again.");
+        setOauthLoading(false);
+      }
+    } catch {
+      toast.error("OAuth initiation failed.");
+      setOauthLoading(false);
+    }
   };
 
   const saveMutation = useMutation({
@@ -71,9 +86,9 @@ export default function GmailAccounts() {
 
   const openEdit = (acc) => {
     setEditing(acc);
-    setForm({ 
-      email: acc.email, 
-      nickname: acc.nickname, 
+    setForm({
+      email: acc.email,
+      nickname: acc.nickname,
       daily_limit: acc.daily_limit || 30,
       first_name: acc.first_name || "",
       last_name: acc.last_name || "",
@@ -108,6 +123,16 @@ export default function GmailAccounts() {
           >
             {detecting ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Zap className="w-3.5 h-3.5 mr-1.5" />}
             Auto-Detect
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-xs h-9"
+            onClick={handleOAuthConnect}
+            disabled={oauthLoading || accounts.length >= 10}
+          >
+            {oauthLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <KeyRound className="w-3.5 h-3.5 mr-1.5" />}
+            + OAuth Account
           </Button>
           <Button
             size="sm"
@@ -158,49 +183,27 @@ export default function GmailAccounts() {
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-         <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-           <DialogHeader>
-             <DialogTitle className="text-base">
-               Email Account Settings
-             </DialogTitle>
-           </DialogHeader>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-base">Email Account Settings</DialogTitle>
+          </DialogHeader>
           <div className="space-y-4 py-2 max-h-96 overflow-y-auto">
             <div className="space-y-1.5">
               <Label className="text-xs">Gmail Address</Label>
-              <Input
-                placeholder="you@gmail.com"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="h-9 text-sm"
-              />
+              <Input placeholder="you@gmail.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="h-9 text-sm" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Nickname</Label>
-              <Input
-                placeholder="e.g. Sender1, HVAC_Aged"
-                value={form.nickname}
-                onChange={(e) => setForm({ ...form, nickname: e.target.value })}
-                className="h-9 text-sm"
-              />
+              <Input placeholder="e.g. Sender1, HVAC_Aged" value={form.nickname} onChange={(e) => setForm({ ...form, nickname: e.target.value })} className="h-9 text-sm" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs">First Name</Label>
-                <Input
-                  placeholder="First Name"
-                  value={form.first_name}
-                  onChange={(e) => setForm({ ...form, first_name: e.target.value })}
-                  className="h-9 text-sm"
-                />
+                <Input placeholder="First Name" value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} className="h-9 text-sm" />
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs">Last Name</Label>
-                <Input
-                  placeholder="Last Name"
-                  value={form.last_name}
-                  onChange={(e) => setForm({ ...form, last_name: e.target.value })}
-                  className="h-9 text-sm"
-                />
+                <Input placeholder="Last Name" value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} className="h-9 text-sm" />
               </div>
             </div>
             <div className="space-y-1.5">
@@ -216,12 +219,7 @@ export default function GmailAccounts() {
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Daily Limit</Label>
-              <Input
-                type="number"
-                value={form.daily_limit}
-                onChange={(e) => setForm({ ...form, daily_limit: parseInt(e.target.value) || 30 })}
-                className="h-9 text-sm w-24"
-              />
+              <Input type="number" value={form.daily_limit} onChange={(e) => setForm({ ...form, daily_limit: parseInt(e.target.value) || 30 })} className="h-9 text-sm w-24" />
             </div>
           </div>
           <DialogFooter>
