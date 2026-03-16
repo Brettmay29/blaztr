@@ -50,14 +50,13 @@ export default function LeadTable({ leads, selectedIds, onToggle, onToggleAll })
               <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Status</TableHead>
               <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Seq</TableHead>
               <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Sends</TableHead>
-              <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Opens</TableHead>
               <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Reply</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {leads.length === 0 && (
               <TableRow>
-                <TableCell colSpan={12} className="text-center text-neutral-400 dark:text-neutral-500 py-12 text-sm">
+                <TableCell colSpan={11} className="text-center text-neutral-400 dark:text-neutral-500 py-12 text-sm">
                   No leads found. Import leads to get started.
                 </TableCell>
               </TableRow>
@@ -77,7 +76,7 @@ export default function LeadTable({ leads, selectedIds, onToggle, onToggleAll })
                   />
                 </TableCell>
                 <TableCell className="font-medium text-sm text-neutral-900 dark:text-neutral-100 whitespace-nowrap">
-                 {lead.first_name}
+                  {lead.first_name}
                 </TableCell>
                 <TableCell className="text-sm text-neutral-600 dark:text-neutral-300 whitespace-nowrap">{lead.email}</TableCell>
                 <TableCell className="text-sm text-neutral-600 dark:text-neutral-300 whitespace-nowrap">{lead.company_name}</TableCell>
@@ -91,7 +90,6 @@ export default function LeadTable({ leads, selectedIds, onToggle, onToggleAll })
                 </TableCell>
                 <TableCell className="text-sm text-neutral-500 dark:text-neutral-400">{lead.sequence_type}</TableCell>
                 <TableCell className="text-sm text-neutral-500 dark:text-neutral-400 text-center">{lead.total_sends || 0}</TableCell>
-                <TableCell className="text-sm text-neutral-500 dark:text-neutral-400 text-center">{lead.opens || 0}</TableCell>
                 <TableCell>
                   {lead.reply_sentiment && lead.reply_sentiment !== "" ? (
                     <Badge variant="outline" className={cn("text-[11px]", sentimentStyles[lead.reply_sentiment])}>
