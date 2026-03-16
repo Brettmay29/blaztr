@@ -272,7 +272,7 @@ export default function Campaigns() {
             }}
           />
           <div className="flex gap-2">
-            <Button size="sm" disabled={!folderName.trim()} onClick={() => createFolderMutation.mutate(folderName.trim())} className="bg-neutral-900 hover:bg-neutral-800">
+            <Button size="sm" disabled={!folderName.trim()} onClick={() => createFolderMutation.mutate(folderName.trim())} className="bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200">
               Create Folder
             </Button>
             <Button size="sm" variant="outline" onClick={() => { setCreatingFolder(false); setFolderName(""); }}>
@@ -492,7 +492,7 @@ export default function Campaigns() {
           <DialogFooter>
             <Button variant="outline" onClick={closeDialog}>Cancel</Button>
             <Button
-              className="bg-neutral-900 hover:bg-neutral-800"
+              className="bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
               onClick={() => saveMutation.mutate(form)}
               disabled={!form.name}
             >
