@@ -51,6 +51,7 @@ const AuthenticatedApp = () => {
         />
       ))}
       <Route path="/Account" element={<Account />} />
+      <Route path="/OAuthCallback" element={<OAuthCallback />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
