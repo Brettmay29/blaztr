@@ -93,7 +93,7 @@ export default function EditLeadDialog({ lead, onSave, onClose }) {
         </div>
         <DialogFooter className="gap-2">
           <Button variant="outline" size="sm" className="text-xs h-8" onClick={onClose}>Cancel</Button>
-          <Button size="sm" className="text-xs h-8 bg-neutral-900 hover:bg-neutral-800" onClick={handleSave}>Save</Button>
+          <Button size="sm" className="text-xs h-8 bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200" onClick={handleSave}>Save</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
