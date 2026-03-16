@@ -23,7 +23,7 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import {
-  Plus, Send, Eye, MessageSquare, Pencil, Trash2,
+  Plus, Send, MessageSquare, Pencil, Trash2,
   FolderPlus, Folder, FolderOpen, ChevronDown, ChevronRight, MoreHorizontal,
 } from "lucide-react";
 
@@ -189,9 +189,6 @@ export default function Campaigns() {
           <div className="flex items-center gap-4 mt-2">
             <div className="flex items-center gap-1 text-xs text-neutral-500">
               <Send className="w-3 h-3" /> {c.total_sent || 0} sent
-            </div>
-            <div className="flex items-center gap-1 text-xs text-neutral-500">
-              <Eye className="w-3 h-3" /> {c.total_opens || 0} opens
             </div>
             <div className="flex items-center gap-1 text-xs text-neutral-500">
               <MessageSquare className="w-3 h-3" /> {c.total_replies || 0} replies
@@ -365,9 +362,7 @@ export default function Campaigns() {
                 </SelectTrigger>
                 <SelectContent>
                   {sequences.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {s.name}
-                    </SelectItem>
+                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                   ))}
                   {sequences.length === 0 && (
                     <SelectItem value="none" disabled>No sequences found</SelectItem>
@@ -381,7 +376,7 @@ export default function Campaigns() {
                 checked={form.specific_schedule}
                 onCheckedChange={(v) => setForm({ ...form, specific_schedule: !!v })}
               />
-              <label htmlFor="specific_schedule" className="text-sm text-neutral-700 cursor-pointer select-none">
+              <label htmlFor="specific_schedule" className="text-sm text-neutral-700 dark:text-neutral-300 cursor-pointer select-none">
                 Specific Schedule
               </label>
             </div>
@@ -432,8 +427,8 @@ export default function Campaigns() {
                       }}
                       className={`px-2.5 py-1 rounded-md text-xs font-medium border transition-colors ${
                         active
-                          ? "bg-neutral-900 text-white border-neutral-900"
-                          : "bg-white text-neutral-500 border-neutral-200 hover:border-neutral-400"
+                          ? "bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-neutral-900"
+                          : "bg-white text-neutral-500 border-neutral-200 hover:border-neutral-400 dark:bg-neutral-800 dark:text-neutral-300 dark:border-neutral-700"
                       }`}
                     >
                       {day}
@@ -448,7 +443,7 @@ export default function Campaigns() {
                 checked={form.start_immediately}
                 onCheckedChange={(v) => setForm({ ...form, start_immediately: !!v })}
               />
-              <label htmlFor="start_immediately" className="text-sm text-neutral-700 cursor-pointer select-none">
+              <label htmlFor="start_immediately" className="text-sm text-neutral-700 dark:text-neutral-300 cursor-pointer select-none">
                 Start Immediately
               </label>
               {form.start_immediately && (
@@ -458,7 +453,7 @@ export default function Campaigns() {
             <div className="space-y-1.5">
               <Label className="text-xs">Wait between sends</Label>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-neutral-500">Wait</span>
+                <span className="text-sm text-neutral-500 dark:text-neutral-400">Wait</span>
                 <Select value={String(form.send_delay_minutes)} onValueChange={(v) => setForm({ ...form, send_delay_minutes: parseInt(v) })}>
                   <SelectTrigger className="h-9 text-sm w-24">
                     <SelectValue />
@@ -469,7 +464,7 @@ export default function Campaigns() {
                     ))}
                   </SelectContent>
                 </Select>
-                <span className="text-sm text-neutral-500">minutes between sends</span>
+                <span className="text-sm text-neutral-500 dark:text-neutral-400">minutes between sends</span>
               </div>
             </div>
             {editing && (
