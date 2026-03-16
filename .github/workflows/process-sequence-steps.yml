@@ -1,0 +1,18 @@
+name: Process Sequence Steps
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # Runs every 5 minutes
+  workflow_dispatch:  # Allows manual trigger from GitHub Actions tab
+
+jobs:
+  process-steps:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger processSequenceSteps
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.BLAZTR_API_KEY }}" \
+            -d '{}' \
+            https://blaztr.base44.app/api/functions/processSequenceSteps
