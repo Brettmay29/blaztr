@@ -67,4 +67,5 @@ export const DEFAULT_VARIABLE_MAP = {
   senderfirstname: '',
   senderlastname: '',
   sendersignature: '',
+  senderemail: '',
 };
