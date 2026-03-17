@@ -19,6 +19,7 @@ const VARIABLES = [
   { name: "{{senderFirstName}}", label: "Sender First Name" },
   { name: "{{senderLastName}}", label: "Sender Last Name" },
   { name: "{{senderSignature}}", label: "Sender Signature" },
+  { name: "{{senderEmail}}", label: "Sender Email" },
 ];
 
 export default function SequenceEditor({ sequence, onBack }) {
