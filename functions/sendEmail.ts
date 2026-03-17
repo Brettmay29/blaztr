@@ -59,6 +59,7 @@ Deno.serve(async (req) => {
       senderfirstname: sampleSender.first_name,
       senderlastname: sampleSender.last_name,
       sendersignature: sampleSender.signature || '',
+      senderemail: gmailAccountData.email || '',
     };
 
     const decodeForVars = (input) => {
