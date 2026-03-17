@@ -3,8 +3,6 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     // Get all Gmail accounts
     const gmailAccounts = await base44.asServiceRole.entities.GmailAccount.list();
@@ -19,7 +17,6 @@ Deno.serve(async (req) => {
 
     // Check each Gmail account's inbox
     for (const account of gmailAccounts) {
-      // Get access token — use stored OAuth token or fall back to Base44 connector
       let accessToken;
       if (account.access_token) {
         accessToken = account.access_token;
