@@ -355,7 +355,7 @@ export default function LeadsDatabase() {
                   />
                   <Button
                     size="sm"
-                    className="h-9 bg-neutral-900 hover:bg-neutral-800 text-xs shrink-0"
+                    className="h-9 bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 text-xs shrink-0"
                     onClick={handleSheetImport}
                     disabled={importing || !sheetUrl.trim()}
                   >
