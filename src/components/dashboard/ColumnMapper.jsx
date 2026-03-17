@@ -45,6 +45,10 @@ export default function ColumnMapper({ columns, previewRows, onConfirm, onCancel
 
   const hasEmail = Object.values(mapping).includes("email");
 
+  const handleConfirm = () => {
+    onConfirm(mapping);
+  };
+
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
       <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
@@ -129,7 +133,7 @@ export default function ColumnMapper({ columns, previewRows, onConfirm, onCancel
             <Button
               size="sm"
               className="h-8 text-xs bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
-              onClick={onConfirm}
+              onClick={handleConfirm}
               disabled={!hasEmail}
             >
               <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
