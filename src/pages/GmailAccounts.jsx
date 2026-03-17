@@ -12,7 +12,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Plus, Settings, Trash2, Zap, Loader2, KeyRound, RefreshCw } from "lucide-react";
+import { Mail, Settings, Trash2, Loader2, KeyRound, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 export default function GmailAccounts() {
@@ -20,7 +20,6 @@ export default function GmailAccounts() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ email: "", nickname: "", daily_limit: 30, first_name: "", last_name: "", signature: "" });
-  const [detecting, setDetecting] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
   const [checkingConnection, setCheckingConnection] = useState({});
   const [connectionStatus, setConnectionStatus] = useState({});
@@ -29,24 +28,6 @@ export default function GmailAccounts() {
     queryKey: ["gmail_accounts"],
     queryFn: () => base44.entities.GmailAccount.list(),
   });
-
-  const handleDetectGmail = async () => {
-    setDetecting(true);
-    const res = await base44.functions.invoke("getGmailProfile", {});
-    if (res.data?.email) {
-      const email = res.data.email;
-      const alreadyExists = accounts.find((a) => a.email === email);
-      if (alreadyExists) {
-        toast.message(`${email} is already connected.`);
-      } else {
-        setForm({ email, nickname: email.split("@")[0], daily_limit: 30, first_name: "", last_name: "", signature: "" });
-        setDialogOpen(true);
-      }
-    } else {
-      toast.error("Could not detect Gmail. Try again.");
-    }
-    setDetecting(false);
-  };
 
   const handleOAuthConnect = async () => {
     setOauthLoading(true);
@@ -67,11 +48,9 @@ export default function GmailAccounts() {
   const handleCheckConnection = async (acc) => {
     setCheckingConnection((prev) => ({ ...prev, [acc.id]: true }));
     try {
-      // Try to fetch Gmail profile using this account's token
       let accessToken = acc.access_token;
 
       if (!accessToken) {
-        // Fall back to Base44 connector
         try {
           const conn = await base44.functions.invoke("getGmailProfile", {});
           if (conn.data?.email === acc.email) {
@@ -85,7 +64,6 @@ export default function GmailAccounts() {
         return;
       }
 
-      // Test the token directly
       const profileRes = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/profile', {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
@@ -100,7 +78,6 @@ export default function GmailAccounts() {
           setConnectionStatus((prev) => ({ ...prev, [acc.id]: "unknown" }));
         }
       } else if (profileRes.status === 401) {
-        // Token expired — try refresh
         if (acc.refresh_token) {
           const refreshRes = await fetch('https://oauth2.googleapis.com/token', {
             method: 'POST',
@@ -156,7 +133,6 @@ export default function GmailAccounts() {
     if (status === "unknown") {
       return <Badge className="text-[11px] bg-yellow-50 text-yellow-700 border-yellow-200">Unknown</Badge>;
     }
-    // Default — no check done yet, show based on is_connected field
     if (acc.is_connected) {
       return <Badge className="text-[11px] bg-green-50 text-green-700 border-green-200">Connected</Badge>;
     }
@@ -178,12 +154,6 @@ export default function GmailAccounts() {
     mutationFn: (id) => base44.entities.GmailAccount.delete(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["gmail_accounts"] }),
   });
-
-  const openNew = () => {
-    setEditing(null);
-    setForm({ email: "", nickname: "", daily_limit: 30, first_name: "", last_name: "", signature: "" });
-    setDialogOpen(true);
-  };
 
   const openEdit = (acc) => {
     setEditing(acc);
@@ -219,30 +189,11 @@ export default function GmailAccounts() {
             size="sm"
             variant="outline"
             className="text-xs h-9"
-            onClick={handleDetectGmail}
-            disabled={detecting || accounts.length >= 10}
-          >
-            {detecting ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Zap className="w-3.5 h-3.5 mr-1.5" />}
-            Auto-Detect
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="text-xs h-9"
             onClick={handleOAuthConnect}
             disabled={oauthLoading || accounts.length >= 10}
           >
             {oauthLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <KeyRound className="w-3.5 h-3.5 mr-1.5" />}
             + OAuth Account
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="text-xs h-9"
-            onClick={openNew}
-            disabled={accounts.length >= 10}
-          >
-            <Plus className="w-3.5 h-3.5 mr-1.5" /> Add Manual
           </Button>
         </div>
       </div>
