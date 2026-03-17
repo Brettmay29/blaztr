@@ -3,8 +3,6 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const now = new Date();
 
@@ -89,6 +87,7 @@ Deno.serve(async (req) => {
           senderfirstname: gmailAccount.first_name || '',
           senderlastname: gmailAccount.last_name || '',
           sendersignature: gmailAccount.signature || '',
+          senderemail: gmailAccount.email || '',
         };
 
         const decodeForVars = (input) => {
@@ -146,7 +145,6 @@ ${processedBody}
             .replace(/=+$/, '');
         };
 
-        // Try sending — if 401, refresh token and retry once
         let gmailRes = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
           method: 'POST',
           headers: {
