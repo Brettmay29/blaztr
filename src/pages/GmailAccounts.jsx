@@ -12,7 +12,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Plus, Settings, Trash2, Zap, Loader2, KeyRound } from "lucide-react";
+import { Mail, Plus, Settings, Trash2, Zap, Loader2, KeyRound, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 export default function GmailAccounts() {
@@ -22,6 +22,8 @@ export default function GmailAccounts() {
   const [form, setForm] = useState({ email: "", nickname: "", daily_limit: 30, first_name: "", last_name: "", signature: "" });
   const [detecting, setDetecting] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
+  const [checkingConnection, setCheckingConnection] = useState({});
+  const [connectionStatus, setConnectionStatus] = useState({});
 
   const { data: accounts = [] } = useQuery({
     queryKey: ["gmail_accounts"],
@@ -60,6 +62,105 @@ export default function GmailAccounts() {
       toast.error("OAuth initiation failed.");
       setOauthLoading(false);
     }
+  };
+
+  const handleCheckConnection = async (acc) => {
+    setCheckingConnection((prev) => ({ ...prev, [acc.id]: true }));
+    try {
+      // Try to fetch Gmail profile using this account's token
+      let accessToken = acc.access_token;
+
+      if (!accessToken) {
+        // Fall back to Base44 connector
+        try {
+          const conn = await base44.functions.invoke("getGmailProfile", {});
+          if (conn.data?.email === acc.email) {
+            setConnectionStatus((prev) => ({ ...prev, [acc.id]: "connected" }));
+            await base44.entities.GmailAccount.update(acc.id, { is_connected: true });
+            queryClient.invalidateQueries({ queryKey: ["gmail_accounts"] });
+            return;
+          }
+        } catch {}
+        setConnectionStatus((prev) => ({ ...prev, [acc.id]: "unknown" }));
+        return;
+      }
+
+      // Test the token directly
+      const profileRes = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/profile', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+
+      if (profileRes.ok) {
+        const profile = await profileRes.json();
+        if (profile.emailAddress?.toLowerCase() === acc.email?.toLowerCase()) {
+          setConnectionStatus((prev) => ({ ...prev, [acc.id]: "connected" }));
+          await base44.entities.GmailAccount.update(acc.id, { is_connected: true });
+          toast.success(`${acc.email} is connected!`);
+        } else {
+          setConnectionStatus((prev) => ({ ...prev, [acc.id]: "unknown" }));
+        }
+      } else if (profileRes.status === 401) {
+        // Token expired — try refresh
+        if (acc.refresh_token) {
+          const refreshRes = await fetch('https://oauth2.googleapis.com/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+              client_id: '74188123197-1dhi733ml4cl831d28nic2uk9opdvkqu.apps.googleusercontent.com',
+              client_secret: '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',
+              refresh_token: acc.refresh_token,
+              grant_type: 'refresh_token',
+            }),
+          });
+
+          if (refreshRes.ok) {
+            const tokens = await refreshRes.json();
+            await base44.entities.GmailAccount.update(acc.id, {
+              access_token: tokens.access_token,
+              is_connected: true,
+            });
+            queryClient.invalidateQueries({ queryKey: ["gmail_accounts"] });
+            setConnectionStatus((prev) => ({ ...prev, [acc.id]: "connected" }));
+            toast.success(`${acc.email} reconnected with refreshed token!`);
+          } else {
+            setConnectionStatus((prev) => ({ ...prev, [acc.id]: "not_connected" }));
+            await base44.entities.GmailAccount.update(acc.id, { is_connected: false });
+            queryClient.invalidateQueries({ queryKey: ["gmail_accounts"] });
+            toast.error(`${acc.email} is disconnected. Please re-authenticate via OAuth.`);
+          }
+        } else {
+          setConnectionStatus((prev) => ({ ...prev, [acc.id]: "not_connected" }));
+          await base44.entities.GmailAccount.update(acc.id, { is_connected: false });
+          queryClient.invalidateQueries({ queryKey: ["gmail_accounts"] });
+          toast.error(`${acc.email} is disconnected. Please re-authenticate via OAuth.`);
+        }
+      } else {
+        setConnectionStatus((prev) => ({ ...prev, [acc.id]: "unknown" }));
+      }
+    } catch (err) {
+      setConnectionStatus((prev) => ({ ...prev, [acc.id]: "unknown" }));
+      toast.error("Could not check connection.");
+    } finally {
+      setCheckingConnection((prev) => ({ ...prev, [acc.id]: false }));
+    }
+  };
+
+  const getStatusBadge = (acc) => {
+    const status = connectionStatus[acc.id];
+    if (status === "connected") {
+      return <Badge className="text-[11px] bg-green-50 text-green-700 border-green-200">Connected</Badge>;
+    }
+    if (status === "not_connected") {
+      return <Badge className="text-[11px] bg-red-50 text-red-700 border-red-200">Not Connected</Badge>;
+    }
+    if (status === "unknown") {
+      return <Badge className="text-[11px] bg-yellow-50 text-yellow-700 border-yellow-200">Unknown</Badge>;
+    }
+    // Default — no check done yet, show based on is_connected field
+    if (acc.is_connected) {
+      return <Badge className="text-[11px] bg-green-50 text-green-700 border-green-200">Connected</Badge>;
+    }
+    return <Badge className="text-[11px] bg-yellow-50 text-yellow-700 border-yellow-200">Unknown</Badge>;
   };
 
   const saveMutation = useMutation({
@@ -168,9 +269,19 @@ export default function GmailAccounts() {
               <Badge variant="outline" className="text-[11px]">
                 {acc.sent_today || 0}/{acc.daily_limit || 30} today
               </Badge>
-              <Badge variant="secondary" className="text-[11px] bg-green-50 text-green-700">
-                Connected
-              </Badge>
+              {getStatusBadge(acc)}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 text-xs text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200"
+                onClick={() => handleCheckConnection(acc)}
+                disabled={checkingConnection[acc.id]}
+                title="Check connection"
+              >
+                {checkingConnection[acc.id]
+                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  : <RefreshCw className="w-3.5 h-3.5" />}
+              </Button>
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(acc)}>
                 <Settings className="w-3.5 h-3.5" />
               </Button>
