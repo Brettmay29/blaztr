@@ -217,9 +217,9 @@ export default function SendHub() {
       base44.entities.Lead.update(id, { status: "New", total_sends: 0, next_send_at: null })
     ));
 
-    queryClient.invalidateQueries({ queryKey: ["send_logs"] });
-    queryClient.invalidateQueries({ queryKey: ["campaigns"] });
-    queryClient.invalidateQueries({ queryKey: ["leads"] });
+    await queryClient.invalidateQueries({ queryKey: ["send_logs"] });
+    await queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+    await queryClient.invalidateQueries({ queryKey: ["leads"] });
 
     toast.success(`Cleared ${logsToClear.length} send log${logsToClear.length !== 1 ? "s" : ""} and reset lead statuses.`);
     setClearingLogs(false);
