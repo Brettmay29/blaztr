@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/select";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 
-// The Lead fields users can map to
 const LEAD_FIELDS = [
   { value: "__skip__", label: "— Skip this column —" },
   { value: "first_name", label: "First Name" },
@@ -23,7 +22,6 @@ const LEAD_FIELDS = [
   { value: "alternate_emails", label: "Alternate Email" },
 ];
 
-// Auto-guess a mapping based on column name
 function guessMapping(colName) {
   const n = colName.toLowerCase().trim().replace(/[\s\-\.]+/g, "_");
   if (["email", "email_address", "e_mail", "mail"].includes(n)) return "email";
@@ -47,16 +45,12 @@ export default function ColumnMapper({ columns, previewRows, onConfirm, onCancel
 
   const hasEmail = Object.values(mapping).includes("email");
 
-  const handleConfirm = () => {
-    onConfirm(mapping);
-  };
-
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+      <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-neutral-200">
-          <h2 className="text-sm font-semibold text-neutral-900">Map Columns</h2>
+        <div className="px-6 py-4 border-b border-neutral-200 dark:border-neutral-700">
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Map Columns</h2>
           <p className="text-xs text-neutral-400 mt-0.5">
             Match each column from your file to a field in the app. Unmatched columns will be skipped.
           </p>
@@ -66,12 +60,10 @@ export default function ColumnMapper({ columns, previewRows, onConfirm, onCancel
         <div className="overflow-y-auto flex-1 px-6 py-4 space-y-2">
           {columns.map((col) => (
             <div key={col} className="flex items-center gap-3">
-              {/* Source column name */}
-              <div className="w-44 shrink-0 bg-neutral-100 rounded-md px-3 py-2 text-xs font-mono text-neutral-700 truncate">
+              <div className="w-44 shrink-0 bg-neutral-100 dark:bg-neutral-800 rounded-md px-3 py-2 text-xs font-mono text-neutral-700 dark:text-neutral-300 truncate">
                 {col}
               </div>
-              <ArrowRight className="w-3.5 h-3.5 text-neutral-300 shrink-0" />
-              {/* Target field selector */}
+              <ArrowRight className="w-3.5 h-3.5 text-neutral-300 dark:text-neutral-600 shrink-0" />
               <Select
                 value={mapping[col]}
                 onValueChange={(val) => setMapping((prev) => ({ ...prev, [col]: val }))}
@@ -95,15 +87,15 @@ export default function ColumnMapper({ columns, previewRows, onConfirm, onCancel
         {previewRows.length > 0 && (
           <div className="px-6 pb-3">
             <p className="text-[11px] text-neutral-400 mb-1.5">Preview (first 3 rows)</p>
-            <div className="rounded-lg border border-neutral-200 overflow-x-auto">
+            <div className="rounded-lg border border-neutral-200 dark:border-neutral-700 overflow-x-auto">
               <table className="text-[11px] w-full">
-                <thead className="bg-neutral-50">
+                <thead className="bg-neutral-50 dark:bg-neutral-800">
                   <tr>
                     {columns.map((col) => (
-                      <th key={col} className="px-2 py-1.5 text-left text-neutral-500 font-medium whitespace-nowrap border-r border-neutral-200 last:border-r-0">
+                      <th key={col} className="px-2 py-1.5 text-left text-neutral-500 dark:text-neutral-400 font-medium whitespace-nowrap border-r border-neutral-200 dark:border-neutral-700 last:border-r-0">
                         {mapping[col] !== "__skip__"
                           ? LEAD_FIELDS.find((f) => f.value === mapping[col])?.label
-                          : <span className="text-neutral-300">skip</span>
+                          : <span className="text-neutral-300 dark:text-neutral-600">skip</span>
                         }
                       </th>
                     ))}
@@ -111,9 +103,9 @@ export default function ColumnMapper({ columns, previewRows, onConfirm, onCancel
                 </thead>
                 <tbody>
                   {previewRows.map((row, i) => (
-                    <tr key={i} className="border-t border-neutral-100">
+                    <tr key={i} className="border-t border-neutral-100 dark:border-neutral-800">
                       {columns.map((col, j) => (
-                        <td key={j} className={`px-2 py-1.5 whitespace-nowrap border-r border-neutral-100 last:border-r-0 ${mapping[col] === "__skip__" ? "text-neutral-300" : "text-neutral-700"}`}>
+                        <td key={j} className={`px-2 py-1.5 whitespace-nowrap border-r border-neutral-100 dark:border-neutral-800 last:border-r-0 ${mapping[col] === "__skip__" ? "text-neutral-300 dark:text-neutral-600" : "text-neutral-700 dark:text-neutral-300"}`}>
                           {row[j] || ""}
                         </td>
                       ))}
@@ -126,7 +118,7 @@ export default function ColumnMapper({ columns, previewRows, onConfirm, onCancel
         )}
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-neutral-200 flex items-center justify-between gap-3">
+        <div className="px-6 py-4 border-t border-neutral-200 dark:border-neutral-700 flex items-center justify-between gap-3">
           {!hasEmail && (
             <p className="text-xs text-red-500">You must map at least one column to <strong>Email</strong>.</p>
           )}
@@ -136,8 +128,8 @@ export default function ColumnMapper({ columns, previewRows, onConfirm, onCancel
             </Button>
             <Button
               size="sm"
-              className="h-8 text-xs bg-neutral-900 hover:bg-neutral-800"
-              onClick={handleConfirm}
+              className="h-8 text-xs bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+              onClick={onConfirm}
               disabled={!hasEmail}
             >
               <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
