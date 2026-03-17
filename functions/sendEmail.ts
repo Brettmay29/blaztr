@@ -65,4 +65,162 @@ Deno.serve(async (req) => {
       if (!input) return '';
       let s = String(input);
       s = s.replace(/&nbsp;/g, ' ')
-           .replace(/&#160;/g, '
+           .replace(/&#160;/g, ' ')
+           .replace(/&lcub;/g, '{').replace(/&rcub;/g, '}')
+           .replace(/&#123;/g, '{').replace(/&#125;/g, '}')
+           .replace(/&lbrace;/g, '{').replace(/&rbrace;/g, '}');
+      return s;
+    };
+
+    const replaceVars = (text) => {
+      if (!text) return '';
+      return text.replace(/\{\{([^}]+)\}\}/gi, (match, varName) => {
+        const key = varName.toLowerCase().replace(/\s+/g, '').trim();
+        return variableMap[key] !== undefined ? variableMap[key] : match;
+      });
+    };
+
+    const inlineStyles = (html) => {
+      return html
+        .replace(/<p[^>]*><br\s*\/?><\/p>/gi, '<p style="margin:0;padding:0;line-height:1.4;font-family:Arial,sans-serif;font-size:14px;color:#333;">&nbsp;</p>')
+        .replace(/<p(?:\s+style="[^"]*")?>/gi, '<p style="margin:0;padding:0;line-height:1.4;font-family:Arial,sans-serif;font-size:14px;color:#333;">')
+        .replace(/<br\s*\/?>/gi, '<br style="display:block;content:\'\';margin-top:0;">');
+    };
+
+    const decodedSubject = decodeForVars(subject);
+    const decodedBody    = decodeForVars(body);
+    const processedSubject = replaceVars(decodedSubject);
+    const processedBody    = inlineStyles(replaceVars(decodedBody));
+
+    const htmlContent = `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body style="font-family:Arial,sans-serif;font-size:14px;line-height:1.4;color:#333;margin:0;padding:20px;">
+${processedBody}
+</body>
+</html>`;
+
+    // Token refresh helper
+    const refreshAccessToken = async (refreshToken) => {
+      const refreshRes = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          client_id: '74188123197-1dhi733ml4cl831d28nic2uk9opdvkqu.apps.googleusercontent.com',
+          client_secret: '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',
+          refresh_token: refreshToken,
+          grant_type: 'refresh_token',
+        }),
+      });
+      if (!refreshRes.ok) return null;
+      const data = await refreshRes.json();
+      return data.access_token || null;
+    };
+
+    // Get access token with automatic refresh
+    let accessToken;
+    if (gmailAccountData.access_token) {
+      accessToken = gmailAccountData.access_token;
+    } else {
+      try {
+        const conn = await base44.asServiceRole.connectors.getConnection('gmail');
+        accessToken = conn.accessToken;
+      } catch (err) {
+        return Response.json({ error: 'Failed to connect to Gmail.', details: err.message }, { status: 500 });
+      }
+    }
+
+    const senderName = `${gmailAccountData.first_name || ''} ${gmailAccountData.last_name || ''}`.trim();
+    const fromHeader = senderName
+      ? `${senderName} <${gmailAccountData.email}>`
+      : gmailAccountData.email;
+
+    const buildRaw = (token) => {
+      const emailLines = [
+        `To: ${to}`,
+        `From: ${fromHeader}`,
+        `Subject: ${processedSubject}`,
+        `MIME-Version: 1.0`,
+        `Content-Type: text/html; charset=UTF-8`,
+      ];
+      const raw = emailLines.join('\r\n') + '\r\n\r\n' + htmlContent;
+      return btoa(unescape(encodeURIComponent(raw)))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+    };
+
+    // Try sending — if 401, refresh token and retry once
+    let gmailRes = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ raw: buildRaw(accessToken) }),
+    });
+
+    if (gmailRes.status === 401 && gmailAccountData.refresh_token) {
+      // Token expired — refresh and retry
+      const newToken = await refreshAccessToken(gmailAccountData.refresh_token);
+      if (newToken) {
+        // Save new token to database
+        await base44.asServiceRole.entities.GmailAccount.update(gmail_account_id, {
+          access_token: newToken,
+        });
+        accessToken = newToken;
+
+        // Retry send with new token
+        gmailRes = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${newToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ raw: buildRaw(newToken) }),
+        });
+      }
+    }
+
+    if (!gmailRes.ok) {
+      const err = await gmailRes.json();
+      return Response.json({ error: 'Gmail send failed', details: err }, { status: 500 });
+    }
+
+    const gmailData = await gmailRes.json();
+    const now = new Date().toISOString();
+    const nowDate = now.split('T')[0];
+    const threeDaysLater = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    if (lead_id) {
+      const lead = await base44.asServiceRole.entities.Lead.get(lead_id);
+      await base44.asServiceRole.entities.Lead.update(lead_id, {
+        status: 'Sent',
+        latest_send: nowDate,
+        total_sends: (lead?.total_sends || 0) + 1,
+        next_send: threeDaysLater,
+        sender_email: '',
+        sequence_type: sequence_step || '1st',
+      });
+    }
+
+    if (lead_id && campaign_id) {
+      const lead = await base44.asServiceRole.entities.Lead.get(lead_id);
+      await base44.asServiceRole.entities.SendLog.create({
+        lead_id,
+        campaign_id,
+        gmail_account_id: gmail_account_id || '',
+        status: 'Sent',
+        sent_at: now,
+        lead_email: to,
+        lead_name: lead?.first_name || '',
+        subject: processedSubject,
+        sequence_step: sequence_step || '1st',
+      });
+    }
+
+    return Response.json({ success: true, message_id: gmailData.id });
+  } catch (error) {
+    return Response.json({ error: error.message }, { status: 500 });
+  }
+});
