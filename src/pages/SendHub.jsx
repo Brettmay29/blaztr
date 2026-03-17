@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Rocket, Send, Loader2, CheckCircle, AlertCircle, Clock, Eye, MessageSquare, RefreshCw, CalendarClock } from "lucide-react";
+import { Rocket, Send, Loader2, CheckCircle, AlertCircle, Clock, Eye, MessageSquare, RefreshCw, CalendarClock, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -26,6 +26,8 @@ export default function SendHub() {
   const [sending, setSending] = useState(false);
   const [checkingReplies, setCheckingReplies] = useState(false);
   const [processingFollowUps, setProcessingFollowUps] = useState(false);
+  const [clearingLogs, setClearingLogs] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [sendProgress, setSendProgress] = useState({ current: 0, total: 0 });
 
   const { data: campaigns = [] } = useQuery({
@@ -187,6 +189,42 @@ export default function SendHub() {
     setProcessingFollowUps(false);
   };
 
+  const handleClearLogs = async () => {
+    setClearingLogs(true);
+    setShowClearConfirm(false);
+
+    const logsToClear = selectedFilterCampaign
+      ? sendLogs.filter((log) => log.campaign_id === selectedFilterCampaign)
+      : sendLogs;
+
+    await Promise.all(logsToClear.map((log) => base44.entities.SendLog.delete(log.id)));
+
+    // Reset campaign stats
+    if (selectedFilterCampaign) {
+      await base44.entities.Campaign.update(selectedFilterCampaign, {
+        total_sent: 0,
+        total_replies: 0,
+      });
+    } else {
+      await Promise.all(campaigns.map((c) =>
+        base44.entities.Campaign.update(c.id, { total_sent: 0, total_replies: 0 })
+      ));
+    }
+
+    // Reset lead statuses back to New for affected leads
+    const affectedLeadIds = [...new Set(logsToClear.map((log) => log.lead_id).filter(Boolean))];
+    await Promise.all(affectedLeadIds.map((id) =>
+      base44.entities.Lead.update(id, { status: "New", total_sends: 0, next_send_at: null })
+    ));
+
+    queryClient.invalidateQueries({ queryKey: ["send_logs"] });
+    queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+    queryClient.invalidateQueries({ queryKey: ["leads"] });
+
+    toast.success(`Cleared ${logsToClear.length} send log${logsToClear.length !== 1 ? "s" : ""} and reset lead statuses.`);
+    setClearingLogs(false);
+  };
+
   const logStatusIcon = {
     Queued: <Clock className="w-3.5 h-3.5 text-neutral-400" />,
     Sent: <CheckCircle className="w-3.5 h-3.5 text-neutral-700" />,
@@ -336,20 +374,56 @@ export default function SendHub() {
 
       {/* Send Logs Table */}
       <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg overflow-hidden">
-        <div className="px-4 py-3 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
+        <div className="px-4 py-3 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between gap-3 flex-wrap">
           <h3 className="text-sm font-medium text-neutral-800 dark:text-neutral-200">Send Logs</h3>
-          <div className="w-48">
-            <Select value={selectedFilterCampaign} onValueChange={setSelectedFilterCampaign}>
-              <SelectTrigger className="h-8 text-xs">
-                <SelectValue placeholder="Filter by campaign..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={null}>All Campaigns</SelectItem>
-                {campaigns.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex items-center gap-2">
+            <div className="w-48">
+              <Select value={selectedFilterCampaign} onValueChange={setSelectedFilterCampaign}>
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="Filter by campaign..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>All Campaigns</SelectItem>
+                  {campaigns.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {!showClearConfirm ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-xs text-red-500 hover:text-red-600 hover:border-red-300"
+                onClick={() => setShowClearConfirm(true)}
+                disabled={filteredSendLogs.length === 0 || clearingLogs}
+              >
+                <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+                Clear Logs
+              </Button>
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-red-500">
+                  Clear {selectedFilterCampaign ? "campaign" : "all"} logs?
+                </span>
+                <Button
+                  size="sm"
+                  className="h-7 text-xs bg-red-500 hover:bg-red-600 text-white"
+                  onClick={handleClearLogs}
+                  disabled={clearingLogs}
+                >
+                  {clearingLogs ? <Loader2 className="w-3 h-3 animate-spin" /> : "Yes, Clear"}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={() => setShowClearConfirm(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            )}
           </div>
         </div>
         <div className="overflow-x-auto">
