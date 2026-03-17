@@ -44,7 +44,6 @@ export default function Sequences() {
 
   const deleteFolderMutation = useMutation({
     mutationFn: async (folderId) => {
-      // unassign all sequences in this folder
       const inFolder = sequences.filter((s) => s.folder_id === folderId);
       await Promise.all(inFolder.map((s) => base44.entities.Sequence.update(s.id, { folder_id: null })));
       return base44.entities.SequenceFolder.delete(folderId);
@@ -72,7 +71,7 @@ export default function Sequences() {
   const createMutation = useMutation({
     mutationFn: (name) => base44.entities.Sequence.create({
       name,
-      steps: [{ id: "step-1", subject: "", body: "", delay_days: 0, delay_hours: 0 }],
+      steps: [{ id: "step-1", subject: "", body: "", delay_days: 0, delay_hours: 0, delay_minutes: 0 }],
       status: "Draft",
     }),
     onSuccess: (newSeq) => {
@@ -160,7 +159,6 @@ export default function Sequences() {
         <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => duplicateMutation.mutate(seq)} title="Duplicate">
           <Copy className="w-4 h-4 text-neutral-500" />
         </Button>
-        {/* Move to folder dropdown */}
         {folders.length > 0 && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
