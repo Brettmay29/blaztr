@@ -23,7 +23,15 @@ const VARIABLES = [
 ];
 
 export default function SequenceEditor({ sequence, onBack }) {
-  const [localSeq, setLocalSeq] = useState(sequence);
+  const [localSeq, setLocalSeq] = useState({
+    ...sequence,
+    steps: sequence.steps?.map((s) => ({
+      ...s,
+      delay_days: s.delay_days ?? 0,
+      delay_hours: s.delay_hours ?? 0,
+      delay_minutes: s.delay_minutes ?? 0,
+    })) || [],
+  });
   const [selectedStepId, setSelectedStepId] = useState(sequence.steps?.[0]?.id || null);
   const [showPreview, setShowPreview] = useState(false);
   const [editingName, setEditingName] = useState(false);
@@ -146,7 +154,7 @@ export default function SequenceEditor({ sequence, onBack }) {
             <Eye className="w-4 h-4 mr-1" />
             {showPreview ? "Hide" : "Preview"}
           </Button>
-          <Button size="sm" onClick={handleSave} className="bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200">
+          <Button size="sm" onClick={handleSave} className="bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral:200">
             Save Sequence
           </Button>
         </div>
