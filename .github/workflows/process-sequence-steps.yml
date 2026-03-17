@@ -15,3 +15,10 @@ jobs:
             -H "Content-Type: application/json" \
             -H "api_key: ${{ secrets.BLAZTR_API_KEY }}" \
             -d '{}'
+
+      - name: Trigger checkReplies
+        run: |
+          curl -X POST "https://blaztr.base44.app/api/functions/checkReplies" \
+            -H "Content-Type: application/json" \
+            -H "api_key: ${{ secrets.BLAZTR_API_KEY }}" \
+            -d '{}'
