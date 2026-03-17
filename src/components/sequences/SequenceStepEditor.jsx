@@ -27,6 +27,7 @@ function EmailPreviewModal({ step, leadData, gmailAccountData, onClose }) {
     senderfirstname: gmailAccountData?.first_name || DEFAULT_VARIABLE_MAP.senderfirstname,
     senderlastname: gmailAccountData?.last_name || DEFAULT_VARIABLE_MAP.senderlastname,
     sendersignature: gmailAccountData?.signature || DEFAULT_VARIABLE_MAP.sendersignature,
+    senderemail: gmailAccountData?.email || DEFAULT_VARIABLE_MAP.senderemail,
   };
 
   const replaceVarsInHtml = (html) => {
