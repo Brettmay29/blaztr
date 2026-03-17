@@ -8,7 +8,6 @@ Deno.serve(async (req) => {
 
     const now = new Date();
 
-    // Get all send logs that have a next_send_at in the past and next_step_index > 0
     const allLogs = await base44.asServiceRole.entities.SendLog.list('-created_date', 500);
     const pendingLogs = allLogs.filter((log) => {
       if (!log.next_send_at || !log.next_step_index) return false;
@@ -20,17 +19,32 @@ Deno.serve(async (req) => {
       return Response.json({ processed: 0, message: 'No pending follow-ups due yet.' });
     }
 
-    // Get all sequences and gmail accounts
     const sequences = await base44.asServiceRole.entities.Sequence.list();
     const gmailAccounts = await base44.asServiceRole.entities.GmailAccount.list();
     const campaigns = await base44.asServiceRole.entities.Campaign.list();
+
+    // Token refresh helper
+    const refreshAccessToken = async (refreshToken) => {
+      const refreshRes = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          client_id: '74188123197-1dhi733ml4cl831d28nic2uk9opdvkqu.apps.googleusercontent.com',
+          client_secret: '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',
+          refresh_token: refreshToken,
+          grant_type: 'refresh_token',
+        }),
+      });
+      if (!refreshRes.ok) return null;
+      const data = await refreshRes.json();
+      return data.access_token || null;
+    };
 
     let processedCount = 0;
     let failCount = 0;
 
     for (const log of pendingLogs) {
       try {
-        // Get the campaign and sequence for this log
         const campaign = campaigns.find((c) => c.id === log.campaign_id);
         if (!campaign) continue;
 
@@ -41,14 +55,11 @@ Deno.serve(async (req) => {
         const step = sequence.steps?.[stepIndex];
         if (!step) continue;
 
-        // Get lead data
         const lead = await base44.asServiceRole.entities.Lead.get(log.lead_id);
         if (!lead) continue;
 
-        // Skip if lead has replied or opted out
         if (lead.status === 'Replied' || lead.status === 'Opted Out' || lead.status === 'Bounced') continue;
 
-        // Find the gmail account — use campaign's gmail account
         const gmailAccount = gmailAccounts.find((a) => a.id === campaign.gmail_account_id);
         if (!gmailAccount) continue;
 
@@ -57,11 +68,15 @@ Deno.serve(async (req) => {
         if (gmailAccount.access_token) {
           accessToken = gmailAccount.access_token;
         } else {
-          const conn = await base44.asServiceRole.connectors.getConnection('gmail');
-          accessToken = conn.accessToken;
+          try {
+            const conn = await base44.asServiceRole.connectors.getConnection('gmail');
+            accessToken = conn.accessToken;
+          } catch {
+            failCount++;
+            continue;
+          }
         }
 
-        // Build variable map
         const variableMap = {
           firstname: lead.first_name || 'there',
           lastname: lead.last_name || '',
@@ -116,34 +131,54 @@ ${processedBody}
         const senderName = `${gmailAccount.first_name || ''} ${gmailAccount.last_name || ''}`.trim();
         const fromHeader = senderName ? `${senderName} <${gmailAccount.email}>` : gmailAccount.email;
 
-        const emailLines = [
-          `To: ${lead.email}`,
-          `From: ${fromHeader}`,
-          `Subject: ${processedSubject}`,
-          `MIME-Version: 1.0`,
-          `Content-Type: text/html; charset=UTF-8`,
-        ];
-        const raw = emailLines.join('\r\n') + '\r\n\r\n' + htmlContent;
-        const encodedEmail = btoa(unescape(encodeURIComponent(raw)))
-          .replace(/\+/g, '-')
-          .replace(/\//g, '_')
-          .replace(/=+$/, '');
+        const buildRaw = () => {
+          const emailLines = [
+            `To: ${lead.email}`,
+            `From: ${fromHeader}`,
+            `Subject: ${processedSubject}`,
+            `MIME-Version: 1.0`,
+            `Content-Type: text/html; charset=UTF-8`,
+          ];
+          const raw = emailLines.join('\r\n') + '\r\n\r\n' + htmlContent;
+          return btoa(unescape(encodeURIComponent(raw)))
+            .replace(/\+/g, '-')
+            .replace(/\//g, '_')
+            .replace(/=+$/, '');
+        };
 
-        const gmailRes = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+        // Try sending — if 401, refresh token and retry once
+        let gmailRes = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ raw: encodedEmail }),
+          body: JSON.stringify({ raw: buildRaw() }),
         });
+
+        if (gmailRes.status === 401 && gmailAccount.refresh_token) {
+          const newToken = await refreshAccessToken(gmailAccount.refresh_token);
+          if (newToken) {
+            await base44.asServiceRole.entities.GmailAccount.update(gmailAccount.id, {
+              access_token: newToken,
+            });
+            accessToken = newToken;
+            gmailRes = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${newToken}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ raw: buildRaw() }),
+            });
+          }
+        }
 
         if (!gmailRes.ok) {
           failCount++;
           continue;
         }
 
-        // Calculate next step if there are more steps
         const nextStepIndex = stepIndex + 1;
         const nextStep = sequence.steps?.[nextStepIndex];
         let nextSendAt = null;
@@ -157,7 +192,6 @@ ${processedBody}
         const now2 = new Date().toISOString();
         const nowDate = now2.split('T')[0];
 
-        // Create new send log for this step
         await base44.asServiceRole.entities.SendLog.create({
           lead_id: log.lead_id,
           campaign_id: log.campaign_id,
@@ -172,13 +206,11 @@ ${processedBody}
           next_send_at: nextSendAt || '',
         });
 
-        // Mark the current log as processed (no longer pending)
         await base44.asServiceRole.entities.SendLog.update(log.id, {
           next_step_index: 0,
           next_send_at: '',
         });
 
-        // Update lead
         await base44.asServiceRole.entities.Lead.update(log.lead_id, {
           total_sends: (lead.total_sends || 0) + 1,
           latest_send: nowDate,
