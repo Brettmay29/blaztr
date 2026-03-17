@@ -13,12 +13,10 @@ jobs:
         run: |
           curl -X POST "https://blaztr.base44.app/api/apps/69b02505f9b4d10dd348ac34/functions/processSequenceSteps" \
             -H "Content-Type: application/json" \
-            -H "api_key: ${{ secrets.BLAZTR_API_KEY }}" \
-            -d '{}'
+            -d '{"api_key": "${{ secrets.BLAZTR_API_KEY }}"}'
 
       - name: Trigger checkReplies
         run: |
           curl -X POST "https://blaztr.base44.app/api/apps/69b02505f9b4d10dd348ac34/functions/checkReplies" \
             -H "Content-Type: application/json" \
-            -H "api_key: ${{ secrets.BLAZTR_API_KEY }}" \
-            -d '{}'
+            -d '{"api_key": "${{ secrets.BLAZTR_API_KEY }}"}'
