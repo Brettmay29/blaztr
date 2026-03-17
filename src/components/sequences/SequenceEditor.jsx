@@ -58,6 +58,7 @@ export default function SequenceEditor({ sequence, onBack }) {
       body: "",
       delay_days: 3,
       delay_hours: 0,
+      delay_minutes: 0,
     };
     setLocalSeq((prev) => ({
       ...prev,
