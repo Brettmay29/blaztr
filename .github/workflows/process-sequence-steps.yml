@@ -11,14 +11,14 @@ jobs:
     steps:
       - name: Trigger processSequenceSteps
         run: |
-          curl -X POST "https://blaztr.base44.app/api/functions/processSequenceSteps" \
+          curl -X POST "https://blaztr.base44.app/api/apps/69b02505f9b4d10dd348ac34/functions/processSequenceSteps" \
             -H "Content-Type: application/json" \
-            -H "x-api-key: ${{ secrets.BLAZTR_API_KEY }}" \
+            -H "api_key: ${{ secrets.BLAZTR_API_KEY }}" \
             -d '{}'
 
       - name: Trigger checkReplies
         run: |
-          curl -X POST "https://blaztr.base44.app/api/functions/checkReplies" \
+          curl -X POST "https://blaztr.base44.app/api/apps/69b02505f9b4d10dd348ac34/functions/checkReplies" \
             -H "Content-Type: application/json" \
-            -H "x-api-key: ${{ secrets.BLAZTR_API_KEY }}" \
+            -H "api_key: ${{ secrets.BLAZTR_API_KEY }}" \
             -d '{}'
