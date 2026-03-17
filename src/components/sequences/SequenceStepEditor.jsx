@@ -264,10 +264,10 @@ export default function SequenceStepEditor({
             />
           </div>
           <div className="flex-1 space-y-1">
-            <label className="text-xs text-neutral-500">Minutes</label>
+            <label className="text-xs text-neutral-500">Minutes (min 5)</label>
             <Input
               type="number"
-              min="0"
+              min="5"
               max="59"
               value={step.delay_minutes || 0}
               onChange={(e) => onChange({ delay_minutes: parseInt(e.target.value) || 0 })}
