@@ -2,8 +2,8 @@ name: Process Sequence Steps
 
 on:
   schedule:
-    - cron: '*/5 * * * *'  # Runs every 5 minutes
-  workflow_dispatch:  # Allows manual trigger from GitHub Actions tab
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
 
 jobs:
   process-steps:
@@ -13,12 +13,12 @@ jobs:
         run: |
           curl -X POST "https://blaztr.base44.app/api/functions/processSequenceSteps" \
             -H "Content-Type: application/json" \
-            -H "api_key: ${{ secrets.BLAZTR_API_KEY }}" \
+            -H "x-api-key: ${{ secrets.BLAZTR_API_KEY }}" \
             -d '{}'
 
       - name: Trigger checkReplies
         run: |
           curl -X POST "https://blaztr.base44.app/api/functions/checkReplies" \
             -H "Content-Type: application/json" \
-            -H "api_key: ${{ secrets.BLAZTR_API_KEY }}" \
+            -H "x-api-key: ${{ secrets.BLAZTR_API_KEY }}" \
             -d '{}'
