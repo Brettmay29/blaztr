@@ -216,6 +216,7 @@ export default function SendHub() {
       base44.entities.Lead.update(id, { status: "New", total_sends: 0, next_send_at: null })
     ));
 
+    queryClient.setQueryData(["send_logs"], []);
     await queryClient.refetchQueries({ queryKey: ["send_logs"] });
     await queryClient.refetchQueries({ queryKey: ["campaigns"] });
     await queryClient.refetchQueries({ queryKey: ["leads"] });
