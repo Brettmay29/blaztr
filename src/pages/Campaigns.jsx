@@ -23,7 +23,7 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import {
-  Plus, Send, MessageSquare, Pencil, Trash2,
+  Plus, Send, MessageSquare, Pencil, Trash2, Copy,
   FolderPlus, Folder, FolderOpen, ChevronDown, ChevronRight, MoreHorizontal, Pause, Square, Play,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -126,6 +126,27 @@ export default function Campaigns() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["campaigns"] }),
   });
 
+  const duplicateMutation = useMutation({
+    mutationFn: (c) => base44.entities.Campaign.create({
+      name: `${c.name} (Copy)`,
+      gmail_account_id: c.gmail_account_id,
+      gmail_nickname: c.gmail_nickname,
+      sequence_id: c.sequence_id,
+      send_window_start: c.send_window_start,
+      send_window_end: c.send_window_end,
+      send_days: c.send_days,
+      daily_limit: c.daily_limit,
+      send_delay_minutes: c.send_delay_minutes,
+      start_immediately: c.start_immediately,
+      specific_schedule: c.specific_schedule,
+      status: "Draft",
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+      toast.success("Campaign duplicated!");
+    },
+  });
+
   const handlePauseCampaign = async (id) => {
     await base44.entities.Campaign.update(id, { status: "Paused" });
     queryClient.invalidateQueries({ queryKey: ["campaigns"] });
@@ -141,21 +162,18 @@ export default function Campaigns() {
   const handleEndCampaign = async (id) => {
     setEndConfirmId(null);
 
-    // Find or create "Completed" folder
     let completedFolder = folders.find((f) => f.name === "Completed");
     if (!completedFolder) {
       completedFolder = await base44.entities.CampaignFolder.create({ name: "Completed" });
       queryClient.invalidateQueries({ queryKey: ["campaignFolders"] });
     }
 
-    // Clear all pending follow-ups for this campaign
     const campaignLogs = sendLogs.filter((l) => l.campaign_id === id && l.next_send_at && l.next_step_index > 0);
     await Promise.all(campaignLogs.map((l) => base44.entities.SendLog.update(l.id, {
       next_step_index: 0,
       next_send_at: '',
     })));
 
-    // Mark campaign as Completed and move to Completed folder
     await base44.entities.Campaign.update(id, {
       status: "Completed",
       folder_id: completedFolder.id,
@@ -299,8 +317,19 @@ export default function Campaigns() {
               </Button>
             )
           )}
+          {/* Edit button */}
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(c)}>
             <Pencil className="w-3.5 h-3.5" />
+          </Button>
+          {/* Duplicate button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-neutral-400 hover:text-neutral-600"
+            title="Duplicate campaign"
+            onClick={() => duplicateMutation.mutate(c)}
+          >
+            <Copy className="w-3.5 h-3.5" />
           </Button>
           {folders.length > 0 && (
             <DropdownMenu>
