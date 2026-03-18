@@ -46,8 +46,7 @@ export default function LeadsDatabase() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Column mapping state
-  const [pendingImport, setPendingImport] = useState(null); // { columns, dataRows, source, name }
+  const [pendingImport, setPendingImport] = useState(null);
 
   const { data: leads = [], isLoading } = useQuery({
     queryKey: ["leads"],
@@ -97,7 +96,6 @@ export default function LeadsDatabase() {
     return values;
   };
 
-  // Parse lines and show the column mapper
   const prepareImport = (lines, source) => {
     const name = dbName.trim() || `${source} Import ${new Date().toLocaleDateString()}`;
     const columns = parseCSVRow(lines[0]);
@@ -105,7 +103,6 @@ export default function LeadsDatabase() {
     setPendingImport({ columns, dataRows, source, name });
   };
 
-  // Called after user confirms column mapping
   const handleMappingConfirm = async (mapping) => {
     const { columns, dataRows, source, name } = pendingImport;
     setPendingImport(null);
@@ -191,9 +188,27 @@ export default function LeadsDatabase() {
   };
 
   const handleDeleteSelected = async () => {
+    // Get group IDs of leads being deleted
+    const affectedGroupIds = [...new Set(
+      selectedIds.map((id) => leads.find((l) => l.id === id)?.group_id).filter(Boolean)
+    )];
+
     await Promise.all(selectedIds.map((id) => base44.entities.Lead.delete(id)));
+
+    // Check if any affected groups are now empty and delete them
+    const remainingLeads = leads.filter((l) => !selectedIds.includes(l.id));
+    for (const groupId of affectedGroupIds) {
+      const stillHasLeads = remainingLeads.some((l) => l.group_id === groupId);
+      if (!stillHasLeads) {
+        await base44.entities.LeadsGroup.delete(groupId);
+      }
+    }
+
     queryClient.invalidateQueries({ queryKey: ["leads"] });
+    queryClient.invalidateQueries({ queryKey: ["leadsGroups"] });
     setSelectedIds([]);
+    setSelectedGroupId("all");
+    setCustomGroupId("all");
   };
 
   const uploadedGroups = groups.filter((g) => !g.type || g.type === "uploaded");
@@ -245,12 +260,10 @@ export default function LeadsDatabase() {
     queryClient.invalidateQueries({ queryKey: ["leads"] });
     queryClient.invalidateQueries({ queryKey: ["leadsGroups"] });
     setSelectedIds([]);
-    // Track the source uploaded group before navigating
     const sourceGroup = groups.find((g) => g.id === activeGroupId);
     if (sourceGroup && sourceGroup.type !== "custom") {
       setLastUploadedGroupId(activeGroupId);
     }
-    // Navigate to the destination group so the user can see the moved leads
     const destGroup = groups.find((g) => g.id === moveToGroupId);
     if (destGroup?.type === "custom") {
       setCustomGroupId(moveToGroupId);
@@ -428,7 +441,6 @@ export default function LeadsDatabase() {
             <div>
               <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1.5">Custom Database</p>
               <div className="flex items-center gap-1.5">
-                {/* Custom toggle dropdown */}
                 <div className="relative flex-1" ref={customDropdownRef}>
                   <button
                     onClick={() => setCustomDropdownOpen((o) => !o)}
@@ -486,7 +498,6 @@ export default function LeadsDatabase() {
                   </button>
                 )}
               </div>
-              {/* Create new custom database */}
               <div className="flex items-center gap-1.5 mt-1.5">
                 <Input
                   placeholder="New folder name..."
@@ -521,7 +532,6 @@ export default function LeadsDatabase() {
       {selectedIds.length > 0 && (
         <div className="bg-neutral-900 text-white text-xs rounded-lg px-4 py-2.5 flex items-center gap-3 flex-wrap">
           <span className="shrink-0">{selectedIds.length} lead{selectedIds.length > 1 ? "s" : ""} selected</span>
-          {/* Edit - only show when exactly 1 lead selected */}
           {selectedIds.length === 1 && (
             <Button
               size="sm"
@@ -531,7 +541,6 @@ export default function LeadsDatabase() {
               <Pencil className="w-3 h-3 mr-1" /> Edit
             </Button>
           )}
-          {/* Move to */}
           <span className="text-neutral-400 shrink-0 ml-auto sm:ml-0">Move to:</span>
           <div className="flex items-center gap-1.5">
             <Select value={moveToGroupId} onValueChange={setMoveToGroupId}>
@@ -564,7 +573,6 @@ export default function LeadsDatabase() {
                   <div className="px-3 py-2 text-xs text-neutral-400">No databases yet</div>
                 )}
               </SelectContent>
-
             </Select>
             <Button
               size="sm"
