@@ -24,8 +24,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   Plus, Send, MessageSquare, Pencil, Trash2,
-  FolderPlus, Folder, FolderOpen, ChevronDown, ChevronRight, MoreHorizontal,
+  FolderPlus, Folder, FolderOpen, ChevronDown, ChevronRight, MoreHorizontal, Pause, Square, Play,
 } from "lucide-react";
+import { toast } from "sonner";
 
 const campaignStatusStyles = {
   Draft: "bg-neutral-100 text-neutral-600",
@@ -38,6 +39,7 @@ export default function Campaigns() {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [endConfirmId, setEndConfirmId] = useState(null);
   const [form, setForm] = useState({
     name: "",
     gmail_account_id: "",
@@ -75,6 +77,11 @@ export default function Campaigns() {
   const { data: sequences = [] } = useQuery({
     queryKey: ["sequences"],
     queryFn: () => base44.entities.Sequence.list("-created_date", 100),
+  });
+
+  const { data: sendLogs = [] } = useQuery({
+    queryKey: ["send_logs"],
+    queryFn: () => base44.entities.SendLog.list("-created_date", 500),
   });
 
   const saveMutation = useMutation({
@@ -118,6 +125,47 @@ export default function Campaigns() {
     mutationFn: ({ id, folder_id }) => base44.entities.Campaign.update(id, { folder_id: folder_id || null }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["campaigns"] }),
   });
+
+  const handlePauseCampaign = async (id) => {
+    await base44.entities.Campaign.update(id, { status: "Paused" });
+    queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+    toast.success("Campaign paused.");
+  };
+
+  const handleResumeCampaign = async (id) => {
+    await base44.entities.Campaign.update(id, { status: "Active" });
+    queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+    toast.success("Campaign resumed!");
+  };
+
+  const handleEndCampaign = async (id) => {
+    setEndConfirmId(null);
+
+    // Find or create "Completed" folder
+    let completedFolder = folders.find((f) => f.name === "Completed");
+    if (!completedFolder) {
+      completedFolder = await base44.entities.CampaignFolder.create({ name: "Completed" });
+      queryClient.invalidateQueries({ queryKey: ["campaignFolders"] });
+    }
+
+    // Clear all pending follow-ups for this campaign
+    const campaignLogs = sendLogs.filter((l) => l.campaign_id === id && l.next_send_at && l.next_step_index > 0);
+    await Promise.all(campaignLogs.map((l) => base44.entities.SendLog.update(l.id, {
+      next_step_index: 0,
+      next_send_at: '',
+    })));
+
+    // Mark campaign as Completed and move to Completed folder
+    await base44.entities.Campaign.update(id, {
+      status: "Completed",
+      folder_id: completedFolder.id,
+    });
+
+    queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+    queryClient.invalidateQueries({ queryKey: ["send_logs"] });
+    queryClient.invalidateQueries({ queryKey: ["campaignFolders"] });
+    toast.success("Campaign ended and moved to Completed folder.");
+  };
 
   const openNew = () => {
     setEditing(null);
@@ -196,6 +244,61 @@ export default function Campaigns() {
           </div>
         </div>
         <div className="flex items-center gap-1">
+          {/* Pause/Resume button */}
+          {c.status === "Active" && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-yellow-500 hover:text-yellow-600"
+              title="Pause campaign"
+              onClick={() => handlePauseCampaign(c.id)}
+            >
+              <Pause className="w-3.5 h-3.5" />
+            </Button>
+          )}
+          {c.status === "Paused" && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-green-500 hover:text-green-600"
+              title="Resume campaign"
+              onClick={() => handleResumeCampaign(c.id)}
+            >
+              <Play className="w-3.5 h-3.5" />
+            </Button>
+          )}
+          {/* End campaign button */}
+          {(c.status === "Active" || c.status === "Paused") && (
+            endConfirmId === c.id ? (
+              <div className="flex items-center gap-1">
+                <Button
+                  size="sm"
+                  className="h-7 text-[11px] bg-red-500 hover:bg-red-600 text-white px-2"
+                  onClick={() => handleEndCampaign(c.id)}
+                >
+                  End
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-[11px] px-2"
+                  onClick={() => setEndConfirmId(null)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-red-400 hover:text-red-600"
+                title="End campaign"
+                onClick={() => setEndConfirmId(c.id)}
+              >
+                <Square className="w-3.5 h-3.5" />
+              </Button>
+            )
+          )}
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(c)}>
             <Pencil className="w-3.5 h-3.5" />
           </Button>
