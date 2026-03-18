@@ -120,7 +120,8 @@ export default function SendHub() {
       if (res.data?.success) {
         successCount++;
         if (nextSendAt) {
-          const newLogs = await base44.entities.SendLog.list("-created_date", 5);
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          const newLogs = await base44.entities.SendLog.list("-created_date", 10);
           const latestLog = newLogs.find((l) => l.lead_email === lead.email && l.campaign_id === selectedCampaign);
           if (latestLog) {
             await base44.entities.SendLog.update(latestLog.id, {
@@ -199,7 +200,6 @@ export default function SendHub() {
 
     await Promise.all(logsToClear.map((log) => base44.entities.SendLog.delete(log.id)));
 
-    // Reset campaign stats
     if (selectedFilterCampaign) {
       await base44.entities.Campaign.update(selectedFilterCampaign, {
         total_sent: 0,
@@ -211,15 +211,14 @@ export default function SendHub() {
       ));
     }
 
-    // Reset lead statuses back to New for affected leads
     const affectedLeadIds = [...new Set(logsToClear.map((log) => log.lead_id).filter(Boolean))];
     await Promise.all(affectedLeadIds.map((id) =>
       base44.entities.Lead.update(id, { status: "New", total_sends: 0, next_send_at: null })
     ));
 
-    await queryClient.invalidateQueries({ queryKey: ["send_logs"] });
-    await queryClient.invalidateQueries({ queryKey: ["campaigns"] });
-    await queryClient.invalidateQueries({ queryKey: ["leads"] });
+    await queryClient.refetchQueries({ queryKey: ["send_logs"] });
+    await queryClient.refetchQueries({ queryKey: ["campaigns"] });
+    await queryClient.refetchQueries({ queryKey: ["leads"] });
 
     toast.success(`Cleared ${logsToClear.length} send log${logsToClear.length !== 1 ? "s" : ""} and reset lead statuses.`);
     setClearingLogs(false);
