@@ -9,6 +9,7 @@ Deno.serve(async (req) => {
     const sentEmails = new Set(sendLogs.map((l) => l.lead_email?.toLowerCase()));
 
     const repliesFound = [];
+    const processedEmails = new Set(); // Track emails processed in this run
     const sevenDaysAgo = Math.floor((Date.now() - 7 * 24 * 60 * 60 * 1000) / 1000);
     const query = `in:inbox after:${sevenDaysAgo}`;
 
@@ -50,6 +51,9 @@ Deno.serve(async (req) => {
 
         if (!fromEmail || !sentEmails.has(fromEmail)) continue;
 
+        // Skip if already processed in this run
+        if (processedEmails.has(fromEmail)) continue;
+
         // Get the internalDate (ms since epoch) of this inbox message
         const emailReceivedAt = parseInt(msgData.internalDate || '0');
 
@@ -68,12 +72,14 @@ Deno.serve(async (req) => {
 
         if (!matchingLog) continue;
 
-        // Check if we already recorded this reply for this log
+        // Check if already replied in database
         const alreadyReplied = sendLogs.some(
           (l) => l.lead_email?.toLowerCase() === fromEmail && l.status === 'Replied'
         );
         if (alreadyReplied) continue;
 
+        // Mark as processed in this run to prevent double counting
+        processedEmails.add(fromEmail);
         repliesFound.push({ email: fromEmail, message_id: msg.id, account: account.email });
 
         if (matchingLog?.lead_id) {
