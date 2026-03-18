@@ -41,8 +41,6 @@ const navItems = [
   { name: "Email Testing", page: "EmailTesting", icon: Mail },
   { name: "Templates", page: "Templates", icon: FileText },
   { name: "Email Accounts", page: "GmailAccounts", icon: Users },
-
-
   { name: "Integrations", page: "Integrations", icon: Plug },
 ];
 
@@ -50,19 +48,18 @@ export default function Layout({ children, currentPageName }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [, forceUpdate] = useState(0);
 
-  // Re-render layout when dark mode changes
   useEffect(() => {
     const observer = new MutationObserver(() => forceUpdate(n => n + 1));
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     return () => observer.disconnect();
   }, []);
+
   const [user, setUser] = useState(null);
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
-  // Reload user when returning from Account page
   useEffect(() => {
     const handleFocus = () => base44.auth.me().then(setUser).catch(() => {});
     window.addEventListener("focus", handleFocus);
@@ -191,12 +188,12 @@ export default function Layout({ children, currentPageName }) {
             </DropdownMenu>
 
             <img
-              src="https://media.base44.com/images/public/69b02505f9b4d10dd348ac34/fbc183df0_BlaztrlogowhiteforDarkMode.png"
+              src="https://raw.githubusercontent.com/Brettmay29/blaztr/main/Blaztr%20-%20Logo%20DM.png"
               alt="Blaztr"
               className="h-8 w-auto object-contain hidden dark:block"
             />
             <img
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69b02505f9b4d10dd348ac34/caa67dcfa_Screenshot2026-03-11at93645AM.png"
+              src="https://raw.githubusercontent.com/Brettmay29/blaztr/main/Blaztr%20-%20Logo%20LM.png"
               alt="Blaztr"
               className="h-8 w-auto object-contain block dark:hidden"
             />
