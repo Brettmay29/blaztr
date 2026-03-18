@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Rocket, Send, Loader2, CheckCircle, AlertCircle, Clock, Eye, MessageSquare, RefreshCw, CalendarClock, Trash2 } from "lucide-react";
+import { Rocket, Send, Loader2, CheckCircle, AlertCircle, Clock, Eye, MessageSquare, RefreshCw, CalendarClock, Trash2, Pause, Square, StopCircle } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -28,11 +28,19 @@ export default function SendHub() {
   const [processingFollowUps, setProcessingFollowUps] = useState(false);
   const [clearingLogs, setClearingLogs] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showEndConfirm, setShowEndConfirm] = useState(false);
+  const [endingCampaign, setEndingCampaign] = useState(false);
   const [sendProgress, setSendProgress] = useState({ current: 0, total: 0 });
+  const stopRequestedRef = useRef(false);
 
   const { data: campaigns = [] } = useQuery({
     queryKey: ["campaigns"],
     queryFn: () => base44.entities.Campaign.list(),
+  });
+
+  const { data: folders = [] } = useQuery({
+    queryKey: ["campaignFolders"],
+    queryFn: () => base44.entities.CampaignFolder.list("-created_date", 100),
   });
 
   const { data: gmailAccounts = [] } = useQuery({
@@ -60,6 +68,9 @@ export default function SendHub() {
     queryFn: () => base44.entities.Sequence.list(),
   });
 
+  const selectedCampaignData = campaigns.find((c) => c.id === selectedCampaign);
+  const selectedCampaignStatus = selectedCampaignData?.status;
+
   const selectedLeads = selectedLeadGroup
     ? leads.filter((l) => l.group_id === selectedLeadGroup && (l.status === "New" || l.status === "Pending"))
     : leads.filter((l) => l.status === "New" || l.status === "Pending");
@@ -77,6 +88,7 @@ export default function SendHub() {
   const handleStartCampaign = async () => {
     if (!selectedCampaign || !selectedGmail || !selectedLeadGroup) return;
     setSending(true);
+    stopRequestedRef.current = false;
 
     const campaign = campaigns.find((c) => c.id === selectedCampaign);
     const gmail = gmailAccounts.find((a) => a.id === selectedGmail);
@@ -92,6 +104,12 @@ export default function SendHub() {
     let nextSendAt = null;
 
     for (let i = 0; i < leadsToSend.length; i++) {
+      // Check if stop was requested
+      if (stopRequestedRef.current) {
+        toast.message(`Campaign stopped after ${successCount} sends.`);
+        break;
+      }
+
       const lead = leadsToSend[i];
       setSendProgress({ current: i + 1, total: leadsToSend.length });
 
@@ -134,12 +152,12 @@ export default function SendHub() {
         failCount++;
       }
 
-      if (i < leadsToSend.length - 1 && sendDelay > 0) {
+      if (i < leadsToSend.length - 1 && sendDelay > 0 && !stopRequestedRef.current) {
         await new Promise((resolve) => setTimeout(resolve, sendDelay));
       }
     }
 
-    if (campaign) {
+    if (campaign && !stopRequestedRef.current) {
       await base44.entities.Campaign.update(campaign.id, {
         total_sent: (campaign.total_sent || 0) + successCount,
         total_leads: (campaign.total_leads || 0) + leadsToSend.length,
@@ -158,9 +176,64 @@ export default function SendHub() {
     queryClient.invalidateQueries({ queryKey: ["campaigns"] });
     queryClient.invalidateQueries({ queryKey: ["gmail_accounts"] });
 
-    toast.success(`Campaign sent: ${successCount} delivered${failCount > 0 ? `, ${failCount} failed` : ""}${nextSendAt ? `. Follow-up scheduled!` : ""}`);
+    if (!stopRequestedRef.current) {
+      toast.success(`Campaign sent: ${successCount} delivered${failCount > 0 ? `, ${failCount} failed` : ""}${nextSendAt ? `. Follow-up scheduled!` : ""}`);
+    }
     setSending(false);
     setSendProgress({ current: 0, total: 0 });
+    stopRequestedRef.current = false;
+  };
+
+  const handleStopCampaign = () => {
+    stopRequestedRef.current = true;
+  };
+
+  const handlePauseCampaign = async () => {
+    if (!selectedCampaign) return;
+    await base44.entities.Campaign.update(selectedCampaign, { status: "Paused" });
+    queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+    toast.success("Campaign paused. Follow-ups are frozen but replies will still be recorded.");
+  };
+
+  const handleResumeCampaign = async () => {
+    if (!selectedCampaign) return;
+    await base44.entities.Campaign.update(selectedCampaign, { status: "Active" });
+    queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+    toast.success("Campaign resumed!");
+  };
+
+  const handleEndCampaign = async () => {
+    if (!selectedCampaign) return;
+    setEndingCampaign(true);
+    setShowEndConfirm(false);
+
+    // Find or create "Completed" folder
+    let completedFolder = folders.find((f) => f.name === "Completed");
+    if (!completedFolder) {
+      completedFolder = await base44.entities.CampaignFolder.create({ name: "Completed" });
+      queryClient.invalidateQueries({ queryKey: ["campaignFolders"] });
+    }
+
+    // Clear all pending follow-ups for this campaign
+    const campaignLogs = sendLogs.filter((l) => l.campaign_id === selectedCampaign && l.next_send_at && l.next_step_index > 0);
+    await Promise.all(campaignLogs.map((l) => base44.entities.SendLog.update(l.id, {
+      next_step_index: 0,
+      next_send_at: '',
+    })));
+
+    // Mark campaign as Completed and move to Completed folder
+    await base44.entities.Campaign.update(selectedCampaign, {
+      status: "Completed",
+      folder_id: completedFolder.id,
+    });
+
+    queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+    queryClient.invalidateQueries({ queryKey: ["send_logs"] });
+    queryClient.invalidateQueries({ queryKey: ["campaignFolders"] });
+
+    toast.success("Campaign ended and moved to Completed folder.");
+    setSelectedCampaign("");
+    setEndingCampaign(false);
   };
 
   const handleCheckReplies = async () => {
@@ -282,27 +355,100 @@ export default function SendHub() {
                 <SelectValue placeholder="Select campaign" />
               </SelectTrigger>
               <SelectContent>
-                {campaigns.filter((c) => c.status === "Active").map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                {campaigns.filter((c) => c.status === "Active" || c.status === "Paused").map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name} {c.status === "Paused" ? "⏸" : ""}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-          <div className="flex items-end">
-            <Button
-              className="bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 w-full h-9 text-xs"
-              disabled={!selectedCampaign || !selectedGmail || !selectedLeadGroup || selectedLeads.length === 0 || sending}
-              onClick={handleStartCampaign}
-            >
-              {sending ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
-              ) : (
+          <div className="flex items-end gap-2">
+            {/* Stop button — only during active send */}
+            {sending && (
+              <Button
+                className="h-9 text-xs bg-red-500 hover:bg-red-600 text-white shrink-0"
+                onClick={handleStopCampaign}
+              >
+                <StopCircle className="w-3.5 h-3.5 mr-1.5" />
+                Stop
+              </Button>
+            )}
+            {/* Start button — not during active send */}
+            {!sending && (
+              <Button
+                className="bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 w-full h-9 text-xs"
+                disabled={!selectedCampaign || !selectedGmail || !selectedLeadGroup || selectedLeads.length === 0 || selectedCampaignStatus === "Paused"}
+                onClick={handleStartCampaign}
+              >
                 <Send className="w-3.5 h-3.5 mr-1.5" />
-              )}
-              Start Campaign
-            </Button>
+                {selectedCampaignStatus === "Paused" ? "Paused" : "Start Campaign"}
+              </Button>
+            )}
           </div>
         </div>
+
+        {/* Campaign control buttons row */}
+        {selectedCampaign && !sending && (
+          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-neutral-100 dark:border-neutral-800">
+            <span className="text-xs text-neutral-400">Campaign controls:</span>
+            {selectedCampaignStatus === "Active" && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs text-yellow-600 border-yellow-300 hover:bg-yellow-50"
+                onClick={handlePauseCampaign}
+              >
+                <Pause className="w-3 h-3 mr-1" />
+                Pause
+              </Button>
+            )}
+            {selectedCampaignStatus === "Paused" && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs text-green-600 border-green-300 hover:bg-green-50"
+                onClick={handleResumeCampaign}
+              >
+                <Send className="w-3 h-3 mr-1" />
+                Resume
+              </Button>
+            )}
+            {!showEndConfirm ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs text-red-500 border-red-300 hover:bg-red-50"
+                onClick={() => setShowEndConfirm(true)}
+                disabled={endingCampaign}
+              >
+                <Square className="w-3 h-3 mr-1" />
+                End Campaign
+              </Button>
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-red-500">End this campaign?</span>
+                <Button
+                  size="sm"
+                  className="h-6 text-xs bg-red-500 hover:bg-red-600 text-white"
+                  onClick={handleEndCampaign}
+                  disabled={endingCampaign}
+                >
+                  {endingCampaign ? <Loader2 className="w-3 h-3 animate-spin" /> : "Yes, End It"}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-6 text-xs"
+                  onClick={() => setShowEndConfirm(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="flex items-center justify-between mt-3 flex-wrap gap-2">
           <p className="text-[11px] text-neutral-400 dark:text-neutral-500">
             Sends to all New/Pending leads via real Gmail API (up to daily limit).
