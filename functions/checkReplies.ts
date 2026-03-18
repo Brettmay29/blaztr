@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
       }
 
       const listRes = await fetch(
-        `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(query)}&maxResults=50`,
+        `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(query)}&maxResults=30`,
         { headers: { Authorization: `Bearer ${accessToken}` } }
       );
 
@@ -38,9 +38,10 @@ Deno.serve(async (req) => {
       const listData = await listRes.json();
       const messages = listData.messages || [];
 
-      for (const msg of messages.slice(0, 30)) {
+      for (const msg of messages.slice(0, 15)) {
+        // Step 1: Fetch metadata only (fast)
         const msgRes = await fetch(
-          `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}?format=full&metadataHeaders=From&metadataHeaders=Subject`,
+          `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject`,
           { headers: { Authorization: `Bearer ${accessToken}` } }
         );
         if (!msgRes.ok) continue;
@@ -56,14 +57,21 @@ Deno.serve(async (req) => {
           fromHeader.toLowerCase().includes('postmaster');
 
         if (isBounceSender) {
-          // Extract bounced email from message body
-          const bodyParts = msgData.payload?.parts || [msgData.payload];
+          // Step 2: Only fetch full body for bounce emails
+          const fullMsgRes = await fetch(
+            `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}?format=full`,
+            { headers: { Authorization: `Bearer ${accessToken}` } }
+          );
+          if (!fullMsgRes.ok) continue;
+
+          const fullMsgData = await fullMsgRes.json();
+          const bodyParts = fullMsgData.payload?.parts || [fullMsgData.payload];
           let bodyText = '';
+
           for (const part of bodyParts) {
             if (part?.mimeType === 'text/plain' && part?.body?.data) {
               bodyText += atob(part.body.data.replace(/-/g, '+').replace(/_/g, '/'));
             }
-            // Check nested parts
             if (part?.parts) {
               for (const subpart of part.parts) {
                 if (subpart?.mimeType === 'text/plain' && subpart?.body?.data) {
@@ -73,37 +81,30 @@ Deno.serve(async (req) => {
             }
           }
 
-          // Extract Final-Recipient email
           const finalRecipientMatch = bodyText.match(/Final-Recipient:\s*rfc822;\s*([^\s\r\n]+)/i);
           const bouncedEmail = finalRecipientMatch?.[1]?.toLowerCase().trim();
 
           if (bouncedEmail && sentEmails.has(bouncedEmail) && !processedBounces.has(bouncedEmail)) {
             processedBounces.add(bouncedEmail);
 
-            // Find matching lead
             const matchingLog = sendLogs.find(
               (l) => l.lead_email?.toLowerCase() === bouncedEmail
             );
 
             if (matchingLog?.lead_id) {
-              // Check if already marked undeliverable
               const lead = await base44.asServiceRole.entities.Lead.get(matchingLog.lead_id);
-              if (lead && lead.status !== 'Undeliverable') {
-                // Mark lead as Undeliverable — quarantined from future sends
+              if (lead && lead.status !== 'Bounced' && lead.status !== 'Undeliverable') {
                 await base44.asServiceRole.entities.Lead.update(matchingLog.lead_id, {
                   status: 'Bounced',
                 });
-
-                // Update send log status
                 await base44.asServiceRole.entities.SendLog.update(matchingLog.id, {
                   status: 'Failed',
                 });
-
                 bouncesFound.push({ email: bouncedEmail, account: account.email });
               }
             }
           }
-          continue; // Skip reply processing for bounce emails
+          continue;
         }
 
         // ── REPLY DETECTION ──
