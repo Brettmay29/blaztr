@@ -21,7 +21,6 @@ Deno.serve(async (req) => {
     const gmailAccounts = await base44.asServiceRole.entities.GmailAccount.list();
     const campaigns = await base44.asServiceRole.entities.Campaign.list();
 
-    // Token refresh helper
     const refreshAccessToken = async (refreshToken) => {
       const refreshRes = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',
@@ -46,6 +45,9 @@ Deno.serve(async (req) => {
         const campaign = campaigns.find((c) => c.id === log.campaign_id);
         if (!campaign) continue;
 
+        // Skip if campaign is Paused or Completed
+        if (campaign.status === 'Paused' || campaign.status === 'Completed') continue;
+
         const sequence = sequences.find((s) => s.id === campaign.sequence_id);
         if (!sequence) continue;
 
@@ -56,12 +58,11 @@ Deno.serve(async (req) => {
         const lead = await base44.asServiceRole.entities.Lead.get(log.lead_id);
         if (!lead) continue;
 
-        if (lead.status === 'Replied' || lead.status === 'Opted Out' || lead.status === 'Bounced') continue;
+        if (lead.status === 'Replied' || lead.status === 'Opted Out' || lead.status === 'Bounced' || lead.status === 'Undeliverable') continue;
 
         const gmailAccount = gmailAccounts.find((a) => a.id === campaign.gmail_account_id);
         if (!gmailAccount) continue;
 
-        // Get access token
         let accessToken;
         if (gmailAccount.access_token) {
           accessToken = gmailAccount.access_token;
