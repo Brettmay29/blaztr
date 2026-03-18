@@ -4,10 +4,7 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Get all Gmail accounts
     const gmailAccounts = await base44.asServiceRole.entities.GmailAccount.list();
-
-    // Fetch all send logs to cross-reference
     const sendLogs = await base44.asServiceRole.entities.SendLog.list('-created_date', 500);
     const sentEmails = new Set(sendLogs.map((l) => l.lead_email?.toLowerCase()));
 
@@ -15,7 +12,6 @@ Deno.serve(async (req) => {
     const sevenDaysAgo = Math.floor((Date.now() - 7 * 24 * 60 * 60 * 1000) / 1000);
     const query = `in:inbox after:${sevenDaysAgo}`;
 
-    // Check each Gmail account's inbox
     for (const account of gmailAccounts) {
       let accessToken;
       if (account.access_token) {
@@ -54,7 +50,25 @@ Deno.serve(async (req) => {
 
         if (!fromEmail || !sentEmails.has(fromEmail)) continue;
 
-        // Check if we already recorded this reply
+        // Get the internalDate (ms since epoch) of this inbox message
+        const emailReceivedAt = parseInt(msgData.internalDate || '0');
+
+        // Find the most recent matching send log that:
+        // 1. Has not already been marked as Replied
+        // 2. Was sent BEFORE this email was received
+        const matchingLog = sendLogs
+          .filter((l) => {
+            if (l.lead_email?.toLowerCase() !== fromEmail) return false;
+            if (l.status === 'Replied') return false;
+            if (!l.sent_at) return false;
+            const sentAtMs = new Date(l.sent_at).getTime();
+            return emailReceivedAt > sentAtMs;
+          })
+          .sort((a, b) => new Date(b.sent_at).getTime() - new Date(a.sent_at).getTime())[0];
+
+        if (!matchingLog) continue;
+
+        // Check if we already recorded this reply for this log
         const alreadyReplied = sendLogs.some(
           (l) => l.lead_email?.toLowerCase() === fromEmail && l.status === 'Replied'
         );
@@ -62,25 +76,17 @@ Deno.serve(async (req) => {
 
         repliesFound.push({ email: fromEmail, message_id: msg.id, account: account.email });
 
-        // Find the most recent matching send log
-        const matchingLog = sendLogs.find(
-          (l) => l.lead_email?.toLowerCase() === fromEmail && l.status !== 'Replied'
-        );
-
         if (matchingLog?.lead_id) {
-          // Update lead status
           await base44.asServiceRole.entities.Lead.update(matchingLog.lead_id, {
             status: 'Replied',
             reply_sentiment: 'PR',
           });
 
-          // Update send log
           await base44.asServiceRole.entities.SendLog.update(matchingLog.id, {
             status: 'Replied',
             replied_at: new Date().toISOString(),
           });
 
-          // Update campaign reply count
           if (matchingLog.campaign_id) {
             const campaign = await base44.asServiceRole.entities.Campaign.get(matchingLog.campaign_id);
             if (campaign) {
