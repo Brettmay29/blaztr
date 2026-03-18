@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
               if (lead && lead.status !== 'Undeliverable') {
                 // Mark lead as Undeliverable — quarantined from future sends
                 await base44.asServiceRole.entities.Lead.update(matchingLog.lead_id, {
-                  status: 'Undeliverable',
+                  status: 'Bounced',
                 });
 
                 // Update send log status
