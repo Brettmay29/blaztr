@@ -5,17 +5,26 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
 
     const gmailAccounts = await base44.asServiceRole.entities.GmailAccount.list();
-    const sendLogs = await base44.asServiceRole.entities.SendLog.list('-created_date', 500);
+    const campaigns = await base44.asServiceRole.entities.Campaign.list();
+    const sendLogs = await base44.asServiceRole.entities.SendLog.list('-created_date', 1000);
     const sentEmails = new Set(sendLogs.map((l) => l.lead_email?.toLowerCase()));
 
     const repliesFound = [];
     const bouncesFound = [];
     const processedEmails = new Set();
     const processedBounces = new Set();
-    const sevenDaysAgo = Math.floor((Date.now() - 7 * 24 * 60 * 60 * 1000) / 1000);
-    const query = `in:inbox after:${sevenDaysAgo}`;
+
+    // Only look back 5 days
+    const fiveDaysAgo = Math.floor((Date.now() - 5 * 24 * 60 * 60 * 1000) / 1000);
 
     for (const account of gmailAccounts) {
+      // Only process accounts that have at least one active or paused campaign
+      const accountCampaigns = campaigns.filter(
+        (c) => c.gmail_account_id === account.id &&
+        (c.status === 'Active' || c.status === 'Paused')
+      );
+      if (accountCampaigns.length === 0) continue;
+
       let accessToken;
       if (account.access_token) {
         accessToken = account.access_token;
@@ -28,36 +37,22 @@ Deno.serve(async (req) => {
         }
       }
 
-      const listRes = await fetch(
-        `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(query)}&maxResults=30`,
+      // Smarter query - only unread inbox messages after 5 days ago
+      // This is much faster than scanning all inbox messages
+      const replyQuery = `in:inbox after:${fiveDaysAgo}`;
+      const bounceQuery = `in:inbox from:mailer-daemon OR from:postmaster after:${fiveDaysAgo}`;
+
+      // ── BOUNCE DETECTION (separate targeted query) ──
+      const bounceListRes = await fetch(
+        `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(bounceQuery)}&maxResults=10`,
         { headers: { Authorization: `Bearer ${accessToken}` } }
       );
 
-      if (!listRes.ok) continue;
+      if (bounceListRes.ok) {
+        const bounceListData = await bounceListRes.json();
+        const bounceMessages = bounceListData.messages || [];
 
-      const listData = await listRes.json();
-      const messages = listData.messages || [];
-
-      for (const msg of messages.slice(0, 15)) {
-        // Step 1: Fetch metadata only (fast)
-        const msgRes = await fetch(
-          `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject`,
-          { headers: { Authorization: `Bearer ${accessToken}` } }
-        );
-        if (!msgRes.ok) continue;
-
-        const msgData = await msgRes.json();
-        const headers = msgData.payload?.headers || [];
-        const fromHeader = headers.find((h) => h.name === 'From')?.value || '';
-        const emailReceivedAt = parseInt(msgData.internalDate || '0');
-
-        // ── BOUNCE DETECTION ──
-        const isBounceSender =
-          fromHeader.toLowerCase().includes('mailer-daemon') ||
-          fromHeader.toLowerCase().includes('postmaster');
-
-        if (isBounceSender) {
-          // Step 2: Only fetch full body for bounce emails
+        for (const msg of bounceMessages) {
           const fullMsgRes = await fetch(
             `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}?format=full`,
             { headers: { Authorization: `Bearer ${accessToken}` } }
@@ -104,10 +99,38 @@ Deno.serve(async (req) => {
               }
             }
           }
-          continue;
         }
+      }
 
-        // ── REPLY DETECTION ──
+      // ── REPLY DETECTION ──
+      const replyListRes = await fetch(
+        `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(replyQuery)}&maxResults=50`,
+        { headers: { Authorization: `Bearer ${accessToken}` } }
+      );
+
+      if (!replyListRes.ok) continue;
+
+      const replyListData = await replyListRes.json();
+      const messages = replyListData.messages || [];
+
+      for (const msg of messages) {
+        const msgRes = await fetch(
+          `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject`,
+          { headers: { Authorization: `Bearer ${accessToken}` } }
+        );
+        if (!msgRes.ok) continue;
+
+        const msgData = await msgRes.json();
+        const headers = msgData.payload?.headers || [];
+        const fromHeader = headers.find((h) => h.name === 'From')?.value || '';
+        const emailReceivedAt = parseInt(msgData.internalDate || '0');
+
+        // Skip bounce emails — already handled above
+        const isBounceSender =
+          fromHeader.toLowerCase().includes('mailer-daemon') ||
+          fromHeader.toLowerCase().includes('postmaster');
+        if (isBounceSender) continue;
+
         const emailMatch = fromHeader.match(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/);
         const fromEmail = emailMatch?.[0]?.toLowerCase();
 
