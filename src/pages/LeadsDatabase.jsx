@@ -166,7 +166,6 @@ export default function LeadsDatabase() {
     e.target.value = "";
   };
 
-  // Load available sheets from Google Sheets JSON feed
   const handleLoadSheets = async () => {
     const match = sheetUrl.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
     if (!match) {
@@ -181,37 +180,32 @@ export default function LeadsDatabase() {
     setSheetId(id);
 
     try {
-      // Use Google Sheets JSON feed to get sheet names
       const feedUrl = `https://spreadsheets.google.com/feeds/worksheets/${id}/public/basic?alt=json`;
       const res = await fetch(feedUrl);
       if (!res.ok) {
-        // Fallback: just import default sheet if feed fails
-        setAvailableSheets([{ name: "Default Sheet", gid: "" }]);
-        setSelectedSheetGid("");
+        setAvailableSheets([{ name: "Default Sheet", gid: "default" }]);
+        setSelectedSheetGid("default");
       } else {
         const data = await res.json();
         const entries = data.feed?.entry || [];
-        const sheets = entries.map((entry) => {
-          const link = entry.link?.find((l) => l.rel === "self")?.href || "";
-          const gidMatch = link.match(/\/([^/]+)\/basic$/);
-          // Extract gid from the worksheetsfeed link
-          const idPart = entry.id?.$t?.split("/").pop() || "";
+        const sheets = entries.map((entry, i) => {
+          const idPart = entry.id?.$t?.split("/").pop() || `sheet-${i}`;
           return {
-            name: entry.title?.$t || "Sheet",
-            gid: idPart,
+            name: entry.title?.$t || `Sheet ${i + 1}`,
+            gid: idPart || `sheet-${i}`,
           };
         });
         if (sheets.length === 0) {
-          setAvailableSheets([{ name: "Default Sheet", gid: "" }]);
+          setAvailableSheets([{ name: "Default Sheet", gid: "default" }]);
+          setSelectedSheetGid("default");
         } else {
           setAvailableSheets(sheets);
           setSelectedSheetGid(sheets[0].gid);
         }
       }
     } catch {
-      // Fallback to default sheet
-      setAvailableSheets([{ name: "Default Sheet", gid: "" }]);
-      setSelectedSheetGid("");
+      setAvailableSheets([{ name: "Default Sheet", gid: "default" }]);
+      setSelectedSheetGid("default");
     }
     setLoadingSheets(false);
   };
@@ -224,9 +218,8 @@ export default function LeadsDatabase() {
     setImporting(true);
     setImportStatus(null);
 
-    // Build export URL with optional gid for specific sheet
     let csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
-    if (selectedSheetGid) {
+    if (selectedSheetGid && selectedSheetGid !== "default") {
       csvUrl += `&gid=${selectedSheetGid}`;
     }
 
@@ -452,8 +445,8 @@ export default function LeadsDatabase() {
                         <SelectValue placeholder="Select a sheet tab..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {availableSheets.map((s) => (
-                          <SelectItem key={s.gid} value={s.gid}>
+                        {availableSheets.map((s, i) => (
+                          <SelectItem key={s.gid || `sheet-${i}`} value={s.gid || `sheet-${i}`}>
                             {s.name}
                           </SelectItem>
                         ))}
