@@ -167,7 +167,7 @@ ${processedBody}
           (l.status === 'New' || l.status === 'Pending') &&
           !['Replied', 'Bounced', 'Opted Out', 'Undeliverable', 'Contacted'].includes(l.status) &&
           !emailsSentToday.has(l.email)  // ← DEDUP: skip if emailed today by any campaign
-        ).slice(0, remainingToday);
+                ).slice(0, Math.min(remainingToday, 10));
 
         if (eligibleLeads.length === 0) continue;
 
