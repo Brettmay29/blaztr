@@ -36,6 +36,12 @@ export default function LeadsDatabase() {
   const [customDropdownOpen, setCustomDropdownOpen] = useState(false);
   const customDropdownRef = useRef(null);
 
+  // Sheet selector state
+  const [availableSheets, setAvailableSheets] = useState([]);
+  const [selectedSheetGid, setSelectedSheetGid] = useState("");
+  const [loadingSheets, setLoadingSheets] = useState(false);
+  const [sheetId, setSheetId] = useState("");
+
   useEffect(() => {
     const handler = (e) => {
       if (customDropdownRef.current && !customDropdownRef.current.contains(e.target)) {
@@ -160,15 +166,70 @@ export default function LeadsDatabase() {
     e.target.value = "";
   };
 
-  const handleSheetImport = async () => {
+  // Load available sheets from Google Sheets JSON feed
+  const handleLoadSheets = async () => {
     const match = sheetUrl.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
     if (!match) {
       setImportStatus({ type: "error", message: "Invalid Google Sheet URL." });
       return;
     }
+    setLoadingSheets(true);
+    setImportStatus(null);
+    setAvailableSheets([]);
+    setSelectedSheetGid("");
+    const id = match[1];
+    setSheetId(id);
+
+    try {
+      // Use Google Sheets JSON feed to get sheet names
+      const feedUrl = `https://spreadsheets.google.com/feeds/worksheets/${id}/public/basic?alt=json`;
+      const res = await fetch(feedUrl);
+      if (!res.ok) {
+        // Fallback: just import default sheet if feed fails
+        setAvailableSheets([{ name: "Default Sheet", gid: "" }]);
+        setSelectedSheetGid("");
+      } else {
+        const data = await res.json();
+        const entries = data.feed?.entry || [];
+        const sheets = entries.map((entry) => {
+          const link = entry.link?.find((l) => l.rel === "self")?.href || "";
+          const gidMatch = link.match(/\/([^/]+)\/basic$/);
+          // Extract gid from the worksheetsfeed link
+          const idPart = entry.id?.$t?.split("/").pop() || "";
+          return {
+            name: entry.title?.$t || "Sheet",
+            gid: idPart,
+          };
+        });
+        if (sheets.length === 0) {
+          setAvailableSheets([{ name: "Default Sheet", gid: "" }]);
+        } else {
+          setAvailableSheets(sheets);
+          setSelectedSheetGid(sheets[0].gid);
+        }
+      }
+    } catch {
+      // Fallback to default sheet
+      setAvailableSheets([{ name: "Default Sheet", gid: "" }]);
+      setSelectedSheetGid("");
+    }
+    setLoadingSheets(false);
+  };
+
+  const handleSheetImport = async () => {
+    if (!sheetId) {
+      setImportStatus({ type: "error", message: "Please load the sheet first." });
+      return;
+    }
     setImporting(true);
     setImportStatus(null);
-    const csvUrl = `https://docs.google.com/spreadsheets/d/${match[1]}/export?format=csv`;
+
+    // Build export URL with optional gid for specific sheet
+    let csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
+    if (selectedSheetGid) {
+      csvUrl += `&gid=${selectedSheetGid}`;
+    }
+
     const res = await fetch(csvUrl);
     if (!res.ok) {
       setImportStatus({ type: "error", message: "Could not access sheet. Make sure it's set to 'Anyone with the link can view'." });
@@ -185,17 +246,18 @@ export default function LeadsDatabase() {
     setImporting(false);
     prepareImport(lines, "Google Sheet");
     setSheetUrl("");
+    setAvailableSheets([]);
+    setSelectedSheetGid("");
+    setSheetId("");
   };
 
   const handleDeleteSelected = async () => {
-    // Get group IDs of leads being deleted
     const affectedGroupIds = [...new Set(
       selectedIds.map((id) => leads.find((l) => l.id === id)?.group_id).filter(Boolean)
     )];
 
     await Promise.all(selectedIds.map((id) => base44.entities.Lead.delete(id)));
 
-    // Check if any affected groups are now empty and delete them
     const remainingLeads = leads.filter((l) => !selectedIds.includes(l.id));
     for (const groupId of affectedGroupIds) {
       const stillHasLeads = remainingLeads.some((l) => l.group_id === groupId);
@@ -359,24 +421,57 @@ export default function LeadsDatabase() {
 
             {tab === "sheet" && (
               <div className="space-y-2">
+                {/* Step 1: URL + Load Sheets button */}
                 <div className="flex gap-2">
                   <Input
                     placeholder="https://docs.google.com/spreadsheets/d/..."
                     value={sheetUrl}
-                    onChange={(e) => setSheetUrl(e.target.value)}
+                    onChange={(e) => {
+                      setSheetUrl(e.target.value);
+                      setAvailableSheets([]);
+                      setSelectedSheetGid("");
+                      setSheetId("");
+                    }}
                     className="text-sm h-9 flex-1"
                   />
                   <Button
                     size="sm"
                     className="h-9 bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 text-xs shrink-0"
-                    onClick={handleSheetImport}
-                    disabled={importing || !sheetUrl.trim()}
+                    onClick={handleLoadSheets}
+                    disabled={loadingSheets || !sheetUrl.trim()}
                   >
-                    {importing ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : "Import"}
+                    {loadingSheets ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : "Load Sheets"}
                   </Button>
                 </div>
+
+                {/* Step 2: Sheet selector — only shown after loading */}
+                {availableSheets.length > 0 && (
+                  <div className="flex gap-2 items-center">
+                    <Select value={selectedSheetGid} onValueChange={setSelectedSheetGid}>
+                      <SelectTrigger className="h-9 text-sm flex-1">
+                        <SelectValue placeholder="Select a sheet tab..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableSheets.map((s) => (
+                          <SelectItem key={s.gid} value={s.gid}>
+                            {s.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      size="sm"
+                      className="h-9 bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 text-xs shrink-0"
+                      onClick={handleSheetImport}
+                      disabled={importing}
+                    >
+                      {importing ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : "Import"}
+                    </Button>
+                  </div>
+                )}
+
                 <p className="text-xs text-neutral-400">
-                  Sheet must be shared as <strong>"Anyone with the link can view"</strong>. You'll map columns next.
+                  Sheet must be shared as <strong>"Anyone with the link can view"</strong>. Click "Load Sheets" to see available tabs.
                 </p>
               </div>
             )}
