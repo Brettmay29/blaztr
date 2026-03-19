@@ -17,6 +17,8 @@ import ColumnMapper from "../components/dashboard/ColumnMapper";
 import LeadsAnalytics from "../components/dashboard/LeadsAnalytics";
 import EditLeadDialog from "../components/dashboard/EditLeadDialog";
 
+const SHEETS_API_KEY = "AIzaSyDYggXGAb9EOVKkrgWAlf9f2zLwCM3gqTw";
+
 export default function LeadsDatabase() {
   const queryClient = useQueryClient();
   const [pageTab, setPageTab] = useState("database");
@@ -180,33 +182,34 @@ export default function LeadsDatabase() {
     setSheetId(id);
 
     try {
-      const feedUrl = `https://spreadsheets.google.com/feeds/worksheets/${id}/public/basic?alt=json`;
-      const res = await fetch(feedUrl);
+      // Use Google Sheets API v4 with API key to get all sheet tabs
+      const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${id}?fields=sheets.properties&key=${SHEETS_API_KEY}`;
+      const res = await fetch(apiUrl);
+
       if (!res.ok) {
-        setAvailableSheets([{ name: "Default Sheet", gid: "default" }]);
-        setSelectedSheetGid("default");
-      } else {
-        const data = await res.json();
-        const entries = data.feed?.entry || [];
-        const sheets = entries.map((entry, i) => {
-          const idPart = entry.id?.$t?.split("/").pop() || `sheet-${i}`;
-          return {
-            name: entry.title?.$t || `Sheet ${i + 1}`,
-            gid: idPart || `sheet-${i}`,
-          };
-        });
-        if (sheets.length === 0) {
-          setAvailableSheets([{ name: "Default Sheet", gid: "default" }]);
-          setSelectedSheetGid("default");
-        } else {
-          setAvailableSheets(sheets);
-          setSelectedSheetGid(sheets[0].gid);
-        }
+        const errData = await res.json();
+        setImportStatus({ type: "error", message: `Could not load sheets: ${errData?.error?.message || "Unknown error"}` });
+        setLoadingSheets(false);
+        return;
       }
-    } catch {
-      setAvailableSheets([{ name: "Default Sheet", gid: "default" }]);
-      setSelectedSheetGid("default");
+
+      const data = await res.json();
+      const sheets = (data.sheets || []).map((s) => ({
+        name: s.properties.title,
+        gid: String(s.properties.sheetId),
+      }));
+
+      if (sheets.length === 0) {
+        setAvailableSheets([{ name: "Default Sheet", gid: "0" }]);
+        setSelectedSheetGid("0");
+      } else {
+        setAvailableSheets(sheets);
+        setSelectedSheetGid(sheets[0].gid);
+      }
+    } catch (err) {
+      setImportStatus({ type: "error", message: "Failed to load sheets. Check the URL and try again." });
     }
+
     setLoadingSheets(false);
   };
 
@@ -219,7 +222,7 @@ export default function LeadsDatabase() {
     setImportStatus(null);
 
     let csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
-    if (selectedSheetGid && selectedSheetGid !== "default") {
+    if (selectedSheetGid && selectedSheetGid !== "0") {
       csvUrl += `&gid=${selectedSheetGid}`;
     }
 
@@ -437,7 +440,7 @@ export default function LeadsDatabase() {
                   </Button>
                 </div>
 
-                {/* Step 2: Sheet selector — only shown after loading */}
+                {/* Step 2: Sheet tab selector */}
                 {availableSheets.length > 0 && (
                   <div className="flex gap-2 items-center">
                     <Select value={selectedSheetGid} onValueChange={setSelectedSheetGid}>
@@ -445,8 +448,8 @@ export default function LeadsDatabase() {
                         <SelectValue placeholder="Select a sheet tab..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {availableSheets.map((s, i) => (
-                          <SelectItem key={s.gid || `sheet-${i}`} value={s.gid || `sheet-${i}`}>
+                        {availableSheets.map((s) => (
+                          <SelectItem key={s.gid} value={s.gid}>
                             {s.name}
                           </SelectItem>
                         ))}
