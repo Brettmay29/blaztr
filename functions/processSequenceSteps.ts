@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
         .replace(/<br\s*\/?>/gi, '<br style="display:block;content:\'\';margin-top:0;">');
     };
 
-    const buildAndSendEmail = async (lead, step, gmailAccount, campaignId, accessToken, refreshTokenFn) => {
+    const buildAndSendEmail = async (lead, step, gmailAccount, accessToken) => {
       const variableMap = {
         firstname: lead.first_name || 'there',
         lastname: lead.last_name || '',
@@ -102,7 +102,7 @@ ${processedBody}
       });
 
       if (gmailRes.status === 401 && gmailAccount.refresh_token) {
-        const newToken = await refreshTokenFn(gmailAccount.refresh_token);
+        const newToken = await refreshAccessToken(gmailAccount.refresh_token);
         if (newToken) {
           await base44.asServiceRole.entities.GmailAccount.update(gmailAccount.id, { access_token: newToken });
           accessToken = newToken;
@@ -124,6 +124,16 @@ ${processedBody}
     const campaigns = await base44.asServiceRole.entities.Campaign.list();
     const allLogs = await base44.asServiceRole.entities.SendLog.list('-created_date', 500);
 
+    // ── BUILD GLOBAL DEDUP SET — emails already contacted TODAY ──────────────
+    // This prevents any lead from receiving more than one email per day
+    // even if they appear in multiple campaigns' databases
+    const emailsSentToday = new Set(
+      allLogs
+        .filter(l => l.sent_at && l.sent_at.startsWith(todayStr))
+        .map(l => l.lead_email)
+        .filter(Boolean)
+    );
+
     let step1Processed = 0;
     let step1Failed = 0;
 
@@ -139,26 +149,24 @@ ${processedBody}
         const gmailAccount = gmailAccounts.find((a) => a.id === campaign.gmail_account_id);
         if (!gmailAccount) continue;
 
-        // Count emails sent today for this campaign
-        const sentTodayCount = allLogs.filter((l) =>
-          l.campaign_id === campaign.id &&
+        // Count emails sent today BY THIS GMAIL ACCOUNT (across all campaigns)
+        const sentTodayByAccount = allLogs.filter((l) =>
+          l.gmail_account_id === campaign.gmail_account_id &&
           l.sent_at &&
           l.sent_at.startsWith(todayStr)
         ).length;
 
         const dailyLimit = campaign.daily_limit || gmailAccount.daily_limit || 30;
-        const remainingToday = dailyLimit - sentTodayCount;
+        const remainingToday = dailyLimit - sentTodayByAccount;
         if (remainingToday <= 0) continue;
 
-        // Get leads for this campaign's database that haven't been contacted
+        // Get leads for this campaign's database
         const allLeads = await base44.asServiceRole.entities.Lead.list('-created_date', 500);
         const eligibleLeads = allLeads.filter((l) =>
           l.group_id === campaign.leads_group_id &&
           (l.status === 'New' || l.status === 'Pending') &&
-          l.status !== 'Replied' &&
-          l.status !== 'Bounced' &&
-          l.status !== 'Opted Out' &&
-          l.status !== 'Undeliverable'
+          !['Replied', 'Bounced', 'Opted Out', 'Undeliverable', 'Contacted'].includes(l.status) &&
+          !emailsSentToday.has(l.email)  // ← DEDUP: skip if emailed today by any campaign
         ).slice(0, remainingToday);
 
         if (eligibleLeads.length === 0) continue;
@@ -180,13 +188,16 @@ ${processedBody}
 
         for (const lead of eligibleLeads) {
           try {
-            const result = await buildAndSendEmail(lead, firstStep, gmailAccount, campaign.id, accessToken, refreshAccessToken);
-            accessToken = result.accessToken; // keep refreshed token
+            const result = await buildAndSendEmail(lead, firstStep, gmailAccount, accessToken);
+            accessToken = result.accessToken;
 
             if (!result.ok) {
               step1Failed++;
               continue;
             }
+
+            // ── IMMEDIATELY add to dedup set so next campaign skips this lead ──
+            emailsSentToday.add(lead.email);
 
             // Calculate next follow-up time
             let nextSendAt = null;
@@ -199,7 +210,6 @@ ${processedBody}
 
             const nowIso = new Date().toISOString();
 
-            // Create send log
             await base44.asServiceRole.entities.SendLog.create({
               lead_id: lead.id,
               campaign_id: campaign.id,
@@ -214,7 +224,6 @@ ${processedBody}
               next_send_at: nextSendAt || '',
             });
 
-            // Update lead status
             await base44.asServiceRole.entities.Lead.update(lead.id, {
               status: 'Contacted',
               total_sends: (lead.total_sends || 0) + 1,
@@ -222,7 +231,6 @@ ${processedBody}
               next_send_at: nextSendAt || '',
             });
 
-            // Update campaign total_sent
             await base44.asServiceRole.entities.Campaign.update(campaign.id, {
               total_sent: (campaign.total_sent || 0) + 1,
             });
@@ -280,7 +288,7 @@ ${processedBody}
           }
         }
 
-        const result = await buildAndSendEmail(lead, step, gmailAccount, campaign.id, accessToken, refreshAccessToken);
+        const result = await buildAndSendEmail(lead, step, gmailAccount, accessToken);
 
         if (!result.ok) {
           followUpFailed++;
@@ -330,8 +338,6 @@ ${processedBody}
         followUpFailed++;
       }
     }
-
-    // ── Response ──────────────────────────────────────────────────────────────
 
     return Response.json({
       step1_processed: step1Processed,
