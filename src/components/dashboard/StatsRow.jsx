@@ -10,7 +10,7 @@ const stats = [
 export default function StatsRow({ leads }) {
   const data = {
     total: leads.length,
-    sent: leads.filter((l) => l.status === "Sent" || l.status === "Replied").length,
+    sent: leads.filter((l) => l.status === "Sent" || l.status === "Contacted" || l.status === "Replied").length,
     replies: leads.filter((l) => l.reply_sentiment === "PR" || l.reply_sentiment === "NR").length,
   };
 
