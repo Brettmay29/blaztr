@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -6,14 +6,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Rocket, Send, Loader2, CheckCircle, AlertCircle, Clock, Eye, MessageSquare, RefreshCw, CalendarClock, Trash2, Pause, Square, StopCircle } from "lucide-react";
+import {
+  Rocket, Send, Loader2, CheckCircle, AlertCircle, Clock,
+  Eye, MessageSquare, RefreshCw, CalendarClock, Trash2, Pause, Square, StopCircle
+} from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -23,15 +21,13 @@ export default function SendHub() {
   const [selectedGmail, setSelectedGmail] = useState("");
   const [selectedLeadGroup, setSelectedLeadGroup] = useState("");
   const [selectedFilterCampaign, setSelectedFilterCampaign] = useState("");
-  const [sending, setSending] = useState(false);
+  const [activating, setActivating] = useState(false);
   const [checkingReplies, setCheckingReplies] = useState(false);
   const [processingFollowUps, setProcessingFollowUps] = useState(false);
   const [clearingLogs, setClearingLogs] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
   const [endingCampaign, setEndingCampaign] = useState(false);
-  const [sendProgress, setSendProgress] = useState({ current: 0, total: 0 });
-  const stopRequestedRef = useRef(false);
 
   const { data: campaigns = [] } = useQuery({
     queryKey: ["campaigns"],
@@ -63,17 +59,8 @@ export default function SendHub() {
     queryFn: () => base44.entities.LeadsGroup.list("-created_date", 100),
   });
 
-  const { data: sequences = [] } = useQuery({
-    queryKey: ["sequences"],
-    queryFn: () => base44.entities.Sequence.list(),
-  });
-
   const selectedCampaignData = campaigns.find((c) => c.id === selectedCampaign);
   const selectedCampaignStatus = selectedCampaignData?.status;
-
-  const selectedLeads = selectedLeadGroup
-    ? leads.filter((l) => l.group_id === selectedLeadGroup && (l.status === "New" || l.status === "Pending"))
-    : leads.filter((l) => l.status === "New" || l.status === "Pending");
 
   const filteredSendLogs = selectedFilterCampaign
     ? sendLogs.filter((log) => log.campaign_id === selectedFilterCampaign)
@@ -85,107 +72,25 @@ export default function SendHub() {
     return new Date(log.next_send_at) <= now && log.status === 'Sent';
   }).length;
 
-  const handleStartCampaign = async () => {
+  // ── Activate Campaign (replaces Start Campaign send loop) ─────────────────
+  const handleActivateCampaign = async () => {
     if (!selectedCampaign || !selectedGmail || !selectedLeadGroup) return;
-    setSending(true);
-    stopRequestedRef.current = false;
-
-    const campaign = campaigns.find((c) => c.id === selectedCampaign);
-    const gmail = gmailAccounts.find((a) => a.id === selectedGmail);
-    const sequence = sequences.find((s) => s.id === campaign?.sequence_id);
-    const dailyLimit = gmail?.daily_limit || 30;
-    const leadsToSend = selectedLeads.slice(0, dailyLimit);
-    const sendDelay = (campaign?.send_delay_minutes || 0) * 60 * 1000;
-
-    setSendProgress({ current: 0, total: leadsToSend.length });
-
-    let successCount = 0;
-    let failCount = 0;
-    let nextSendAt = null;
-
-    for (let i = 0; i < leadsToSend.length; i++) {
-      // Check if stop was requested
-      if (stopRequestedRef.current) {
-        toast.message(`Campaign stopped after ${successCount} sends.`);
-        break;
-      }
-
-      const lead = leadsToSend[i];
-      setSendProgress({ current: i + 1, total: leadsToSend.length });
-
-      const firstStep = sequence?.steps?.[0];
-      const subject = firstStep?.subject || campaign?.name || "Quick question";
-      const body = firstStep?.body || `Hi ${lead.first_name || "there"},\n\nI came across ${lead.company_name || "your company"} and wanted to connect.\n\nBest regards`;
-
-      const secondStep = sequence?.steps?.[1];
-      if (secondStep) {
-        const delayMs = ((secondStep.delay_days || 0) * 24 * 60 * 60 * 1000) +
-                        ((secondStep.delay_hours || 0) * 60 * 60 * 1000) +
-                        ((secondStep.delay_minutes || 0) * 60 * 1000);
-        nextSendAt = new Date(Date.now() + delayMs).toISOString();
-      }
-
-      const res = await base44.functions.invoke("sendEmail", {
-        to: lead.email,
-        subject,
-        body,
-        lead_id: lead.id,
-        campaign_id: selectedCampaign,
+    setActivating(true);
+    try {
+      await base44.entities.Campaign.update(selectedCampaign, {
         gmail_account_id: selectedGmail,
-        sequence_step: "1st",
-      });
-
-      if (res.data?.success) {
-        successCount++;
-        if (nextSendAt) {
-          await new Promise((resolve) => setTimeout(resolve, 2000));
-          const newLogs = await base44.entities.SendLog.list("-created_date", 10);
-          const latestLog = newLogs.find((l) => l.lead_email === lead.email && l.campaign_id === selectedCampaign);
-          if (latestLog) {
-            await base44.entities.SendLog.update(latestLog.id, {
-              next_step_index: 1,
-              next_send_at: nextSendAt,
-            });
-          }
-        }
-      } else {
-        failCount++;
-      }
-
-      if (i < leadsToSend.length - 1 && sendDelay > 0 && !stopRequestedRef.current) {
-        await new Promise((resolve) => setTimeout(resolve, sendDelay));
-      }
-    }
-
-    if (campaign && !stopRequestedRef.current) {
-      await base44.entities.Campaign.update(campaign.id, {
-        total_sent: (campaign.total_sent || 0) + successCount,
-        total_leads: (campaign.total_leads || 0) + leadsToSend.length,
+        leads_group_id: selectedLeadGroup,
         status: "Active",
       });
+      queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+      toast.success("Campaign activated! The cron job will begin sending within 5 minutes.");
+      setSelectedCampaign("");
+      setSelectedGmail("");
+      setSelectedLeadGroup("");
+    } catch (err) {
+      toast.error("Failed to activate campaign.");
     }
-
-    if (gmail) {
-      await base44.entities.GmailAccount.update(gmail.id, {
-        sent_today: (gmail.sent_today || 0) + successCount,
-      });
-    }
-
-    queryClient.invalidateQueries({ queryKey: ["leads"] });
-    queryClient.invalidateQueries({ queryKey: ["send_logs"] });
-    queryClient.invalidateQueries({ queryKey: ["campaigns"] });
-    queryClient.invalidateQueries({ queryKey: ["gmail_accounts"] });
-
-    if (!stopRequestedRef.current) {
-      toast.success(`Campaign sent: ${successCount} delivered${failCount > 0 ? `, ${failCount} failed` : ""}${nextSendAt ? `. Follow-up scheduled!` : ""}`);
-    }
-    setSending(false);
-    setSendProgress({ current: 0, total: 0 });
-    stopRequestedRef.current = false;
-  };
-
-  const handleStopCampaign = () => {
-    stopRequestedRef.current = true;
+    setActivating(false);
   };
 
   const handlePauseCampaign = async () => {
@@ -199,7 +104,7 @@ export default function SendHub() {
     if (!selectedCampaign) return;
     await base44.entities.Campaign.update(selectedCampaign, { status: "Active" });
     queryClient.invalidateQueries({ queryKey: ["campaigns"] });
-    toast.success("Campaign resumed!");
+    toast.success("Campaign resumed! Next batch will send within 5 minutes.");
   };
 
   const handleEndCampaign = async () => {
@@ -207,21 +112,19 @@ export default function SendHub() {
     setEndingCampaign(true);
     setShowEndConfirm(false);
 
-    // Find or create "Completed" folder
     let completedFolder = folders.find((f) => f.name === "Completed");
     if (!completedFolder) {
       completedFolder = await base44.entities.CampaignFolder.create({ name: "Completed" });
       queryClient.invalidateQueries({ queryKey: ["campaignFolders"] });
     }
 
-    // Clear all pending follow-ups for this campaign
-    const campaignLogs = sendLogs.filter((l) => l.campaign_id === selectedCampaign && l.next_send_at && l.next_step_index > 0);
-    await Promise.all(campaignLogs.map((l) => base44.entities.SendLog.update(l.id, {
-      next_step_index: 0,
-      next_send_at: '',
-    })));
+    const campaignLogs = sendLogs.filter((l) =>
+      l.campaign_id === selectedCampaign && l.next_send_at && l.next_step_index > 0
+    );
+    await Promise.all(campaignLogs.map((l) =>
+      base44.entities.SendLog.update(l.id, { next_step_index: 0, next_send_at: '' })
+    ));
 
-    // Mark campaign as Completed and move to Completed folder
     await base44.entities.Campaign.update(selectedCampaign, {
       status: "Completed",
       folder_id: completedFolder.id,
@@ -252,13 +155,13 @@ export default function SendHub() {
   const handleProcessFollowUps = async () => {
     setProcessingFollowUps(true);
     const res = await base44.functions.invoke("processSequenceSteps", {});
-    if (res.data?.processed > 0) {
-      toast.success(`Sent ${res.data.processed} follow-up email${res.data.processed > 1 ? "s" : ""}!`);
+    if (res.data?.followups_processed > 0 || res.data?.step1_processed > 0) {
+      toast.success(res.data.message);
       queryClient.invalidateQueries({ queryKey: ["leads"] });
       queryClient.invalidateQueries({ queryKey: ["send_logs"] });
       queryClient.invalidateQueries({ queryKey: ["campaigns"] });
     } else {
-      toast.message(res.data?.message || "No follow-ups due yet.");
+      toast.message(res.data?.message || "No emails due yet.");
     }
     setProcessingFollowUps(false);
   };
@@ -274,10 +177,7 @@ export default function SendHub() {
     await Promise.all(logsToClear.map((log) => base44.entities.SendLog.delete(log.id)));
 
     if (selectedFilterCampaign) {
-      await base44.entities.Campaign.update(selectedFilterCampaign, {
-        total_sent: 0,
-        total_replies: 0,
-      });
+      await base44.entities.Campaign.update(selectedFilterCampaign, { total_sent: 0, total_replies: 0 });
     } else {
       await Promise.all(campaigns.map((c) =>
         base44.entities.Campaign.update(c.id, { total_sent: 0, total_replies: 0 })
@@ -307,17 +207,39 @@ export default function SendHub() {
   };
 
   const queuedCount = filteredSendLogs.filter((l) => l.status === "Queued").length;
-  const sentCount = filteredSendLogs.filter((l) => l.status === "Sent" || l.status === "Opened" || l.status === "Replied").length;
+  const sentCount = filteredSendLogs.filter((l) => ["Sent","Opened","Replied"].includes(l.status)).length;
   const replyCount = filteredSendLogs.filter((l) => l.status === "Replied").length;
+
+  // Active campaigns (for controls panel)
+  const activePausedCampaigns = campaigns.filter((c) => c.status === "Active" || c.status === "Paused");
 
   return (
     <div className="space-y-6">
-      {/* Controls */}
+
+      {/* ── Activate Campaign ─────────────────────────────────────────────── */}
       <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-5">
-        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mb-4 flex items-center gap-2">
-          <Rocket className="w-4 h-4" /> Launch Campaign
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mb-1 flex items-center gap-2">
+          <Rocket className="w-4 h-4" /> Activate Campaign
         </h2>
+        <p className="text-[11px] text-neutral-400 dark:text-neutral-500 mb-4">
+          Select your campaign, sender, and database — then click Activate. The cron job handles all sending automatically every 5 minutes.
+        </p>
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <div className="space-y-1.5">
+            <Label className="text-xs text-neutral-600 dark:text-neutral-400">Campaign</Label>
+            <Select value={selectedCampaign} onValueChange={setSelectedCampaign}>
+              <SelectTrigger className="h-9 text-sm">
+                <SelectValue placeholder="Select campaign" />
+              </SelectTrigger>
+              <SelectContent>
+                {campaigns.filter((c) => c.status !== "Completed").map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name} {c.status === "Paused" ? "⏸" : c.status === "Active" ? "▶" : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="space-y-1.5">
             <Label className="text-xs text-neutral-600 dark:text-neutral-400">Email Account</Label>
             <Select value={selectedGmail} onValueChange={setSelectedGmail}>
@@ -348,161 +270,95 @@ export default function SendHub() {
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs text-neutral-600 dark:text-neutral-400">Campaign</Label>
-            <Select value={selectedCampaign} onValueChange={setSelectedCampaign}>
-              <SelectTrigger className="h-9 text-sm">
-                <SelectValue placeholder="Select campaign" />
-              </SelectTrigger>
-              <SelectContent>
-                {campaigns.filter((c) => c.status === "Active" || c.status === "Paused").map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name} {c.status === "Paused" ? "⏸" : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-end gap-2">
-            {/* Stop button — only during active send */}
-            {sending && (
-              <Button
-                className="h-9 text-xs bg-red-500 hover:bg-red-600 text-white shrink-0"
-                onClick={handleStopCampaign}
-              >
-                <StopCircle className="w-3.5 h-3.5 mr-1.5" />
-                Stop
-              </Button>
-            )}
-            {/* Start button — not during active send */}
-            {!sending && (
-              <Button
-                className="bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 w-full h-9 text-xs"
-                disabled={!selectedCampaign || !selectedGmail || !selectedLeadGroup || selectedLeads.length === 0 || selectedCampaignStatus === "Paused"}
-                onClick={handleStartCampaign}
-              >
-                <Send className="w-3.5 h-3.5 mr-1.5" />
-                {selectedCampaignStatus === "Paused" ? "Paused" : "Start Campaign"}
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* Campaign control buttons row */}
-        {selectedCampaign && !sending && (
-          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-neutral-100 dark:border-neutral-800">
-            <span className="text-xs text-neutral-400">Campaign controls:</span>
-            {selectedCampaignStatus === "Active" && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 text-xs text-yellow-600 border-yellow-300 hover:bg-yellow-50"
-                onClick={handlePauseCampaign}
-              >
-                <Pause className="w-3 h-3 mr-1" />
-                Pause
-              </Button>
-            )}
-            {selectedCampaignStatus === "Paused" && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 text-xs text-green-600 border-green-300 hover:bg-green-50"
-                onClick={handleResumeCampaign}
-              >
-                <Send className="w-3 h-3 mr-1" />
-                Resume
-              </Button>
-            )}
-            {!showEndConfirm ? (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 text-xs text-red-500 border-red-300 hover:bg-red-50"
-                onClick={() => setShowEndConfirm(true)}
-                disabled={endingCampaign}
-              >
-                <Square className="w-3 h-3 mr-1" />
-                End Campaign
-              </Button>
-            ) : (
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs text-red-500">End this campaign?</span>
-                <Button
-                  size="sm"
-                  className="h-6 text-xs bg-red-500 hover:bg-red-600 text-white"
-                  onClick={handleEndCampaign}
-                  disabled={endingCampaign}
-                >
-                  {endingCampaign ? <Loader2 className="w-3 h-3 animate-spin" /> : "Yes, End It"}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-6 text-xs"
-                  onClick={() => setShowEndConfirm(false)}
-                >
-                  Cancel
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
-
-        <div className="flex items-center justify-between mt-3 flex-wrap gap-2">
-          <p className="text-[11px] text-neutral-400 dark:text-neutral-500">
-            Sends to all New/Pending leads via real Gmail API (up to daily limit).
-          </p>
-          <div className="flex items-center gap-2">
+          <div className="flex items-end">
             <Button
-              variant="outline"
-              size="sm"
-              className="h-8 text-xs"
-              onClick={handleProcessFollowUps}
-              disabled={processingFollowUps}
+              className="bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 w-full h-9 text-xs"
+              disabled={!selectedCampaign || !selectedGmail || !selectedLeadGroup || activating}
+              onClick={handleActivateCampaign}
             >
-              {processingFollowUps ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
-              ) : (
-                <CalendarClock className="w-3.5 h-3.5 mr-1.5" />
-              )}
-              Send Follow-ups
-              {pendingFollowUps > 0 && (
-                <span className="ml-1.5 bg-blue-500 text-white text-[10px] rounded-full px-1.5 py-0.5">
-                  {pendingFollowUps}
-                </span>
-              )}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 text-xs"
-              onClick={handleCheckReplies}
-              disabled={checkingReplies}
-            >
-              {checkingReplies ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <RefreshCw className="w-3.5 h-3.5 mr-1.5" />}
-              Check Replies
+              {activating ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Send className="w-3.5 h-3.5 mr-1.5" />}
+              {activating ? "Activating..." : "Activate Campaign"}
             </Button>
           </div>
         </div>
-
-        {sending && sendProgress.total > 0 && (
-          <div className="mt-3">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-[11px] text-neutral-500">Sending...</span>
-              <span className="text-[11px] text-neutral-500">{sendProgress.current} / {sendProgress.total}</span>
-            </div>
-            <div className="w-full bg-neutral-100 dark:bg-neutral-800 rounded-full h-1.5">
-              <div
-                className="bg-neutral-900 dark:bg-neutral-100 h-1.5 rounded-full transition-all duration-300"
-                style={{ width: `${(sendProgress.current / sendProgress.total) * 100}%` }}
-              />
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Progress Stats */}
+      {/* ── Campaign Controls ─────────────────────────────────────────────── */}
+      {activePausedCampaigns.length > 0 && (
+        <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-5">
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mb-3">
+            Campaign Controls
+          </h2>
+          <div className="space-y-2">
+            {activePausedCampaigns.map((c) => (
+              <div key={c.id} className="flex items-center justify-between py-2 border-b border-neutral-100 dark:border-neutral-800 last:border-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-neutral-700 dark:text-neutral-300">{c.name}</span>
+                  <Badge variant="outline" className={`text-[10px] ${c.status === 'Active' ? 'text-green-600 border-green-300' : 'text-yellow-600 border-yellow-300'}`}>
+                    {c.status}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  {c.status === "Active" && (
+                    <Button variant="outline" size="sm" className="h-7 text-xs text-yellow-600 border-yellow-300 hover:bg-yellow-50"
+                      onClick={async () => {
+                        await base44.entities.Campaign.update(c.id, { status: "Paused" });
+                        queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+                        toast.success(`"${c.name}" paused.`);
+                      }}>
+                      <Pause className="w-3 h-3 mr-1" /> Pause
+                    </Button>
+                  )}
+                  {c.status === "Paused" && (
+                    <Button variant="outline" size="sm" className="h-7 text-xs text-green-600 border-green-300 hover:bg-green-50"
+                      onClick={async () => {
+                        await base44.entities.Campaign.update(c.id, { status: "Active" });
+                        queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+                        toast.success(`"${c.name}" resumed!`);
+                      }}>
+                      <Send className="w-3 h-3 mr-1" /> Resume
+                    </Button>
+                  )}
+                  <Button variant="outline" size="sm" className="h-7 text-xs text-red-500 border-red-300 hover:bg-red-50"
+                    onClick={async () => {
+                      if (!confirm(`End campaign "${c.name}"? This will move it to Completed.`)) return;
+                      let completedFolder = folders.find((f) => f.name === "Completed");
+                      if (!completedFolder) {
+                        completedFolder = await base44.entities.CampaignFolder.create({ name: "Completed" });
+                        queryClient.invalidateQueries({ queryKey: ["campaignFolders"] });
+                      }
+                      const campaignLogs = sendLogs.filter((l) => l.campaign_id === c.id && l.next_send_at && l.next_step_index > 0);
+                      await Promise.all(campaignLogs.map((l) => base44.entities.SendLog.update(l.id, { next_step_index: 0, next_send_at: '' })));
+                      await base44.entities.Campaign.update(c.id, { status: "Completed", folder_id: completedFolder.id });
+                      queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+                      toast.success(`"${c.name}" ended and moved to Completed.`);
+                    }}>
+                    <Square className="w-3 h-3 mr-1" /> End
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Manual Trigger Buttons ────────────────────────────────────────── */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <Button variant="outline" size="sm" className="h-8 text-xs" onClick={handleProcessFollowUps} disabled={processingFollowUps}>
+          {processingFollowUps ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <CalendarClock className="w-3.5 h-3.5 mr-1.5" />}
+          Run Cron Now
+          {pendingFollowUps > 0 && (
+            <span className="ml-1.5 bg-blue-500 text-white text-[10px] rounded-full px-1.5 py-0.5">{pendingFollowUps}</span>
+          )}
+        </Button>
+        <Button variant="outline" size="sm" className="h-8 text-xs" onClick={handleCheckReplies} disabled={checkingReplies}>
+          {checkingReplies ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <RefreshCw className="w-3.5 h-3.5 mr-1.5" />}
+          Check Replies
+        </Button>
+        <p className="text-[11px] text-neutral-400 ml-2">Cron runs automatically every 5 min — use these buttons to trigger manually.</p>
+      </div>
+
+      {/* ── Stats ─────────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
         <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-4 text-center">
           <p className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">{queuedCount}</p>
@@ -518,7 +374,7 @@ export default function SendHub() {
         </div>
       </div>
 
-      {/* Send Logs Table */}
+      {/* ── Send Logs ─────────────────────────────────────────────────────── */}
       <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg overflow-hidden">
         <div className="px-4 py-3 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between gap-3 flex-wrap">
           <h3 className="text-sm font-medium text-neutral-800 dark:text-neutral-200">Send Logs</h3>
@@ -537,37 +393,17 @@ export default function SendHub() {
               </Select>
             </div>
             {!showClearConfirm ? (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 text-xs text-red-500 hover:text-red-600 hover:border-red-300"
-                onClick={() => setShowClearConfirm(true)}
-                disabled={filteredSendLogs.length === 0 || clearingLogs}
-              >
-                <Trash2 className="w-3.5 h-3.5 mr-1.5" />
-                Clear Logs
+              <Button variant="outline" size="sm" className="h-8 text-xs text-red-500 hover:text-red-600 hover:border-red-300"
+                onClick={() => setShowClearConfirm(true)} disabled={filteredSendLogs.length === 0 || clearingLogs}>
+                <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Clear Logs
               </Button>
             ) : (
               <div className="flex items-center gap-1.5">
-                <span className="text-xs text-red-500">
-                  Clear {selectedFilterCampaign ? "campaign" : "all"} logs?
-                </span>
-                <Button
-                  size="sm"
-                  className="h-7 text-xs bg-red-500 hover:bg-red-600 text-white"
-                  onClick={handleClearLogs}
-                  disabled={clearingLogs}
-                >
+                <span className="text-xs text-red-500">Clear {selectedFilterCampaign ? "campaign" : "all"} logs?</span>
+                <Button size="sm" className="h-7 text-xs bg-red-500 hover:bg-red-600 text-white" onClick={handleClearLogs} disabled={clearingLogs}>
                   {clearingLogs ? <Loader2 className="w-3 h-3 animate-spin" /> : "Yes, Clear"}
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-7 text-xs"
-                  onClick={() => setShowClearConfirm(false)}
-                >
-                  Cancel
-                </Button>
+                <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setShowClearConfirm(false)}>Cancel</Button>
               </div>
             )}
           </div>
@@ -576,20 +412,20 @@ export default function SendHub() {
           <Table>
             <TableHeader>
               <TableRow className="bg-neutral-50 dark:bg-neutral-800/50 hover:bg-neutral-50 dark:hover:bg-neutral-800/50">
-                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Status</TableHead>
-                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Lead</TableHead>
-                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Email</TableHead>
-                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Subject</TableHead>
-                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Step</TableHead>
-                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Next Follow-up</TableHead>
-                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Date</TableHead>
+                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Status</TableHead>
+                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Lead</TableHead>
+                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Email</TableHead>
+                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Subject</TableHead>
+                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Step</TableHead>
+                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Next Follow-up</TableHead>
+                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Date</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredSendLogs.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-neutral-400 dark:text-neutral-500 py-10 text-sm">
-                    No sends yet. Launch a campaign to get started.
+                  <TableCell colSpan={7} className="text-center text-neutral-400 py-10 text-sm">
+                    No sends yet. Activate a campaign to get started.
                   </TableCell>
                 </TableRow>
               )}
@@ -604,15 +440,11 @@ export default function SendHub() {
                   <TableCell className="text-sm text-neutral-700 dark:text-neutral-300">{log.lead_name}</TableCell>
                   <TableCell className="text-sm text-neutral-500 dark:text-neutral-400">{log.lead_email}</TableCell>
                   <TableCell className="text-sm text-neutral-500 dark:text-neutral-400">{log.subject}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="text-[11px]">{log.sequence_step}</Badge>
+                  <TableCell><Badge variant="outline" className="text-[11px]">{log.sequence_step}</Badge></TableCell>
+                  <TableCell className="text-xs text-neutral-400">
+                    {log.next_send_at && log.next_step_index > 0 ? format(new Date(log.next_send_at), "MMM d, h:mm a") : "—"}
                   </TableCell>
-                  <TableCell className="text-xs text-neutral-400 dark:text-neutral-500">
-                    {log.next_send_at && log.next_step_index > 0
-                      ? format(new Date(log.next_send_at), "MMM d, h:mm a")
-                      : "—"}
-                  </TableCell>
-                  <TableCell className="text-xs text-neutral-400 dark:text-neutral-500">
+                  <TableCell className="text-xs text-neutral-400">
                     {log.created_date ? format(new Date(log.created_date), "MMM d, h:mm a") : "—"}
                   </TableCell>
                 </TableRow>
