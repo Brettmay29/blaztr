@@ -68,7 +68,6 @@ export default function LeadsDatabase() {
 
   const activeGroupId = customGroupId !== "all" ? customGroupId : selectedGroupId;
   const groupLeads = activeGroupId === "all" ? leads : leads.filter((l) => l.group_id === activeGroupId);
-
   const filteredLeads = groupLeads.filter((l) => {
     if (filters.search) {
       const s = filters.search.toLowerCase();
@@ -85,11 +84,8 @@ export default function LeadsDatabase() {
     return true;
   });
 
-  const handleToggle = (id) =>
-    setSelectedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
-
-  const handleToggleAll = () =>
-    setSelectedIds((prev) => prev.length === filteredLeads.length ? [] : filteredLeads.map((l) => l.id));
+  const handleToggle = (id) => setSelectedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+  const handleToggleAll = () => setSelectedIds((prev) => prev.length === filteredLeads.length ? [] : filteredLeads.map((l) => l.id));
 
   const parseCSVRow = (row) => {
     const values = [];
@@ -116,36 +112,24 @@ export default function LeadsDatabase() {
     setPendingImport(null);
     setImporting(true);
     setImportStatus(null);
-
     const rows = dataRows
       .map((values) => {
-        const lead = {
-          status: "New",
-          sequence_type: "1st",
-          total_sends: 0,
-          opens: 0,
-          clicks: 0,
-        };
+        const lead = { status: "New", sequence_type: "1st", total_sends: 0, opens: 0, clicks: 0 };
         columns.forEach((col, i) => {
           const field = mapping[col];
-          if (field && field !== "__skip__") {
-            lead[field] = values[i] || "";
-          }
+          if (field && field !== "__skip__") { lead[field] = values[i] || ""; }
         });
         return lead;
       })
       .filter((r) => r.email);
-
     if (rows.length === 0) {
       setImportStatus({ type: "error", message: "No valid leads found — the Email column may be empty." });
       setImporting(false);
       return;
     }
-
     const group = await base44.entities.LeadsGroup.create({ name, source, lead_count: rows.length });
     const rowsWithGroup = rows.map((r) => ({ ...r, group_id: group.id }));
     await base44.entities.Lead.bulkCreate(rowsWithGroup);
-
     queryClient.invalidateQueries({ queryKey: ["leads"] });
     queryClient.invalidateQueries({ queryKey: ["leadsGroups"] });
     setImportStatus({ type: "success", message: `Imported ${rows.length} leads into "${name}".` });
@@ -180,25 +164,17 @@ export default function LeadsDatabase() {
     setSelectedSheetGid("");
     const id = match[1];
     setSheetId(id);
-
     try {
-      // Use Google Sheets API v4 with API key to get all sheet tabs
       const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${id}?fields=sheets.properties&key=${SHEETS_API_KEY}`;
       const res = await fetch(apiUrl);
-
       if (!res.ok) {
         const errData = await res.json();
         setImportStatus({ type: "error", message: `Could not load sheets: ${errData?.error?.message || "Unknown error"}` });
         setLoadingSheets(false);
         return;
       }
-
       const data = await res.json();
-      const sheets = (data.sheets || []).map((s) => ({
-        name: s.properties.title,
-        gid: String(s.properties.sheetId),
-      }));
-
+      const sheets = (data.sheets || []).map((s) => ({ name: s.properties.title, gid: String(s.properties.sheetId) }));
       if (sheets.length === 0) {
         setAvailableSheets([{ name: "Default Sheet", gid: "0" }]);
         setSelectedSheetGid("0");
@@ -209,7 +185,6 @@ export default function LeadsDatabase() {
     } catch (err) {
       setImportStatus({ type: "error", message: "Failed to load sheets. Check the URL and try again." });
     }
-
     setLoadingSheets(false);
   };
 
@@ -220,12 +195,8 @@ export default function LeadsDatabase() {
     }
     setImporting(true);
     setImportStatus(null);
-
     let csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
-    if (selectedSheetGid && selectedSheetGid !== "0") {
-      csvUrl += `&gid=${selectedSheetGid}`;
-    }
-
+    if (selectedSheetGid && selectedSheetGid !== "0") { csvUrl += `&gid=${selectedSheetGid}`; }
     const res = await fetch(csvUrl);
     if (!res.ok) {
       setImportStatus({ type: "error", message: "Could not access sheet. Make sure it's set to 'Anyone with the link can view'." });
@@ -248,20 +219,13 @@ export default function LeadsDatabase() {
   };
 
   const handleDeleteSelected = async () => {
-    const affectedGroupIds = [...new Set(
-      selectedIds.map((id) => leads.find((l) => l.id === id)?.group_id).filter(Boolean)
-    )];
-
+    const affectedGroupIds = [...new Set(selectedIds.map((id) => leads.find((l) => l.id === id)?.group_id).filter(Boolean))];
     await Promise.all(selectedIds.map((id) => base44.entities.Lead.delete(id)));
-
     const remainingLeads = leads.filter((l) => !selectedIds.includes(l.id));
     for (const groupId of affectedGroupIds) {
       const stillHasLeads = remainingLeads.some((l) => l.group_id === groupId);
-      if (!stillHasLeads) {
-        await base44.entities.LeadsGroup.delete(groupId);
-      }
+      if (!stillHasLeads) { await base44.entities.LeadsGroup.delete(groupId); }
     }
-
     queryClient.invalidateQueries({ queryKey: ["leads"] });
     queryClient.invalidateQueries({ queryKey: ["leadsGroups"] });
     setSelectedIds([]);
@@ -271,10 +235,7 @@ export default function LeadsDatabase() {
 
   const uploadedGroups = groups.filter((g) => !g.type || g.type === "uploaded");
   const customGroups = groups.filter((g) => g.type === "custom");
-
-  const selectedGroupName = activeGroupId === "all"
-    ? "All Databases"
-    : groups.find((g) => g.id === activeGroupId)?.name || "Unknown";
+  const selectedGroupName = activeGroupId === "all" ? "All Databases" : groups.find((g) => g.id === activeGroupId)?.name || "Unknown";
 
   const handleDeleteGroup = async () => {
     if (selectedGroupId === "all") return;
@@ -319,9 +280,7 @@ export default function LeadsDatabase() {
     queryClient.invalidateQueries({ queryKey: ["leadsGroups"] });
     setSelectedIds([]);
     const sourceGroup = groups.find((g) => g.id === activeGroupId);
-    if (sourceGroup && sourceGroup.type !== "custom") {
-      setLastUploadedGroupId(activeGroupId);
-    }
+    if (sourceGroup && sourceGroup.type !== "custom") { setLastUploadedGroupId(activeGroupId); }
     const destGroup = groups.find((g) => g.id === moveToGroupId);
     if (destGroup?.type === "custom") {
       setCustomGroupId(moveToGroupId);
@@ -340,7 +299,9 @@ export default function LeadsDatabase() {
         <button
           onClick={() => setPageTab("database")}
           className={`px-4 py-1.5 rounded-md text-xs font-medium transition-colors ${
-            pageTab === "database" ? "bg-white dark:bg-neutral-700 shadow-sm text-neutral-900 dark:text-white" : "text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
+            pageTab === "database"
+              ? "bg-white dark:bg-neutral-700 shadow-sm text-neutral-900 dark:text-white"
+              : "text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
           }`}
         >
           Leads Database
@@ -348,7 +309,9 @@ export default function LeadsDatabase() {
         <button
           onClick={() => setPageTab("analytics")}
           className={`px-4 py-1.5 rounded-md text-xs font-medium transition-colors ${
-            pageTab === "analytics" ? "bg-white dark:bg-neutral-700 shadow-sm text-neutral-900 dark:text-white" : "text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
+            pageTab === "analytics"
+              ? "bg-white dark:bg-neutral-700 shadow-sm text-neutral-900 dark:text-white"
+              : "text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
           }`}
         >
           Analytics
@@ -357,351 +320,333 @@ export default function LeadsDatabase() {
 
       {pageTab === "analytics" && <LeadsAnalytics />}
 
-      {pageTab === "database" && <div className="space-y-5">
-      {/* Column Mapper Modal */}
-      {pendingImport && (
-        <ColumnMapper
-          columns={pendingImport.columns}
-          previewRows={pendingImport.dataRows.slice(0, 3)}
-          onConfirm={handleMappingConfirm}
-          onCancel={() => setPendingImport(null)}
-        />
-      )}
-
-      {/* Import Panel */}
-      <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-5">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-          <div className="flex-1 space-y-4">
-            <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Import Leads</h2>
-
-            {/* Tabs */}
-            <div className="flex gap-1 bg-neutral-100 dark:bg-neutral-800 rounded-lg p-1 w-fit">
-              <button
-                onClick={() => setTab("csv")}
-                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                  tab === "csv" ? "bg-white dark:bg-neutral-700 shadow-sm text-neutral-900 dark:text-white" : "text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
-                }`}
-              >
-                <FileSpreadsheet className="w-3.5 h-3.5" />
-                Upload CSV
-              </button>
-              <button
-                onClick={() => setTab("sheet")}
-                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                  tab === "sheet" ? "bg-white dark:bg-neutral-700 shadow-sm text-neutral-900 dark:text-white" : "text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
-                }`}
-              >
-                <Link className="w-3.5 h-3.5" />
-                Google Sheet
-              </button>
-            </div>
-
-            {/* Database name input */}
-            <Input
-              placeholder="Database name (optional, e.g. HVAC Texas Q1)"
-              value={dbName}
-              onChange={(e) => setDbName(e.target.value)}
-              className="text-sm h-9 max-w-xs dark:bg-neutral-800 dark:text-neutral-100 dark:border-neutral-700 dark:placeholder:text-neutral-500"
+      {pageTab === "database" && (
+        <div className="space-y-5">
+          {/* Column Mapper Modal */}
+          {pendingImport && (
+            <ColumnMapper
+              columns={pendingImport.columns}
+              previewRows={pendingImport.dataRows.slice(0, 3)}
+              onConfirm={handleMappingConfirm}
+              onCancel={() => setPendingImport(null)}
             />
+          )}
 
-            {tab === "csv" && (
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                <label className="flex items-center gap-2 cursor-pointer bg-neutral-900 hover:bg-neutral-700 text-white text-xs font-medium px-4 py-2.5 rounded-lg transition-colors">
-                  <Upload className="w-3.5 h-3.5" />
-                  {importing ? "Importing..." : "Choose CSV File"}
-                  <input type="file" accept=".csv" className="hidden" onChange={handleCSVUpload} disabled={importing} />
-                </label>
-                <p className="text-xs text-neutral-400">You'll map columns after selecting the file.</p>
-              </div>
-            )}
+          {/* Import Panel */}
+          <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-5">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <div className="flex-1 space-y-4">
+                <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Import Leads</h2>
 
-            {tab === "sheet" && (
-              <div className="space-y-2">
-                {/* Step 1: URL + Load Sheets button */}
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="https://docs.google.com/spreadsheets/d/..."
-                    value={sheetUrl}
-                    onChange={(e) => {
-                      setSheetUrl(e.target.value);
-                      setAvailableSheets([]);
-                      setSelectedSheetGid("");
-                      setSheetId("");
-                    }}
-                    className="text-sm h-9 flex-1"
-                  />
-                  <Button
-                    size="sm"
-                    className="h-9 bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 text-xs shrink-0"
-                    onClick={handleLoadSheets}
-                    disabled={loadingSheets || !sheetUrl.trim()}
+                {/* Tabs */}
+                <div className="flex gap-1 bg-neutral-100 dark:bg-neutral-800 rounded-lg p-1 w-fit">
+                  <button
+                    onClick={() => setTab("csv")}
+                    className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                      tab === "csv"
+                        ? "bg-white dark:bg-neutral-700 shadow-sm text-neutral-900 dark:text-white"
+                        : "text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
+                    }`}
                   >
-                    {loadingSheets ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : "Load Sheets"}
-                  </Button>
+                    <FileSpreadsheet className="w-3.5 h-3.5" /> Upload CSV
+                  </button>
+                  <button
+                    onClick={() => setTab("sheet")}
+                    className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                      tab === "sheet"
+                        ? "bg-white dark:bg-neutral-700 shadow-sm text-neutral-900 dark:text-white"
+                        : "text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
+                    }`}
+                  >
+                    <Link className="w-3.5 h-3.5" /> Google Sheet
+                  </button>
                 </div>
 
-                {/* Step 2: Sheet tab selector */}
-                {availableSheets.length > 0 && (
-                  <div className="flex gap-2 items-center">
-                    <Select value={selectedSheetGid} onValueChange={setSelectedSheetGid}>
-                      <SelectTrigger className="h-9 text-sm flex-1">
-                        <SelectValue placeholder="Select a sheet tab..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableSheets.map((s) => (
-                          <SelectItem key={s.gid} value={s.gid}>
-                            {s.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      size="sm"
-                      className="h-9 bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 text-xs shrink-0"
-                      onClick={handleSheetImport}
-                      disabled={importing}
-                    >
-                      {importing ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : "Import"}
-                    </Button>
+                {/* Database name input */}
+                <Input
+                  placeholder="Database name (optional, e.g. HVAC Texas Q1)"
+                  value={dbName}
+                  onChange={(e) => setDbName(e.target.value)}
+                  className="text-sm h-9 max-w-xs"
+                />
+
+                {tab === "csv" && (
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer bg-neutral-900 hover:bg-neutral-700 text-white text-xs font-medium px-4 py-2.5 rounded-lg transition-colors">
+                      <Upload className="w-3.5 h-3.5" />
+                      {importing ? "Importing..." : "Choose CSV File"}
+                      <input type="file" accept=".csv" className="hidden" onChange={handleCSVUpload} disabled={importing} />
+                    </label>
+                    <p className="text-xs text-neutral-400">You'll map columns after selecting the file.</p>
                   </div>
                 )}
 
-                <p className="text-xs text-neutral-400">
-                  Sheet must be shared as <strong>"Anyone with the link can view"</strong>. Click "Load Sheets" to see available tabs.
-                </p>
-              </div>
-            )}
+                {tab === "sheet" && (
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="https://docs.google.com/spreadsheets/d/..."
+                        value={sheetUrl}
+                        onChange={(e) => {
+                          setSheetUrl(e.target.value);
+                          setAvailableSheets([]);
+                          setSelectedSheetGid("");
+                          setSheetId("");
+                        }}
+                        className="text-sm h-9 flex-1"
+                      />
+                      <Button
+                        size="sm"
+                        className="h-9 bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 text-xs shrink-0"
+                        onClick={handleLoadSheets}
+                        disabled={loadingSheets || !sheetUrl.trim()}
+                      >
+                        {loadingSheets ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : "Load Sheets"}
+                      </Button>
+                    </div>
+                    {availableSheets.length > 0 && (
+                      <div className="flex gap-2 items-center">
+                        <Select value={selectedSheetGid} onValueChange={setSelectedSheetGid}>
+                          <SelectTrigger className="h-9 text-sm flex-1">
+                            <SelectValue placeholder="Select a sheet tab..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableSheets.map((s) => (
+                              <SelectItem key={s.gid} value={s.gid}>{s.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          size="sm"
+                          className="h-9 bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 text-xs shrink-0"
+                          onClick={handleSheetImport}
+                          disabled={importing}
+                        >
+                          {importing ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : "Import"}
+                        </Button>
+                      </div>
+                    )}
+                    <p className="text-xs text-neutral-400">
+                      Sheet must be shared as <strong>"Anyone with the link can view"</strong>. Click "Load Sheets" to see available tabs.
+                    </p>
+                  </div>
+                )}
 
-            {importStatus && (
-              <div className={`flex items-center gap-2 text-xs px-3 py-2 rounded-lg ${
-                importStatus.type === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
-              }`}>
-                {importStatus.type === "success"
-                  ? <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                  : <AlertCircle className="w-3.5 h-3.5 shrink-0" />}
-                {importStatus.message}
+                {importStatus && (
+                  <div className={`flex items-center gap-2 text-xs px-3 py-2 rounded-lg ${
+                    importStatus.type === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
+                  }`}>
+                    {importStatus.type === "success"
+                      ? <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                      : <AlertCircle className="w-3.5 h-3.5 shrink-0" />}
+                    {importStatus.message}
+                  </div>
+                )}
               </div>
-            )}
+
+              {/* Right column: Uploaded Databases + Custom Database */}
+              <div className="sm:w-56 shrink-0 space-y-3">
+
+                {/* Uploaded Databases */}
+                <div className={customGroupId !== "all" ? "opacity-40 pointer-events-none" : ""}>
+                  <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1.5">Uploaded Databases</p>
+                  <div className="flex items-center gap-1.5">
+                    <Select value={selectedGroupId} onValueChange={setSelectedGroupId}>
+                      <SelectTrigger className="h-9 text-sm flex-1">
+                        <div className="flex items-center gap-2 truncate">
+                          <Database className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+                          <span className="truncate">
+                            {customGroupId !== "all"
+                              ? (lastUploadedGroupId !== "all" ? (groups.find((g) => g.id === lastUploadedGroupId)?.name || "All Databases") : "All Databases")
+                              : selectedGroupName}
+                          </span>
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Databases</SelectItem>
+                        {uploadedGroups.map((g) => (
+                          <SelectItem key={g.id} value={g.id}>
+                            <div className="flex items-center justify-between gap-3 w-full">
+                              <span className="truncate">{g.name}</span>
+                              <span className="text-neutral-400 text-xs shrink-0">{g.lead_count}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                        {uploadedGroups.length === 0 && (
+                          <div className="px-3 py-2 text-xs text-neutral-400">No databases yet</div>
+                        )}
+                      </SelectContent>
+                    </Select>
+                    {selectedGroupId !== "all" && (
+                      <button
+                        onClick={handleDeleteGroup}
+                        className="h-9 w-9 shrink-0 flex items-center justify-center rounded-md border border-neutral-200 text-neutral-400 hover:text-red-500 hover:border-red-300 transition-colors"
+                        title="Delete this database"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Custom Database */}
+                <div>
+                  <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1.5">Custom Database</p>
+                  <div className="flex items-center gap-1.5">
+                    <div className="relative flex-1" ref={customDropdownRef}>
+                      <button
+                        onClick={() => setCustomDropdownOpen((o) => !o)}
+                        className={`w-full h-9 flex items-center gap-2 px-3 text-sm rounded-md border transition-colors ${
+                          customGroupId !== "all"
+                            ? "border-neutral-900 ring-1 ring-neutral-900 bg-transparent dark:border-neutral-400 dark:ring-neutral-400"
+                            : "border-input bg-transparent hover:border-neutral-300 dark:hover:border-neutral-600"
+                        }`}
+                      >
+                        <Database className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+                        <span className="truncate flex-1 text-left text-neutral-700 dark:text-neutral-300">
+                          {customGroupId === "all" ? "Select folder..." : groups.find((g) => g.id === customGroupId)?.name || "Select folder..."}
+                        </span>
+                        <ChevronDown className={`w-3.5 h-3.5 text-neutral-400 shrink-0 transition-transform ${customDropdownOpen ? "rotate-180" : ""}`} />
+                      </button>
+                      {customDropdownOpen && (
+                        <div className="absolute z-50 mt-1 w-full bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-md shadow-lg py-1">
+                          <button
+                            className="w-full text-left px-3 py-2 text-xs text-neutral-500 hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                            onClick={() => { setCustomGroupId("all"); setCustomDropdownOpen(false); }}
+                          >
+                            — None —
+                          </button>
+                          {customGroups.length === 0 && (
+                            <div className="px-3 py-2 text-xs text-neutral-400">No custom folders yet</div>
+                          )}
+                          {customGroups.map((g) => (
+                            <button
+                              key={g.id}
+                              className="w-full text-left px-3 py-2 text-xs text-neutral-800 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-800 flex items-center justify-between"
+                              onClick={() => {
+                                if (g.id === customGroupId) { setCustomGroupId("all"); }
+                                else { setCustomGroupId(g.id); setSelectedGroupId("all"); }
+                                setCustomDropdownOpen(false);
+                              }}
+                            >
+                              <span>{g.name}</span>
+                              {g.id === customGroupId && <Check className="w-3.5 h-3.5 text-neutral-900 shrink-0" />}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    {customGroupId !== "all" && (
+                      <button
+                        onClick={handleDeleteCustomGroup}
+                        className="h-9 w-9 shrink-0 flex items-center justify-center rounded-md border border-neutral-200 text-neutral-400 hover:text-red-500 hover:border-red-300 transition-colors"
+                        title="Delete this database"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                  {/* New folder name + button */}
+                  <div className="flex items-center gap-1.5 mt-1.5">
+                    <Input
+                      placeholder="New folder name..."
+                      value={customDbName}
+                      onChange={(e) => setCustomDbName(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleCreateCustomGroup()}
+                      className="h-9 text-xs flex-1 dark:bg-transparent dark:text-neutral-100 dark:border-neutral-700 dark:placeholder:text-neutral-500"
+                    />
+                    <Button
+                      size="sm"
+                      className="h-9 px-3 text-xs bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 shrink-0"
+                      onClick={handleCreateCustomGroup}
+                      disabled={!customDbName.trim()}
+                    >
+                      +
+                    </Button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
           </div>
 
-          {/* Right column: Uploaded Databases + Custom Database */}
-          <div className="sm:w-56 shrink-0 space-y-3">
-            {/* Uploaded Databases */}
-            <div className={customGroupId !== "all" ? "opacity-40 pointer-events-none" : ""}>
-              <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1.5">Uploaded Databases</p>
+          {/* Leads Table */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <LeadFilters filters={filters} onFilterChange={setFilters} leads={groupLeads} />
+            <span className="text-xs text-neutral-400 shrink-0">
+              {filteredLeads.length} lead{filteredLeads.length !== 1 ? "s" : ""}
+              {selectedGroupId !== "all" && <span className="ml-1 text-neutral-300">in "{selectedGroupName}"</span>}
+            </span>
+          </div>
+
+          {selectedIds.length > 0 && (
+            <div className="bg-neutral-900 text-white text-xs rounded-lg px-4 py-2.5 flex items-center gap-3 flex-wrap">
+              <span className="shrink-0">{selectedIds.length} lead{selectedIds.length > 1 ? "s" : ""} selected</span>
+              {selectedIds.length === 1 && (
+                <Button
+                  size="sm"
+                  className="h-7 text-xs bg-neutral-700 hover:bg-neutral-600 shrink-0"
+                  onClick={() => setEditingLead(leads.find((l) => l.id === selectedIds[0]))}
+                >
+                  <Pencil className="w-3 h-3 mr-1" /> Edit
+                </Button>
+              )}
+              <span className="text-neutral-400 shrink-0 ml-auto sm:ml-0">Move to:</span>
               <div className="flex items-center gap-1.5">
-                <Select value={selectedGroupId} onValueChange={setSelectedGroupId}>
-                  <SelectTrigger className="h-9 text-sm flex-1">
-                    <div className="flex items-center gap-2 truncate">
-                      <Database className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
-                      <span className="truncate">
-                        {customGroupId !== "all"
-                          ? (lastUploadedGroupId !== "all" ? (groups.find((g) => g.id === lastUploadedGroupId)?.name || "All Databases") : "All Databases")
-                          : selectedGroupName}
-                      </span>
-                    </div>
+                <Select value={moveToGroupId} onValueChange={setMoveToGroupId}>
+                  <SelectTrigger className="h-7 text-xs bg-neutral-800 border-neutral-700 text-white w-36">
+                    <SelectValue placeholder="Select folder..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Databases</SelectItem>
                     {uploadedGroups.map((g) => (
-                      <SelectItem key={g.id} value={g.id}>
-                        <div className="flex items-center justify-between gap-3 w-full">
-                          <span className="truncate">{g.name}</span>
-                          <span className="text-neutral-400 text-xs shrink-0">{g.lead_count}</span>
-                        </div>
-                      </SelectItem>
+                      <SelectItem key={g.id} value={g.id} className="text-xs">{g.name}</SelectItem>
                     ))}
-                    {uploadedGroups.length === 0 && (
+                    {customGroups.length > 0 && (
+                      <>
+                        <div className="px-3 py-1.5 mt-1">
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1 h-px bg-neutral-200" />
+                            <span className="text-[10px] text-neutral-400 font-medium whitespace-nowrap">Custom Databases</span>
+                            <div className="flex-1 h-px bg-neutral-200" />
+                          </div>
+                        </div>
+                        {customGroups.map((g) => (
+                          <SelectItem key={g.id} value={g.id} className="text-xs">{g.name}</SelectItem>
+                        ))}
+                      </>
+                    )}
+                    {groups.length === 0 && (
                       <div className="px-3 py-2 text-xs text-neutral-400">No databases yet</div>
                     )}
                   </SelectContent>
                 </Select>
-                {selectedGroupId !== "all" && (
-                  <button
-                    onClick={handleDeleteGroup}
-                    className="h-9 w-9 shrink-0 flex items-center justify-center rounded-md border border-neutral-200 text-neutral-400 hover:text-red-500 hover:border-red-300 transition-colors"
-                    title="Delete this database"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Custom Database */}
-            <div>
-              <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1.5">Custom Database</p>
-              <div className="flex items-center gap-1.5">
-                <div className="relative flex-1" ref={customDropdownRef}>
-                  <button
-                    onClick={() => setCustomDropdownOpen((o) => !o)}
-                    className={`w-full h-9 flex items-center gap-2 px-3 text-sm rounded-md border transition-colors ${
-                      customGroupId !== "all"
-                        ? "border-neutral-900 ring-1 ring-neutral-900 bg-white dark:bg-neutral-800"
-                        : "border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-600"
-                    }`}
-                  >
-                    <Database className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
-                    <span className="truncate flex-1 text-left text-neutral-700 dark:text-neutral-300">
-                      {customGroupId === "all" ? "Select folder..." : groups.find((g) => g.id === customGroupId)?.name || "Select folder..."}
-                    </span>
-                    <ChevronDown className={`w-3.5 h-3.5 text-neutral-400 shrink-0 transition-transform ${customDropdownOpen ? "rotate-180" : ""}`} />
-                  </button>
-                  {customDropdownOpen && (
-                    <div className="absolute z-50 mt-1 w-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md shadow-lg py-1">
-                      <button
-                        className="w-full text-left px-3 py-2 text-xs text-neutral-500 hover:bg-neutral-50 dark:hover:bg-neutral-700"
-                        onClick={() => { setCustomGroupId("all"); setCustomDropdownOpen(false); }}
-                      >
-                        — None —
-                      </button>
-                      {customGroups.length === 0 && (
-                        <div className="px-3 py-2 text-xs text-neutral-400">No custom folders yet</div>
-                      )}
-                      {customGroups.map((g) => (
-                        <button
-                          key={g.id}
-                          className="w-full text-left px-3 py-2 text-xs text-neutral-800 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-700 flex items-center justify-between"
-                          onClick={() => {
-                            if (g.id === customGroupId) {
-                              setCustomGroupId("all");
-                            } else {
-                              setCustomGroupId(g.id);
-                              setSelectedGroupId("all");
-                            }
-                            setCustomDropdownOpen(false);
-                          }}
-                        >
-                          <span>{g.name}</span>
-                          {g.id === customGroupId && <Check className="w-3.5 h-3.5 text-neutral-900 shrink-0" />}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                {customGroupId !== "all" && (
-                  <button
-                    onClick={handleDeleteCustomGroup}
-                    className="h-9 w-9 shrink-0 flex items-center justify-center rounded-md border border-neutral-200 text-neutral-400 hover:text-red-500 hover:border-red-300 transition-colors"
-                    title="Delete this database"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
-              <div className="flex items-center gap-1.5 mt-1.5">
-                <Input
-                  placeholder="New folder name..."
-                  value={customDbName}
-                  onChange={(e) => setCustomDbName(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleCreateCustomGroup()}
-                  className="h-9 text-xs flex-1 dark:bg-neutral-800 dark:text-neutral-100 dark:border-neutral-700 dark:placeholder:text-neutral-500"
-                />
                 <Button
                   size="sm"
-                  className="h-9 px-3 text-xs bg-neutral-900 hover:bg-neutral-800 shrink-0"
-                  onClick={handleCreateCustomGroup}
-                  disabled={!customDbName.trim()}
+                  className="h-7 text-xs bg-neutral-700 hover:bg-neutral-600 shrink-0"
+                  onClick={handleMoveSelected}
+                  disabled={!moveToGroupId}
                 >
-                  +
+                  Move
+                </Button>
+              </div>
+              <div className="flex items-center gap-2 ml-auto">
+                <Button variant="secondary" size="sm" className="h-7 text-xs" onClick={() => setSelectedIds([])}>Clear</Button>
+                <Button variant="destructive" size="sm" className="h-7 text-xs" onClick={handleDeleteSelected}>
+                  <Trash2 className="w-3 h-3 mr-1" /> Delete
                 </Button>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Leads Table */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <LeadFilters filters={filters} onFilterChange={setFilters} leads={groupLeads} />
-        <span className="text-xs text-neutral-400 shrink-0">
-          {filteredLeads.length} lead{filteredLeads.length !== 1 ? "s" : ""}
-          {selectedGroupId !== "all" && <span className="ml-1 text-neutral-300">in "{selectedGroupName}"</span>}
-        </span>
-      </div>
-
-      {selectedIds.length > 0 && (
-        <div className="bg-neutral-900 text-white text-xs rounded-lg px-4 py-2.5 flex items-center gap-3 flex-wrap">
-          <span className="shrink-0">{selectedIds.length} lead{selectedIds.length > 1 ? "s" : ""} selected</span>
-          {selectedIds.length === 1 && (
-            <Button
-              size="sm"
-              className="h-7 text-xs bg-neutral-700 hover:bg-neutral-600 shrink-0"
-              onClick={() => setEditingLead(leads.find((l) => l.id === selectedIds[0]))}
-            >
-              <Pencil className="w-3 h-3 mr-1" /> Edit
-            </Button>
           )}
-          <span className="text-neutral-400 shrink-0 ml-auto sm:ml-0">Move to:</span>
-          <div className="flex items-center gap-1.5">
-            <Select value={moveToGroupId} onValueChange={setMoveToGroupId}>
-              <SelectTrigger className="h-7 text-xs bg-neutral-800 border-neutral-700 text-white w-36">
-                <SelectValue placeholder="Select folder..." />
-              </SelectTrigger>
-              <SelectContent>
-                {uploadedGroups.map((g) => (
-                  <SelectItem key={g.id} value={g.id} className="text-xs">
-                    {g.name}
-                  </SelectItem>
-                ))}
-                {customGroups.length > 0 && (
-                  <>
-                    <div className="px-3 py-1.5 mt-1">
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 h-px bg-neutral-200" />
-                        <span className="text-[10px] text-neutral-400 font-medium whitespace-nowrap">Custom Databases</span>
-                        <div className="flex-1 h-px bg-neutral-200" />
-                      </div>
-                    </div>
-                    {customGroups.map((g) => (
-                      <SelectItem key={g.id} value={g.id} className="text-xs">
-                        {g.name}
-                      </SelectItem>
-                    ))}
-                  </>
-                )}
-                {groups.length === 0 && (
-                  <div className="px-3 py-2 text-xs text-neutral-400">No databases yet</div>
-                )}
-              </SelectContent>
-            </Select>
-            <Button
-              size="sm"
-              className="h-7 text-xs bg-neutral-700 hover:bg-neutral-600 shrink-0"
-              onClick={handleMoveSelected}
-              disabled={!moveToGroupId}
-            >
-              Move
-            </Button>
-          </div>
-          <div className="flex items-center gap-2 ml-auto">
-            <Button variant="secondary" size="sm" className="h-7 text-xs" onClick={() => setSelectedIds([])}>
-              Clear
-            </Button>
-            <Button variant="destructive" size="sm" className="h-7 text-xs" onClick={handleDeleteSelected}>
-              <Trash2 className="w-3 h-3 mr-1" /> Delete
-            </Button>
-          </div>
+
+          <EditLeadDialog lead={editingLead} onSave={handleEditSave} onClose={() => setEditingLead(null)} />
+
+          {isLoading ? (
+            <div className="flex items-center justify-center py-20 text-sm text-neutral-400">Loading leads...</div>
+          ) : (
+            <LeadTable leads={filteredLeads} selectedIds={selectedIds} onToggle={handleToggle} onToggleAll={handleToggleAll} />
+          )}
         </div>
       )}
-
-      <EditLeadDialog
-        lead={editingLead}
-        onSave={handleEditSave}
-        onClose={() => setEditingLead(null)}
-      />
-
-      {isLoading ? (
-        <div className="flex items-center justify-center py-20 text-sm text-neutral-400">Loading leads...</div>
-      ) : (
-        <LeadTable
-          leads={filteredLeads}
-          selectedIds={selectedIds}
-          onToggle={handleToggle}
-          onToggleAll={handleToggleAll}
-        />
-      )}
-      </div>}
     </div>
   );
 }
