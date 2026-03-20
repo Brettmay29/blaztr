@@ -401,7 +401,7 @@ export default function LeadsDatabase() {
               placeholder="Database name (optional, e.g. HVAC Texas Q1)"
               value={dbName}
               onChange={(e) => setDbName(e.target.value)}
-              className="text-sm h-9 max-w-xs"
+              className="text-sm h-9 max-w-xs dark:bg-neutral-800 dark:text-neutral-100 dark:border-neutral-700 dark:placeholder:text-neutral-500"
             />
 
             {tab === "csv" && (
