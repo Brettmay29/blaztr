@@ -595,7 +595,7 @@ export default function LeadsDatabase() {
                   value={customDbName}
                   onChange={(e) => setCustomDbName(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleCreateCustomGroup()}
-                  className="h-9 text-xs flex-1"
+                  className="h-9 text-xs flex-1 dark:bg-neutral-800 dark:text-neutral-100 dark:border-neutral-700 dark:placeholder:text-neutral-500"
                 />
                 <Button
                   size="sm"
