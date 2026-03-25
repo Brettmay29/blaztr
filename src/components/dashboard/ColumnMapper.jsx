@@ -20,6 +20,7 @@ const LEAD_FIELDS = [
   { value: "market", label: "Market" },
   { value: "company_website", label: "Website" },
   { value: "alternate_emails", label: "Alternate Email" },
+  { value: "prospect_id", label: "Prospect ID" },
 ];
 
 function guessMapping(colName) {
@@ -33,6 +34,7 @@ function guessMapping(colName) {
   if (["market", "market_type", "segment", "type"].includes(n)) return "market";
   if (["company_website", "website", "url", "web", "site"].includes(n)) return "company_website";
   if (["alternate_emails", "alternate_email", "alt_email", "other_email"].includes(n)) return "alternate_emails";
+  if (["prospect_id", "prospectid", "prospect"].includes(n)) return "prospect_id";
   return "__skip__";
 }
 
