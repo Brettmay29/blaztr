@@ -329,7 +329,7 @@ ${processedBody}
           lead_name: lead.first_name || '',
           subject: result.subject,
           sequence_step: `Step ${stepIndex + 1}`,
-          next_step_index: nextStep ? nextStepIndex + 1 : 0,
+          next_step_index: nextStep ? nextStepIndex : 0,
           next_send_at: nextSendAt || '',
         });
 
