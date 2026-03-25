@@ -122,13 +122,19 @@ ${processedBody}
     const campaigns = await base44.asServiceRole.entities.Campaign.list();
     const allLogs = await base44.asServiceRole.entities.SendLog.list('-created_date', 500);
 
-    // ── BUILD GLOBAL DEDUP SET ────────────────────────────────────────────────
+    // ── GLOBAL DEDUP SET — no lead gets emailed twice in one day ──────────────
     const emailsSentToday = new Set(
       allLogs
         .filter(l => l.sent_at && l.sent_at.startsWith(todayStr))
         .map(l => l.lead_email)
         .filter(Boolean)
     );
+
+    // ── SAFETY FLOOR: max 1 email per Gmail account per cron run ─────────────
+    // This is the absolute hard limit — no matter what settings are configured,
+    // we never send more than 1 email per Gmail account per 5-minute cron cycle.
+    // This protects inboxes from bulk sending and spam flags.
+    const gmailAccountSentThisRun = new Set();
 
     let step1Processed = 0;
     let step1Failed = 0;
@@ -145,6 +151,10 @@ ${processedBody}
         const gmailAccount = gmailAccounts.find((a) => a.id === campaign.gmail_account_id);
         if (!gmailAccount) continue;
 
+        // SAFETY FLOOR: skip if this Gmail account already sent in this cron run
+        if (gmailAccountSentThisRun.has(gmailAccount.id)) continue;
+
+        // Check daily limit for this Gmail account
         const sentTodayByAccount = allLogs.filter((l) =>
           l.gmail_account_id === campaign.gmail_account_id &&
           l.sent_at &&
@@ -155,18 +165,13 @@ ${processedBody}
         const remainingToday = dailyLimit - sentTodayByAccount;
         if (remainingToday <= 0) continue;
 
-        // ── Calculate emails per cron run based on send_delay_minutes ─────────
-        // Cron fires every 5 minutes. If wait = 1 min → send 5. If wait >= 5 min → send 1.
-        const sendDelayMinutes = campaign.send_delay_minutes || 5;
-        const emailsPerRun = Math.max(1, Math.floor(5 / sendDelayMinutes));
-
         const allLeads = await base44.asServiceRole.entities.Lead.list('-created_date', 500);
         const eligibleLeads = allLeads.filter((l) =>
           l.group_id === campaign.leads_group_id &&
           (l.status === 'New' || l.status === 'Pending') &&
           !['Replied', 'Bounced', 'Opted Out', 'Undeliverable', 'Contacted'].includes(l.status) &&
           !emailsSentToday.has(l.email)
-        ).slice(0, Math.min(remainingToday, emailsPerRun));
+        ).slice(0, 1); // Always exactly 1 per campaign per cron run
 
         if (eligibleLeads.length === 0) continue;
 
@@ -176,78 +181,89 @@ ${processedBody}
             const conn = await base44.asServiceRole.connectors.getConnection('gmail');
             accessToken = conn.accessToken;
           } catch {
-            step1Failed += eligibleLeads.length;
+            step1Failed++;
             continue;
           }
         }
 
         const firstStep = sequence.steps[0];
         const secondStep = sequence.steps[1] || null;
+        const lead = eligibleLeads[0];
 
-        for (const lead of eligibleLeads) {
-          try {
-            const result = await buildAndSendEmail(lead, firstStep, gmailAccount, accessToken);
-            accessToken = result.accessToken;
+        try {
+          const result = await buildAndSendEmail(lead, firstStep, gmailAccount, accessToken);
+          accessToken = result.accessToken;
 
-            if (!result.ok) {
-              step1Failed++;
-              continue;
-            }
-
-            emailsSentToday.add(lead.email);
-
-            let nextSendAt = null;
-            if (secondStep) {
-              const delayMs = ((secondStep.delay_days || 0) * 24 * 60 * 60 * 1000) +
-                              ((secondStep.delay_hours || 0) * 60 * 60 * 1000) +
-                              ((secondStep.delay_minutes || 0) * 60 * 1000);
-              nextSendAt = new Date(Date.now() + delayMs).toISOString();
-            }
-
-            const nowIso = new Date().toISOString();
-
-            await base44.asServiceRole.entities.SendLog.create({
-              lead_id: lead.id,
-              campaign_id: campaign.id,
-              gmail_account_id: campaign.gmail_account_id || '',
-              status: 'Sent',
-              sent_at: nowIso,
-              lead_email: lead.email,
-              lead_name: lead.first_name || '',
-              subject: result.subject,
-              sequence_step: 'Step 1',
-              next_step_index: secondStep ? 1 : 0,
-              next_send_at: nextSendAt || '',
-            });
-
-            await base44.asServiceRole.entities.Lead.update(lead.id, {
-              status: 'Contacted',
-              total_sends: (lead.total_sends || 0) + 1,
-              latest_send: todayStr,
-              next_send_at: nextSendAt || '',
-            });
-
-            await base44.asServiceRole.entities.Campaign.update(campaign.id, {
-              total_sent: (campaign.total_sent || 0) + 1,
-            });
-
-            step1Processed++;
-          } catch (err) {
-            console.error('Step 1 error for lead', lead.id, err.message);
+          if (!result.ok) {
             step1Failed++;
+            continue;
           }
+
+          // Mark this Gmail account as used for this cron run
+          gmailAccountSentThisRun.add(gmailAccount.id);
+          emailsSentToday.add(lead.email);
+
+          let nextSendAt = null;
+          if (secondStep) {
+            const delayMs = ((secondStep.delay_days || 0) * 24 * 60 * 60 * 1000) +
+                            ((secondStep.delay_hours || 0) * 60 * 60 * 1000) +
+                            ((secondStep.delay_minutes || 0) * 60 * 1000);
+            nextSendAt = new Date(Date.now() + delayMs).toISOString();
+          }
+
+          const nowIso = new Date().toISOString();
+
+          await base44.asServiceRole.entities.SendLog.create({
+            lead_id: lead.id,
+            campaign_id: campaign.id,
+            gmail_account_id: campaign.gmail_account_id || '',
+            status: 'Sent',
+            sent_at: nowIso,
+            lead_email: lead.email,
+            lead_name: lead.first_name || '',
+            subject: result.subject,
+            sequence_step: 'Step 1',
+            next_step_index: secondStep ? 1 : 0,
+            next_send_at: nextSendAt || '',
+          });
+
+          await base44.asServiceRole.entities.Lead.update(lead.id, {
+            status: 'Contacted',
+            total_sends: (lead.total_sends || 0) + 1,
+            latest_send: todayStr,
+            next_send_at: nextSendAt || '',
+          });
+
+          await base44.asServiceRole.entities.Campaign.update(campaign.id, {
+            total_sent: (campaign.total_sent || 0) + 1,
+          });
+
+          step1Processed++;
+        } catch (err) {
+          console.error('Step 1 error for lead', lead.id, err.message);
+          step1Failed++;
         }
       } catch (err) {
         console.error('Error processing campaign', campaign.id, err.message);
       }
     }
 
-    // ── PART 2: Follow-ups (Steps 2, 3, etc.) ────────────────────────────────
+    // ── PART 2: Follow-ups (Steps 2, 3, 4, etc.) ─────────────────────────────
 
-    const pendingLogs = allLogs.filter((log) => {
+    const allPendingLogs = allLogs.filter((log) => {
       if (!log.next_send_at || !log.next_step_index) return false;
       const sendAt = new Date(log.next_send_at);
       return sendAt <= now && log.status === 'Sent';
+    });
+
+    // SAFETY FLOOR: only 1 follow-up per Gmail account per cron run
+    const pendingLogs = allPendingLogs.filter((log) => {
+      const campaign = campaigns.find((c) => c.id === log.campaign_id);
+      if (!campaign) return false;
+      const gmailAccountId = campaign.gmail_account_id;
+      if (gmailAccountSentThisRun.has(gmailAccountId)) return false;
+      gmailAccountSentThisRun.add(gmailAccountId);
+      return true;
     });
 
     let followUpProcessed = 0;
