@@ -445,7 +445,7 @@ export default function SendHub() {
                     {log.next_send_at && log.next_step_index > 0 ? format(new Date(log.next_send_at), "MMM d, h:mm a") : "—"}
                   </TableCell>
                   <TableCell className="text-xs text-neutral-400">
-                    {log.created_date ? format(new Date(log.created_date), "MMM d, h:mm a") : "—"}
+                    {log.sent_at ? format(new Date(log.sent_at), "MMM d, h:mm a") : "—"}
                   </TableCell>
                 </TableRow>
               ))}
