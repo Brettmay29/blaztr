@@ -6,8 +6,6 @@ Deno.serve(async (req) => {
     const now = new Date();
     const todayStr = now.toISOString().split('T')[0];
 
-    // ── Shared helpers ────────────────────────────────────────────────────────
-
     const refreshAccessToken = async (refreshToken) => {
       const refreshRes = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',
@@ -124,9 +122,7 @@ ${processedBody}
     const campaigns = await base44.asServiceRole.entities.Campaign.list();
     const allLogs = await base44.asServiceRole.entities.SendLog.list('-created_date', 500);
 
-    // ── BUILD GLOBAL DEDUP SET — emails already contacted TODAY ──────────────
-    // This prevents any lead from receiving more than one email per day
-    // even if they appear in multiple campaigns' databases
+    // ── BUILD GLOBAL DEDUP SET ────────────────────────────────────────────────
     const emailsSentToday = new Set(
       allLogs
         .filter(l => l.sent_at && l.sent_at.startsWith(todayStr))
@@ -149,7 +145,6 @@ ${processedBody}
         const gmailAccount = gmailAccounts.find((a) => a.id === campaign.gmail_account_id);
         if (!gmailAccount) continue;
 
-        // Count emails sent today BY THIS GMAIL ACCOUNT (across all campaigns)
         const sentTodayByAccount = allLogs.filter((l) =>
           l.gmail_account_id === campaign.gmail_account_id &&
           l.sent_at &&
@@ -160,18 +155,21 @@ ${processedBody}
         const remainingToday = dailyLimit - sentTodayByAccount;
         if (remainingToday <= 0) continue;
 
-        // Get leads for this campaign's database
+        // ── Calculate emails per cron run based on send_delay_minutes ─────────
+        // Cron fires every 5 minutes. If wait = 1 min → send 5. If wait >= 5 min → send 1.
+        const sendDelayMinutes = campaign.send_delay_minutes || 5;
+        const emailsPerRun = Math.max(1, Math.floor(5 / sendDelayMinutes));
+
         const allLeads = await base44.asServiceRole.entities.Lead.list('-created_date', 500);
         const eligibleLeads = allLeads.filter((l) =>
           l.group_id === campaign.leads_group_id &&
           (l.status === 'New' || l.status === 'Pending') &&
           !['Replied', 'Bounced', 'Opted Out', 'Undeliverable', 'Contacted'].includes(l.status) &&
-          !emailsSentToday.has(l.email)  // ← DEDUP: skip if emailed today by any campaign
-                ).slice(0, Math.min(remainingToday, 10));
+          !emailsSentToday.has(l.email)
+        ).slice(0, Math.min(remainingToday, emailsPerRun));
 
         if (eligibleLeads.length === 0) continue;
 
-        // Get access token
         let accessToken = gmailAccount.access_token;
         if (!accessToken) {
           try {
@@ -196,10 +194,8 @@ ${processedBody}
               continue;
             }
 
-            // ── IMMEDIATELY add to dedup set so next campaign skips this lead ──
             emailsSentToday.add(lead.email);
 
-            // Calculate next follow-up time
             let nextSendAt = null;
             if (secondStep) {
               const delayMs = ((secondStep.delay_days || 0) * 24 * 60 * 60 * 1000) +
@@ -246,7 +242,7 @@ ${processedBody}
       }
     }
 
-    // ── PART 2: Send follow-ups (Steps 2, 3, etc.) ───────────────────────────
+    // ── PART 2: Follow-ups (Steps 2, 3, etc.) ────────────────────────────────
 
     const pendingLogs = allLogs.filter((log) => {
       if (!log.next_send_at || !log.next_step_index) return false;
