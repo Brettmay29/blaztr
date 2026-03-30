@@ -168,6 +168,20 @@ Deno.serve(async (req) => {
             replied_at: new Date().toISOString(),
           });
 
+          // Clear all pending future sequence steps for this lead
+          const pendingSteps = sendLogs.filter(
+            (l) => l.lead_id === matchingLog.lead_id &&
+                   l.status === 'Sent' &&
+                   l.next_send_at &&
+                   l.next_send_at !== ''
+          );
+          for (const step of pendingSteps) {
+            await base44.asServiceRole.entities.SendLog.update(step.id, {
+              next_step_index: 0,
+              next_send_at: '',
+            });
+          }
+
           if (matchingLog.campaign_id) {
             const campaign = await base44.asServiceRole.entities.Campaign.get(matchingLog.campaign_id);
             if (campaign) {
