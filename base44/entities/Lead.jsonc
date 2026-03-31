@@ -1,0 +1,113 @@
+{
+  "name": "Lead",
+  "type": "object",
+  "properties": {
+    "assigned_to": {
+      "type": "string"
+    },
+    "sender_email": {
+      "type": "string"
+    },
+    "first_send": {
+      "type": "string",
+      "format": "date"
+    },
+    "latest_send": {
+      "type": "string",
+      "format": "date"
+    },
+    "total_sends": {
+      "type": "number",
+      "default": 0
+    },
+    "next_send": {
+      "type": "string",
+      "format": "date"
+    },
+    "reply_sentiment": {
+      "type": "string",
+      "enum": [
+        "PR",
+        "NR",
+        "N",
+        ""
+      ],
+      "default": ""
+    },
+    "company_name": {
+      "type": "string"
+    },
+    "first_name": {
+      "type": "string"
+    },
+    "last_name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "company_website": {
+      "type": "string"
+    },
+    "industry": {
+      "type": "string"
+    },
+    "market": {
+      "type": "string"
+    },
+    "opens": {
+      "type": "number",
+      "default": 0
+    },
+    "clicks": {
+      "type": "number",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "New",
+        "Pending",
+        "Sent",
+        "Replied",
+        "Bounced",
+        "Opted Out",
+        "Do Not Contact"
+      ],
+      "default": "New"
+    },
+    "sequence_type": {
+      "type": "string",
+      "enum": [
+        "1st",
+        "2nd"
+      ],
+      "default": "1st"
+    },
+    "alternate_emails": {
+      "type": "string"
+    },
+    "group_id": {
+      "type": "string"
+    },
+    "next_send_at": {
+      "type": "string"
+    },
+    "prospect_id": {
+      "type": "string"
+    },
+    "sender_type": {
+      "type": "string"
+    },
+    "sender_name": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "email",
+    "first_name"
+  ]
+}

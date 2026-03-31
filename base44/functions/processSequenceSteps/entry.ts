@@ -284,7 +284,7 @@ ${processedBody}
 
         const lead = await base44.asServiceRole.entities.Lead.get(log.lead_id);
         if (!lead) continue;
-        if (['Replied', 'Opted Out', 'Bounced', 'Undeliverable'].includes(lead.status)) continue;
+        if (['Replied', 'Opted Out', 'Bounced', 'Undeliverable', 'Do Not Contact'].includes(lead.status)) continue;
 
         const gmailAccount = gmailAccounts.find((a) => a.id === campaign.gmail_account_id);
         if (!gmailAccount) continue;
