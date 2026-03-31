@@ -28,7 +28,7 @@ const FIELDS = [
   { key: "company_website", label: "Website" },
 ];
 
-const STATUS_OPTIONS = ["New", "Pending", "Sent", "Replied", "Bounced", "Opted Out"];
+const STATUS_OPTIONS = ["New", "Pending", "Sent", "Replied", "Bounced", "Opted Out", "Do Not Contact"];
 const SEQ_OPTIONS = ["1st", "2nd"];
 
 export default function EditLeadDialog({ lead, onSave, onClose }) {
