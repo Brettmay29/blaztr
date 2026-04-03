@@ -224,13 +224,15 @@ export default function LeadsDatabase() {
     const remainingLeads = leads.filter((l) => !selectedIds.includes(l.id));
     for (const groupId of affectedGroupIds) {
       const stillHasLeads = remainingLeads.some((l) => l.group_id === groupId);
-      if (!stillHasLeads) { await base44.entities.LeadsGroup.delete(groupId); }
+      if (!stillHasLeads) {
+        await base44.entities.LeadsGroup.delete(groupId);
+        if (selectedGroupId === groupId) setSelectedGroupId("all");
+        if (customGroupId === groupId) setCustomGroupId("all");
+      }
     }
     queryClient.invalidateQueries({ queryKey: ["leads"] });
     queryClient.invalidateQueries({ queryKey: ["leadsGroups"] });
     setSelectedIds([]);
-    setSelectedGroupId("all");
-    setCustomGroupId("all");
   };
 
   const uploadedGroups = groups.filter((g) => !g.type || g.type === "uploaded");
