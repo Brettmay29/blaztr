@@ -573,7 +573,7 @@ export default function LeadsDatabase() {
           </div>
 
           {/* Leads Table */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sticky top-0 z-10 bg-white dark:bg-neutral-950 py-2">
             <LeadFilters filters={filters} onFilterChange={setFilters} leads={groupLeads} />
             <span className="text-xs text-neutral-400 shrink-0">
               {filteredLeads.length} lead{filteredLeads.length !== 1 ? "s" : ""}
