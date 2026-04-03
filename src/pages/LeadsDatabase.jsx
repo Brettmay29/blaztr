@@ -582,7 +582,7 @@ export default function LeadsDatabase() {
           </div>
 
           {selectedIds.length > 0 && (
-            <div className="bg-neutral-900 text-white text-xs rounded-lg px-4 py-2.5 flex items-center gap-3 flex-wrap">
+            <div className="bg-neutral-900 text-white text-xs rounded-lg px-4 py-2.5 flex items-center gap-3 flex-wrap sticky top-12 z-10">
               <span className="shrink-0">{selectedIds.length} lead{selectedIds.length > 1 ? "s" : ""} selected</span>
               {selectedIds.length === 1 && (
                 <Button
