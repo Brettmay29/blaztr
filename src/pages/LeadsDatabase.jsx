@@ -573,7 +573,7 @@ export default function LeadsDatabase() {
           </div>
 
           {/* Leads Table */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sticky top-0 z-10 bg-white dark:bg-neutral-950 py-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <LeadFilters filters={filters} onFilterChange={setFilters} leads={groupLeads} />
             <span className="text-xs text-neutral-400 shrink-0">
               {filteredLeads.length} lead{filteredLeads.length !== 1 ? "s" : ""}
@@ -582,7 +582,7 @@ export default function LeadsDatabase() {
           </div>
 
           {selectedIds.length > 0 && (
-            <div className="bg-neutral-900 text-white text-xs rounded-lg px-4 py-2.5 flex items-center gap-3 flex-wrap sticky top-12 z-10">
+            <div className="bg-neutral-900 text-white text-xs rounded-lg px-4 py-2.5 flex items-center gap-3 flex-wrap">
               <span className="shrink-0">{selectedIds.length} lead{selectedIds.length > 1 ? "s" : ""} selected</span>
               {selectedIds.length === 1 && (
                 <Button
