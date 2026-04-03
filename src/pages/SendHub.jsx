@@ -46,7 +46,7 @@ export default function SendHub() {
 
   const { data: leads = [] } = useQuery({
     queryKey: ["leads"],
-    queryFn: () => base44.entities.Lead.list("-created_date", 500),
+    queryFn: () => base44.entities.Lead.list("-created_date", 2000),
   });
 
   const { data: sendLogs = [] } = useQuery({
