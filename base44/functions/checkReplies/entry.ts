@@ -73,11 +73,15 @@ Deno.serve(async (req) => {
             processedBounces.add(bouncedEmail);
             const matchingLog = sendLogs.find((l) => l.lead_email?.toLowerCase() === bouncedEmail);
             if (matchingLog?.lead_id) {
-              const lead = await base44.asServiceRole.entities.Lead.get(matchingLog.lead_id);
-              if (lead && lead.status !== 'Bounced' && lead.status !== 'Undeliverable') {
-                await base44.asServiceRole.entities.Lead.update(matchingLog.lead_id, { status: 'Bounced' });
-                await base44.asServiceRole.entities.SendLog.update(matchingLog.id, { status: 'Failed' });
-                bouncesFound.push({ email: bouncedEmail, account: account.email });
+              try {
+                const lead = await base44.asServiceRole.entities.Lead.get(matchingLog.lead_id);
+                if (lead && lead.status !== 'Bounced' && lead.status !== 'Undeliverable') {
+                  await base44.asServiceRole.entities.Lead.update(matchingLog.lead_id, { status: 'Bounced' });
+                  await base44.asServiceRole.entities.SendLog.update(matchingLog.id, { status: 'Failed' });
+                  bouncesFound.push({ email: bouncedEmail, account: account.email });
+                }
+              } catch {
+                // Lead was deleted — skip gracefully
               }
             }
           }
@@ -135,38 +139,42 @@ Deno.serve(async (req) => {
         repliesFound.push({ email: fromEmail, message_id: msg.id, account: account.email });
 
         if (matchingLog?.lead_id) {
-          await base44.asServiceRole.entities.Lead.update(matchingLog.lead_id, {
-            status: 'Replied',
-            reply_sentiment: 'PR',
-          });
-          await base44.asServiceRole.entities.SendLog.update(matchingLog.id, {
-            status: 'Replied',
-            replied_at: new Date().toISOString(),
-          });
-
-          // FIX: Clear all pending future sequence steps so no more follow-ups fire after a reply
-          const pendingLogsToCancel = sendLogs.filter(
-            (l) =>
-              l.lead_id === matchingLog.lead_id &&
-              l.status === 'Sent' &&
-              l.next_send_at &&
-              l.next_send_at !== '' &&
-              l.id !== matchingLog.id
-          );
-          for (const pending of pendingLogsToCancel) {
-            await base44.asServiceRole.entities.SendLog.update(pending.id, {
-              next_step_index: 0,
-              next_send_at: '',
+          try {
+            await base44.asServiceRole.entities.Lead.update(matchingLog.lead_id, {
+              status: 'Replied',
+              reply_sentiment: 'PR',
             });
-          }
+            await base44.asServiceRole.entities.SendLog.update(matchingLog.id, {
+              status: 'Replied',
+              replied_at: new Date().toISOString(),
+            });
 
-          if (matchingLog.campaign_id) {
-            const campaign = await base44.asServiceRole.entities.Campaign.get(matchingLog.campaign_id);
-            if (campaign) {
-              await base44.asServiceRole.entities.Campaign.update(matchingLog.campaign_id, {
-                total_replies: (campaign.total_replies || 0) + 1,
+            // FIX: Clear all pending future sequence steps so no more follow-ups fire after a reply
+            const pendingLogsToCancel = sendLogs.filter(
+              (l) =>
+                l.lead_id === matchingLog.lead_id &&
+                l.status === 'Sent' &&
+                l.next_send_at &&
+                l.next_send_at !== '' &&
+                l.id !== matchingLog.id
+            );
+            for (const pending of pendingLogsToCancel) {
+              await base44.asServiceRole.entities.SendLog.update(pending.id, {
+                next_step_index: 0,
+                next_send_at: '',
               });
             }
+
+            if (matchingLog.campaign_id) {
+              const campaign = await base44.asServiceRole.entities.Campaign.get(matchingLog.campaign_id);
+              if (campaign) {
+                await base44.asServiceRole.entities.Campaign.update(matchingLog.campaign_id, {
+                  total_replies: (campaign.total_replies || 0) + 1,
+                });
+              }
+            }
+          } catch {
+            // Lead was deleted — skip gracefully
           }
         }
       }
